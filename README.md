@@ -1,1 +1,1 @@
-# agent-os-sandbox
+![Build Status](https://img.shields.io/badge/status-Passing-success)
