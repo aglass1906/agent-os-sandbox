@@ -2,7 +2,12 @@
 set -euo pipefail
 
 EXPECTED="[Phase 3 Canary: take 3 on the release testing]"
-ACTUAL=$(grep -E '^\[Phase 3 Canary:' README.md || true)
+ACTUAL=""
+while IFS= read -r line; do
+  if [[ "$line" == "[Phase 3 Canary:"* ]]; then
+    ACTUAL="$line"
+  fi
+done < README.md
 
 if [ "$ACTUAL" = "$EXPECTED" ]; then
   echo "PASS: canary badge label matches"
