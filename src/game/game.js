@@ -172,5 +172,31 @@ function renderStatus() {
 
 resetBtn.addEventListener("click", resetGame);
 
+// About / How to Play screen.
+const aboutBtn = document.getElementById("aboutBtn");
+const aboutModal = document.getElementById("aboutModal");
+const aboutCloseBtn = document.getElementById("aboutClose");
+
+function openAbout() {
+  aboutModal.hidden = false;
+  aboutCloseBtn.focus();
+}
+
+function closeAbout() {
+  aboutModal.hidden = true;
+  aboutBtn.focus();
+}
+
+aboutBtn.addEventListener("click", openAbout);
+aboutCloseBtn.addEventListener("click", closeAbout);
+
+aboutModal.addEventListener("click", (event) => {
+  if (event.target === aboutModal) closeAbout();
+});
+
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape" && !aboutModal.hidden) closeAbout();
+});
+
 renderBoard();
 renderStatus();

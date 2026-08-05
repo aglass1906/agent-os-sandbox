@@ -16,8 +16,36 @@
 
     <div id="board" class="board" role="grid" aria-label="Tic Tac Toe board"></div>
 
-    <button id="reset" class="reset" type="button">New Game</button>
+    <div class="controls">
+      <button id="reset" class="reset" type="button">New Game</button>
+      <button id="aboutBtn" class="reset about" type="button" aria-haspopup="dialog">How to Play</button>
+    </div>
   </main>
+
+  <div id="aboutModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="about-title" hidden>
+    <div class="modal-card">
+      <h2 id="about-title" class="modal-title">How to Play Tic Tac Toe</h2>
+
+      <div class="modal-objective">
+        <span class="modal-label">Objective</span>
+        <p>Be the first player to get three of your markers in a row.</p>
+      </div>
+
+      <div class="modal-section">
+        <span class="modal-label">Rules</span>
+        <ol>
+          <li>The game is played on a 3&nbsp;&times;&nbsp;3 grid.</li>
+          <li>Players take turns placing their own marker; one player uses <strong>X</strong> and the other uses <strong>O</strong>.</li>
+          <li>Player&nbsp;X always goes first, then turns alternate between players.</li>
+          <li>Click an empty cell to place your marker. Once a cell is filled, it cannot be changed.</li>
+          <li>The first player to line up three of their markers horizontally, vertically, or diagonally wins.</li>
+          <li>If all nine cells are filled with no three in a row, the game is a draw.</li>
+        </ol>
+      </div>
+
+      <button id="aboutClose" class="reset about" type="button">Close</button>
+    </div>
+  </div>
 
   <script src="game.js"></script>
 </body>
