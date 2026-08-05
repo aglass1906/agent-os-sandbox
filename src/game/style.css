@@ -43,6 +43,28 @@ body {
   font-weight: 600;
 }
 
+.celebration {
+  font-size: 1.4rem;
+  min-height: 2rem;
+  font-weight: 800;
+  color: #16a085;
+  opacity: 0;
+  transform: scale(0.9);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.celebration.celebrate {
+  opacity: 1;
+  transform: scale(1);
+  animation: celebration-pop 0.6s ease;
+}
+
+@keyframes celebration-pop {
+  0% { transform: scale(0.5); opacity: 0; }
+  60% { transform: scale(1.15); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
 .board {
   display: grid;
   grid-template-columns: repeat(3, var(--cell-size));
@@ -88,6 +110,22 @@ body {
 
 .cell.o-marker {
   color: #2980b9;
+}
+
+.cell.win-cell {
+  background: #ffe08a;
+  animation: win-flash 0.7s ease-in-out infinite;
+}
+
+@keyframes win-flash {
+  0%, 100% {
+    background: #ffe08a;
+    transform: scale(1);
+  }
+  50% {
+    background: #ffd54d;
+    transform: scale(1.08);
+  }
 }
 
 .reset {
