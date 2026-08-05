@@ -189,33 +189,27 @@ function submitGuess() {
   classifyGuess();
   mergeKeyboardState();
 
-  addReveal();
-
+  const submittedRow = state.current_row;
   const won = guess === state.answer;
   if (won) {
     state.status = STATUS_WON;
-    renderBoard();
-    renderKeyboard();
     statusEl.textContent = "You won! The word was " + state.answer;
-    return;
+  } else if (state.current_row === MAX_GUESSES - 1) {
+    state.status = STATUS_LOST;
+    statusEl.textContent = "You lost! The word was " + state.answer;
+  } else {
+    state.current_row += 1;
+    state.current_col = 0;
+    statusEl.textContent = "Guesses remaining: " + (MAX_GUESSES - state.current_row);
   }
 
   renderBoard();
   renderKeyboard();
-
-  if (state.current_row === MAX_GUESSES - 1) {
-    state.status = STATUS_LOST;
-    statusEl.textContent = "You lost! The word was " + state.answer;
-    return;
-  }
-
-  state.current_row += 1;
-  state.current_col = 0;
-  statusEl.textContent = "Guesses remaining: " + (MAX_GUESSES - state.current_row);
+  addRevealToRow(submittedRow);
 }
 
-function addReveal() {
-  const rowEl = boardEl.children[state.current_row];
+function addRevealToRow(row) {
+  const rowEl = boardEl.children[row];
   if (!rowEl) return;
   const tiles = rowEl.children;
   for (let c = 0; c < WORD_LENGTH; c++) {
