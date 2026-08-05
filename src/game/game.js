@@ -22,6 +22,8 @@ function createInitialState() {
     current_player: MARKER_X,
     move_count: 0,
     status: STATUS_PLAYING,
+    winner: EMPTY,
+    win_cells: [],
   };
 }
 
@@ -33,51 +35,41 @@ const resetBtn = document.getElementById("reset");
 
 // Win detection per Design Doc Section 4:
 // anchored on the just-placed cell (r, c), checking only the directions
-// that pass through it. Returns the winning marker or EMPTY (no win).
+// that pass through it. Returns an array of winning cell coordinates
+// (each {r, c}) or an empty array if no line of three exists.
 function detectWin(r, c, marker) {
-  if (marker === EMPTY) return EMPTY;
+  if (marker === EMPTY) return [];
 
-  let allMatch = true;
-  for (let col = 0; col < COLS; col++) {
-    if (state.grid[r][col] !== marker) {
-      allMatch = false;
-      break;
-    }
-  }
-  if (allMatch) return marker;
+  const collect = (cells) => {
+    const allMatch = cells.every(({ r: cr, c: cc }) => state.grid[cr][cc] === marker);
+    return allMatch ? cells : null;
+  };
 
-  allMatch = true;
-  for (let row = 0; row < ROWS; row++) {
-    if (state.grid[row][c] !== marker) {
-      allMatch = false;
-      break;
-    }
-  }
-  if (allMatch) return marker;
+  const rowLine = [];
+  for (let col = 0; col < COLS; col++) rowLine.push({ r, c: col });
+  const rowWin = collect(rowLine);
+  if (rowWin) return rowWin;
+
+  const colLine = [];
+  for (let row = 0; row < ROWS; row++) colLine.push({ r: row, c });
+  const colWin = collect(colLine);
+  if (colWin) return colWin;
 
   if (r === c) {
-    allMatch = true;
-    for (let d = 0; d < ROWS; d++) {
-      if (state.grid[d][d] !== marker) {
-        allMatch = false;
-        break;
-      }
-    }
-    if (allMatch) return marker;
+    const diag = [];
+    for (let d = 0; d < ROWS; d++) diag.push({ r: d, c: d });
+    const diagWin = collect(diag);
+    if (diagWin) return diagWin;
   }
 
   if (r + c === ROWS - 1) {
-    allMatch = true;
-    for (let d = 0; d < ROWS; d++) {
-      if (state.grid[d][ROWS - 1 - d] !== marker) {
-        allMatch = false;
-        break;
-      }
-    }
-    if (allMatch) return marker;
+    const antiDiag = [];
+    for (let d = 0; d < ROWS; d++) antiDiag.push({ r: d, c: ROWS - 1 - d });
+    const antiDiagWin = collect(antiDiag);
+    if (antiDiagWin) return antiDiagWin;
   }
 
-  return EMPTY;
+  return [];
 }
 
 // Design Doc Section 3 apply_move flow (single state mutation per action).
@@ -90,11 +82,11 @@ function applyMove(row, col) {
   state.grid[row][col] = marker;
   state.move_count += 1;
 
-  const winner = detectWin(row, col, marker);
-  if (winner === MARKER_X) {
-    state.status = STATUS_WIN_X;
-  } else if (winner === MARKER_O) {
-    state.status = STATUS_WIN_O;
+  const winCells = detectWin(row, col, marker);
+  if (winCells.length > 0) {
+    state.winner = marker;
+    state.win_cells = winCells;
+    state.status = marker === MARKER_X ? STATUS_WIN_X : STATUS_WIN_O;
   } else if (state.move_count === ROWS * COLS) {
     // Design Doc Section 5: board full with no win => draw.
     state.status = STATUS_DRAW;
@@ -127,6 +119,13 @@ function renderBoard() {
       if (value === MARKER_X) cell.classList.add("x-marker");
       if (value === MARKER_O) cell.classList.add("o-marker");
 
+      const isWinCell = state.win_cells.some(
+        (cellPos) => cellPos.r === r && cellPos.c === c
+      );
+      if (isWinCell) {
+        cell.classList.add("win-cell");
+      }
+
       if (state.status !== STATUS_PLAYING) {
         cell.classList.add("disabled");
       }
@@ -144,6 +143,7 @@ function renderBoard() {
 }
 
 function renderStatus() {
+  const celebrationEl = document.getElementById("celebration");
   switch (state.status) {
     case STATUS_PLAYING:
       statusEl.textContent = "Player " + state.current_player + "'s turn";
@@ -157,6 +157,16 @@ function renderStatus() {
     case STATUS_DRAW:
       statusEl.textContent = "It's a draw!";
       break;
+  }
+
+  if (celebrationEl) {
+    if (state.status === STATUS_WIN_X || state.status === STATUS_WIN_O) {
+      celebrationEl.textContent = "Congratulations, Player " + state.winner + "!";
+      celebrationEl.classList.add("celebrate");
+    } else {
+      celebrationEl.textContent = "";
+      celebrationEl.classList.remove("celebrate");
+    }
   }
 }
 
