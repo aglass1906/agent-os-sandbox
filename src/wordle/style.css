@@ -1,0 +1,173 @@
+:root {
+  --tile-size: 58px;
+  --gap: 6px;
+  --tile-border: #787c7e;
+  --tile-empty-bg: #ffffff;
+  --correct-bg: #6aaa64;
+  --present-bg: #c9b458;
+  --absent-bg: #787c7e;
+  --key-bg: #d3d6da;
+  --key-text: #1a1a1b;
+  --board-bg: #f5f7fa;
+  --text: #1a1a1b;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  background: var(--board-bg);
+  color: var(--text);
+}
+
+.game {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+  padding: 24px;
+  max-width: 500px;
+  width: 100%;
+}
+
+.game-title {
+  margin: 0;
+  font-size: 2rem;
+  letter-spacing: 6px;
+  font-weight: 800;
+}
+
+.status {
+  font-size: 1.1rem;
+  min-height: 1.5rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+.board {
+  display: grid;
+  grid-template-columns: repeat(5, var(--tile-size));
+  grid-template-rows: repeat(6, var(--tile-size));
+  gap: var(--gap);
+}
+
+.tile {
+  width: var(--tile-size);
+  height: var(--tile-size);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  border: 2px solid var(--tile-border);
+  border-radius: 6px;
+  background: var(--tile-empty-bg);
+  user-select: none;
+  transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.3s ease;
+}
+
+.tile.flip {
+  animation: tile-flip 0.5s ease forwards;
+}
+
+.tile.correct {
+  background: var(--correct-bg);
+  border-color: var(--correct-bg);
+  color: #ffffff;
+}
+
+.tile.present {
+  background: var(--present-bg);
+  border-color: var(--present-bg);
+  color: #ffffff;
+}
+
+.tile.absent {
+  background: var(--absent-bg);
+  border-color: var(--absent-bg);
+  color: #ffffff;
+}
+
+@keyframes tile-flip {
+  0% { transform: rotateX(0deg); }
+  50% { transform: rotateX(90deg); }
+  100% { transform: rotateX(0deg); }
+}
+
+.keyboard {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.keyboard-row {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+}
+
+.key {
+  min-width: 40px;
+  height: 52px;
+  padding: 0 8px;
+  border: none;
+  border-radius: 6px;
+  background: var(--key-bg);
+  color: var(--key-text);
+  font-size: 1rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  cursor: pointer;
+  user-select: none;
+}
+
+.key.wide {
+  min-width: 64px;
+  font-size: 0.8rem;
+}
+
+.key.correct {
+  background: var(--correct-bg);
+  color: #ffffff;
+}
+
+.key.present {
+  background: var(--present-bg);
+  color: #ffffff;
+}
+
+.key.absent {
+  background: var(--absent-bg);
+  color: #ffffff;
+}
+
+.key:hover:not(:disabled) {
+  filter: brightness(1.08);
+}
+
+.key:disabled {
+  cursor: default;
+}
+
+.reset {
+  font-size: 1rem;
+  padding: 10px 24px;
+  border: none;
+  border-radius: 8px;
+  background: #2c3e50;
+  color: #fff;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.reset:hover {
+  filter: brightness(1.1);
+}
