@@ -52,9 +52,14 @@ body {
 }
 
 .board {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+}
+
+.board-row {
   display: grid;
   grid-template-columns: repeat(5, var(--tile-size));
-  grid-template-rows: repeat(6, var(--tile-size));
   gap: var(--gap);
 }
 
