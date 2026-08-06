@@ -1,20 +1,23 @@
 # Wordle Game — Design Document
 
-This document describes the design for a browser-based Wordle game. It is a
-design document; the sections below specify how the letter grid is represented
-in code, how turns/attempts are managed, how letter feedback is classified, and
-how win/lose conditions are detected. It follows the standard Wordle rules.
+This document describes the design for a browser-based Wordle game. It follows
+the same structure and conventions as the Tic Tac Toe design document
+(`src/game/tictactoe_design.md`), adapted to Wordle's mechanics. It is a design
+document only; the sections below specify how the letter grid is represented in
+code, how turns/attempts are managed, how letter feedback is classified, how
+win/lose conditions are detected, and how the game resets.
 
-## 1. Scope
+## 1. Game scope and rules
 
 A single-player browser game in which the player has **6 attempts** to guess a
 hidden **5-letter word**. The player types letters via the physical keyboard or
-an on-screen keyboard. After each submitted guess every letter receives visual
-feedback (correct position, present in word, or absent), and the game ends in a
-win when the guess equals the answer or in a loss when all 6 attempts are
-exhausted without a match.
+an on-screen QWERTY keyboard. After each submitted guess every letter receives
+visual feedback (correct position, present in word, or absent). The game ends
+in a **win** when the guess equals the answer, or in a **loss** when all 6
+attempts are exhausted without a match.
 
-The design focuses on the core game logic and a minimal, accessible UI.
+The design focuses on the core game logic and a minimal, accessible UI. It
+follows the standard Wordle rules, including duplicate-letter handling.
 
 ## 2. Grid representation
 
@@ -62,7 +65,7 @@ Attempt flow (single state mutation per action):
 3. `submit_guess()` — valid only when the game is `PLAYING` and the current row
    is full (`current_col == 5`). The guess must also be a valid word from the
    dictionary (see Section 6); invalid words are rejected with the row left
-   unchanged. On a valid guess:
+   unchanged and an explanatory status message. On a valid guess:
    - Classify each cell's feedback per Section 4.
    - Update the keyboard map (Section 5).
    - Evaluate win/lose per Section 6 and advance `current_row` if the game
@@ -77,14 +80,14 @@ Feedback is assigned per submitted row, anchored on the answer. To be faithful
 to Wordle's duplicate-handling rules, a two-pass algorithm over the row's 5
 columns is used:
 
-1. **First pass (correct / absent):** for each column `c`, if
+1. **First pass (correct / rest):** for each column `c`, if
    `guess[c] == answer[c]` mark the cell `correct` and consume that occurrence
-   of the letter in the answer (decrement its remaining count); otherwise mark
+   of the letter in the answer (decrement its remaining count); otherwise leave
    it as a candidate for `present`/`absent`.
-2. **Second pass (present / absent):** for each unassigned column `c`, if the
-   guessed letter still has remaining occurrences in the answer (not already
-   consumed by correct placements or earlier `present` marks) mark it `present`
-   and consume one occurrence; otherwise mark it `absent`.
+2. **Second pass (present / absent):** for each column `c` not already `correct`,
+   if the guessed letter still has remaining occurrences in the answer (not
+   already consumed by correct placements or earlier `present` marks) mark it
+   `present` and consume one occurrence; otherwise mark it `absent`.
 
 This guarantees a duplicated guess letter is only shown `present` or `correct`
 as many times as it actually occurs in the answer, never more.
@@ -95,8 +98,8 @@ Two input paths feed the same logic:
 
 - **Physical keyboard:** keydown events for `A`–`Z` (case-insensitive),
   `Backspace` (delete), and `Enter` (submit).
-- **On-screen keyboard:** one button per letter plus `Enter` and
-  `Backspace`/`⌫` buttons wired to the same handlers.
+- **On-screen keyboard:** three fixed rows of buttons — QWERTY letter keys plus
+  `Enter` and `Backspace` (`⌫`) buttons wired to the same handlers.
 
 The `keyboard` map records, for each letter, the *best* state observed so far.
 The state hierarchy is `correct` > `present` > `absent`: a later guess may only
@@ -105,29 +108,33 @@ matching CSS class after every submit so the player sees accumulated knowledge
 across attempts. The grid cells are likewise re-rendered with their per-cell
 feedback classes.
 
-## 6. Win/lose detection and dictionary
+A short per-cell *reveal animation* flips the just-submitted row's tiles in
+left-to-right order so the player sees the feedback land.
+
+## 6. Win/lose detection and dictionary handling
 
 A win occurs exactly when a submitted guess equals `answer`:
 
 - On `submit_guess()`, if `guess == answer`, set `status = WON` and stop
   accepting further input.
 
-A loss occurs when the current row was the last attempt and the guess did not
-match:
+A loss occurs when the current row was the last attempt (the 6th row) and the
+guess did not match:
 
 - If `status` is still `PLAYING` after a non-matching submit and
-  `current_row == 5`, set `status = LOST`.
+  `current_row == MAX_GUESSES - 1`, set `status = LOST`.
 
-Until the terminal condition, `current_row` advances by 1 and editing continues
+Until a terminal condition, `current_row` advances by 1 and editing continues
 in the next row.
 
 **Dictionary:** a curated uppercase word list of valid 5-letter guesses
 (`VALID_WORDS`) and a subset of answer words (`ANSWERS`). A guess is legal only
-if it is `PLAYING`, the row is full, and the word is present in `VALID_WORDS`.
-`ANSWERS` should be a subset of `VALID_WORDS` so any answer is also a legal
-guess. The answer is chosen uniformly at random from `ANSWERS` at game start.
+if the game is `PLAYING`, the row is full, and the word is present in
+`VALID_WORDS`. `ANSWERS` is a subset of `VALID_WORDS` so any answer is also a
+legal guess. The answer is chosen uniformly at random from `ANSWERS` at game
+start.
 
-## 7. State reset
+## 7. State reset procedures
 
 `reset()` returns the game to a clean starting state:
 
@@ -139,10 +146,30 @@ guess. The answer is chosen uniformly at random from `ANSWERS` at game start.
 - `status` set to `PLAYING`.
 - `keyboard` reset so every letter is unknown.
 
-Reset may be invoked at any time (new game, after a win, or after a loss). No
-memory of the previous game is retained.
+Reset may be invoked at any time (new game, after a win, or after a loss), via
+the "New Game" button. No memory of the previous game is retained.
 
-## 8. Invariants
+## 8. UI layout and technical requirements
+
+- **Layout:** a centered column containing the game title, a status/
+  announcement line, the 5x6 letter grid, an on-screen QWERTY keyboard, and a
+  "New Game" button.
+- **Feedback colors (WCAG-aware pairing of hue + strong contrast):**
+  - `correct` — green background.
+  - `present` — yellow/amber background.
+  - `absent` — dark gray background.
+  - unsubmitted — light neutral background.
+- **Reveal animation:** a short per-cell flip reveals feedback left to right,
+  then a win/lose banner (e.g. "You won! The word was X" / "You lost! The word
+  was X") is announced in the status line.
+- **Accessibility:** the status line uses `aria-live="polite"`; the on-screen
+  keys are real buttons; the grid uses a `role="grid"` container with
+  `role="row"` rows and `role="gridcell"` cells so the revealed answer is
+  readable by assistive tech.
+- **Technology:** vanilla HTML + CSS + JavaScript with no external framework or
+  build step, mirroring the existing game's structure and file layout.
+
+## 9. Invariants and constraints
 
 These hold after construction, every accepted action, and every reset:
 
@@ -152,21 +179,3 @@ These hold after construction, every accepted action, and every reset:
   empty or partially edited.
 - If `status != PLAYING`, no input or submit action mutates the state.
 - `answer` has length 5 and is an element of `VALID_WORDS`.
-
-## 9. UI layout and technical requirements
-
-- **Layout:** a centered column containing the game title, a status/announcement
-  line, the 6x5 letter grid, an on-screen QWERTY keyboard, and a "New Game"
-  button.
-- **Feedback colors (WCAG-aware pairing of hue + strong contrast):**
-  - `correct` — green background.
-  - `present` — yellow/amber background.
-  - `absent` — dark gray background.
-  - unsubmitted — light neutral background.
-- **Reveal animation:** a short per-cell flip reveals feedback in order, then a
-  win/lose banner (e.g. "You won!" / "You lost — the word was X") is announced.
-- **Accessibility:** the status line uses `aria-live="polite"`; the on-screen
-  keys are real buttons; the grid uses a `role="grid"` container with labeled
-  rows so the revealed answer is readable by assistive tech.
-- **Technology:** vanilla HTML + CSS + JavaScript with no external framework or
-  build step, mirroring the existing game's structure and file layout.
