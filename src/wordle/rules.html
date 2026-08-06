@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>How to Play Wordle</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="game rules">
+    <h1 class="game-title">HOW TO PLAY</h1>
+
+    <div class="rules-card">
+      <section class="rules-section">
+        <span class="rules-label">Objective</span>
+        <p>Guess the hidden <strong>5-letter word</strong> within <strong>6 attempts</strong>. After every guess, the tiles will show how close you are to the answer.</p>
+      </section>
+
+      <section class="rules-section">
+        <span class="rules-label">Rules</span>
+        <ol>
+          <li>Each guess must be a valid 5-letter word.</li>
+          <li>You have 6 attempts to find the answer word.</li>
+          <li>Type your guess with the on-screen keyboard or your physical keyboard, then press <strong>Enter</strong> to submit it.</li>
+          <li>Use <strong>Backspace</strong> to delete a letter before submitting.</li>
+          <li>After each guess, every letter you played is colored to reveal how it relates to the answer.</li>
+          <li>Guess the word to win. If all 6 attempts are used without a match, the game is over.</li>
+        </ol>
+      </section>
+
+      <section class="rules-section">
+        <span class="rules-label">Feedback</span>
+        <ul class="feedback-list">
+          <li>
+            <span class="example correct">C</span>
+            <span><strong>Green</strong> means the letter is in the answer and in the correct spot.</span>
+          </li>
+          <li>
+            <span class="example present">R</span>
+            <span><strong>Yellow</strong> means the letter is in the answer but in the wrong spot.</span>
+          </li>
+          <li>
+            <span class="example absent">A</span>
+            <span><strong>Gray</strong> means the letter is not in the answer at all.</span>
+          </li>
+        </ul>
+      </section>
+
+      <section class="rules-section">
+        <span class="rules-label">Example</span>
+        <div class="example-word" role="img" aria-label="Example guess: CRANE, where C is correct, R is present, A N and E are absent">
+          <span class="tile example correct">C</span>
+          <span class="tile example present">R</span>
+          <span class="tile example absent">A</span>
+          <span class="tile example absent">N</span>
+          <span class="tile example absent">E</span>
+        </div>
+        <p>If the answer were <strong>CRANE</strong>, the <strong>C</strong> is in the right place, the <strong>R</strong> appears somewhere else in the word, and <strong>A</strong>, <strong>N</strong>, and <strong>E</strong> are not in the answer.</p>
+      </section>
+
+      <a class="reset" href="index.html">Back to Game</a>
+    </div>
+  </main>
+</body>
+</html>
