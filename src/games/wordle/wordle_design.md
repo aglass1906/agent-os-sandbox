@@ -2,7 +2,7 @@
 
 This document describes the design for a browser-based Wordle game. It follows
 the same structure and conventions as the Tic Tac Toe design document
-(`src/tic-tac-toe/tictactoe_design.md`), adapted to Wordle's mechanics. It is a design
+(`src/games/tic-tac-toe/tictactoe_design.md`), adapted to Wordle's mechanics. It is a design
 document only; the sections below specify how the letter grid is represented in
 code, how turns/attempts are managed, how letter feedback is classified, how
 win/lose conditions are detected, and how the game resets.
