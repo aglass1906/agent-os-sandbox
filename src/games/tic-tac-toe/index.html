@@ -32,15 +32,45 @@
       </div>
 
       <div class="modal-section">
-        <span class="modal-label">Rules</span>
+        <span class="modal-label">The Grid</span>
         <ol>
-          <li>The game is played on a 3&nbsp;&times;&nbsp;3 grid.</li>
-          <li>Players take turns placing their own marker; one player uses <strong>X</strong> and the other uses <strong>O</strong>.</li>
-          <li>Player&nbsp;X always goes first, then turns alternate between players.</li>
-          <li>Click an empty cell to place your marker. Once a cell is filled, it cannot be changed.</li>
-          <li>The first player to line up three of their markers horizontally, vertically, or diagonally wins.</li>
-          <li>If all nine cells are filled with no three in a row, the game is a draw.</li>
+          <li>The game is played on a standard <strong>3&nbsp;&times;&nbsp;3</strong> board of nine cells.</li>
+          <li>Each cell holds one of three values: empty, <strong class="x-marker">X</strong>, or <strong class="o-marker">O</strong>.</li>
+          <li>A move is legal only in an <strong>empty</strong> cell. Legal moves exist in every non-terminal state.</li>
         </ol>
+      </div>
+
+      <div class="modal-section">
+        <span class="modal-label">Taking Turns</span>
+        <ol>
+          <li>Two players share the board: one plays <strong class="x-marker">X</strong>, the other plays <strong class="o-marker">O</strong>.</li>
+          <li>Player&nbsp;X <strong>always goes first</strong>, then turns strictly alternate.</li>
+          <li>Click an empty cell to place your marker. Once a cell is filled, it cannot be changed.</li>
+          <li>After a win or draw the game is over and no further moves are accepted.</li>
+        </ol>
+      </div>
+
+      <div class="modal-section">
+        <span class="modal-label">Winning</span>
+        <ol>
+          <li>You win by placing three of your markers in a continuous line.</li>
+          <li>There are <strong>8</strong> possible winning lines: <strong>3</strong> horizontal, <strong>3</strong> vertical, and <strong>2</strong> diagonal.</li>
+          <li>The win is checked immediately after each move, so the game ends as soon as a line of three is completed.</li>
+        </ol>
+      </div>
+
+      <div class="modal-section">
+        <span class="modal-label">Draw</span>
+        <ol>
+          <li>If all nine cells are filled and <strong>no</strong> player has three in a row, the game is a draw.</li>
+          <li>A win is always reported in preference to a draw for the same final board.</li>
+          <li>Press <strong>New Game</strong> to reset the board and start fresh at any time.</li>
+        </ol>
+      </div>
+
+      <div class="modal-section">
+        <span class="modal-label">Game States</span>
+        <p class="modal-note">The game is always in one of four states: <strong>Playing</strong> (a turn is in progress), <strong>Player&nbsp;X wins</strong>, <strong>Player&nbsp;O wins</strong>, or <strong>Draw</strong>. The status bar above the board shows the current state and whose turn it is.</p>
       </div>
 
       <button id="aboutClose" class="reset about" type="button">Close</button>
