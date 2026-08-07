@@ -216,3 +216,19 @@ body {
   align-self: center;
   background: var(--board-bg);
 }
+
+.modal-section .x-marker,
+.modal-objective .x-marker {
+  color: var(--accent);
+}
+
+.modal-section .o-marker,
+.modal-objective .o-marker {
+  color: #2980b9;
+}
+
+.modal-note {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
