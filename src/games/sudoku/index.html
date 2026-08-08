@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sudoku</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="game">
+    <h1 class="game-title">SUDOKU</h1>
+
+    <a class="back-link" href="../index.html">Back to Game Selection</a>
+
+    <div id="status" class="status" aria-live="polite">Select an empty cell and enter a digit 1-9</div>
+
+    <div id="message" class="message" aria-live="polite"></div>
+
+    <div id="celebration" class="celebration" aria-live="polite"></div>
+
+    <div id="board" class="board" role="grid" aria-label="Sudoku board"></div>
+
+    <div id="pad" class="pad" aria-label="Number pad"></div>
+
+    <div class="controls">
+      <button id="reset" class="reset" type="button">New Game</button>
+      <a class="reset rules-link" href="rules.html">How to Play</a>
+    </div>
+  </main>
+
+  <script src="game.js"></script>
+</body>
+</html>
