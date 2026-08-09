@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>How to Play Sudoku</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="game rules">
+    <h1 class="game-title">HOW TO PLAY</h1>
+
+    <a class="back-link" href="../index.html">Back to Game Selection</a>
+
+    <div class="rules-card">
+      <section class="rules-section">
+        <span class="rules-label">Objective</span>
+        <p>Fill the <strong>9&nbsp;&times;&nbsp;9</strong> grid so that <strong>every row</strong>, <strong>every column</strong>, and <strong>every 3&nbsp;&times;&nbsp;3 box</strong> contains the digits <strong>1-9 exactly once</strong>.</p>
+      </section>
+
+      <section class="rules-section">
+        <span class="rules-label">The Grid</span>
+        <ol>
+          <li>The board has <strong>9 rows</strong> and <strong>9 columns</strong>, divided into <strong>nine 3&times;3 boxes</strong>.</li>
+          <li>Some cells are <strong>pre-filled</strong> at the start; they are locked and cannot be changed.</li>
+          <li>Click an <strong>empty cell</strong> to select it, then enter a digit <strong>1-9</strong>.</li>
+        </ol>
+      </section>
+
+      <section class="rules-section">
+        <span class="rules-label">How to Play</span>
+        <ol>
+          <li>Select a cell with a mouse click or the <strong>arrow keys</strong>.</li>
+          <li>Type a digit <strong>1-9</strong> with your keyboard or tap it on the number pad.</li>
+          <li>Press <strong>Backspace</strong> or <strong>Delete</strong> (or the <strong>⌫</strong> button) to clear the selected cell.</li>
+          <li>A digit is illegal if it would appear twice in the same row, column, or 3&times;3 box; the conflict is highlighted in red.</li>
+          <li>Once every cell is filled correctly, the puzzle is solved and the game is won.</li>
+        </ol>
+      </section>
+
+      <section class="rules-section">
+        <span class="rules-label">Feedback</span>
+        <ul class="feedback-list">
+          <li>
+            <span class="example valid">3</span>
+            <span><strong>No highlight</strong> means the digit is rule-clean.</span>
+          </li>
+          <li>
+            <span class="example conflict">3</span>
+            <span><strong>Red</strong> means the digit already appears in its row, column, or box.</span>
+          </li>
+          <li>
+            <span class="example locked">3</span>
+            <span><strong>Bold</strong> means the cell is part of the starting puzzle and locked.</span>
+          </li>
+        </ul>
+      </section>
+
+      <a class="reset" href="index.html">Back to Game</a>
+    </div>
+  </main>
+</body>
+</html>
