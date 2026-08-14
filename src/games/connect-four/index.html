@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Connect Four</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="game">
+    <h1 class="game-title">Connect&nbsp;Four</h1>
+
+    <a class="back-link" href="../index.html">Back to Game Selection</a>
+
+    <div id="status" class="status" aria-live="polite">Player R's turn</div>
+
+    <div id="celebration" class="celebration" aria-live="polite"></div>
+
+    <div id="board" class="board" role="grid" aria-label="Connect Four board"></div>
+
+    <div class="controls">
+      <button id="reset" class="reset" type="button">New Game</button>
+      <button id="aboutBtn" class="reset about" type="button" aria-haspopup="dialog">How to Play</button>
+    </div>
+  </main>
+
+  <div id="aboutModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="about-title" hidden>
+    <div class="modal-card">
+      <h2 id="about-title" class="modal-title">How to Play Connect Four</h2>
+
+      <div class="modal-objective">
+        <span class="modal-label">Objective</span>
+        <p>Be the first player to get four of your discs in a row.</p>
+      </div>
+
+      <div class="modal-section">
+        <span class="modal-label">The Grid</span>
+        <ol>
+          <li>The game is played on a standing <strong>6&nbsp;&times;&nbsp;7</strong> board: 6 rows of slots above 7 columns.</li>
+          <li>Each slot holds one of three values: empty, a <strong class="red-marker">Red</strong> disc, or a <strong class="yellow-marker">Yellow</strong> disc.</li>
+          <li>Red always goes first, then turns strictly alternate.</li>
+        </ol>
+      </div>
+
+      <div class="modal-section">
+        <span class="modal-label">Dropping Discs</span>
+        <ol>
+          <li>Click any slot in a column to drop your disc into that column.</li>
+          <li>The disc falls to the <strong>lowest open slot</strong> in the column.</li>
+          <li>A column that is full of 6 discs cannot be played into.</li>
+          <li>Once a disc is placed it cannot be moved.</li>
+        </ol>
+      </div>
+
+      <div class="modal-section">
+        <span class="modal-label">Winning</span>
+        <ol>
+          <li>You win by placing four of your discs in a continuous line.</li>
+          <li>Winning lines run <strong>horizontally, vertically, or diagonally</strong> (both directions).</li>
+          <li>The win is checked immediately after each drop, so the game ends as soon as a line of four is completed.</li>
+        </ol>
+      </div>
+
+      <div class="modal-section">
+        <span class="modal-label">Draw</span>
+        <ol>
+          <li>If all 42 slots are filled and <strong>no</strong> player has four in a row, the game is a draw.</li>
+          <li>A win is always reported in preference to a draw for the same final board.</li>
+          <li>Press <strong>New Game</strong> to reset the board and start fresh at any time.</li>
+        </ol>
+      </div>
+
+      <div class="modal-section">
+        <span class="modal-label">Game States</span>
+        <p class="modal-note">The game is always in one of four states: <strong>Playing</strong> (a turn is in progress), <strong>Player Red wins</strong>, <strong>Player Yellow wins</strong>, or <strong>Draw</strong>. The status bar above the board shows the current state and whose turn it is.</p>
+      </div>
+
+      <button id="aboutClose" class="reset about" type="button">Close</button>
+    </div>
+  </div>
+
+  <script src="game.js"></script>
+</body>
+</html>
