@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>How to Play Connect Four</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="game rules">
+    <h1 class="game-title">HOW TO PLAY</h1>
+
+    <a class="back-link" href="../index.html">Back to Game Selection</a>
+
+    <div class="rules-card">
+      <section class="rules-section">
+        <span class="rules-label">Objective</span>
+        <p>Be the first to place <strong>four</strong> of your discs in a continuous line — <strong>horizontally, vertically, or diagonally</strong>.</p>
+      </section>
+
+      <section class="rules-section">
+        <span class="rules-label">The Grid</span>
+        <ol>
+          <li>The board is a standing <strong>6&nbsp;&times;&nbsp;7</strong> grid: 6 rows of slots above 7 columns.</li>
+          <li>Each slot holds one of three values: empty, a <strong>Red</strong> disc, or a <strong>Yellow</strong> disc.</li>
+          <li>Red <strong>always goes first</strong>, then turns strictly alternate.</li>
+        </ol>
+      </section>
+
+      <section class="rules-section">
+        <span class="rules-label">How to Play</span>
+        <ol>
+          <li>Click any slot in a column to drop your disc into that column.</li>
+          <li>The disc falls to the <strong>lowest open slot</strong> in the column, stacking on any discs already there.</li>
+          <li>A column already holding <strong>6 discs</strong> is full and cannot be played into.</li>
+          <li>Once a disc is placed, it can never be moved.</li>
+        </ol>
+      </section>
+
+      <section class="rules-section">
+        <span class="rules-label">Feedback</span>
+        <ul class="feedback-list">
+          <li>
+            <span class="example red-marker">R</span>
+            <span><strong>Red</strong> discs belong to the first player.</span>
+          </li>
+          <li>
+            <span class="example yellow-marker">Y</span>
+            <span><strong>Yellow</strong> discs belong to the second player.</span>
+          </li>
+          <li>
+            <span class="example win-cell">4</span>
+            <span><strong>Flashing</strong> slots mark the four winning discs when a player wins.</span>
+          </li>
+        </ul>
+      </section>
+
+      <section class="rules-section">
+        <span class="rules-label">Draw</span>
+        <ol>
+          <li>If all <strong>42 slots</strong> fill up with no four-in-a-row, the game is a draw.</li>
+          <li>A win is always reported in preference to a draw on the same final board.</li>
+        </ol>
+      </section>
+
+      <a class="reset" href="index.html">Back to Game</a>
+    </div>
+  </main>
+</body>
+</html>
