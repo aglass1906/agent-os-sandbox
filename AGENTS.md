@@ -76,3 +76,6 @@ Before declaring any feature or game implementation complete:
 3. Ensure game reset/restart cleanly restores all state variables and DOM elements to initial defaults.
 4. Verify responsive layout down to narrow mobile viewports (<768px).
 5. Ensure hub integration: link added to `src/games/index.html` when game is ready.
+
+### Test Policy
+The canonical project test policy is `bash test_canary_badge.sh`. It must exit `0` before the work is considered complete. The gate verifies the release canary badge marker line (`[Phase 3 Canary: take 3 on the release testing]`) exists exactly once in `README.md`.
