@@ -1,6 +1,7 @@
 # Timbuk2 Games Hub
 
 [![Build Status](https://img.shields.io/badge/status-Passing-success)](https://img.shields.io/badge/status-Passing-success)
+[Phase 3 Canary: take 3 on the release testing]
 
 Timbuk2 Games Hub is a collection of casual browser games built with vanilla HTML, CSS, and JavaScript. A central game-selection page links to independent, self-contained game pages without external frameworks, build tools, package managers, or backend dependencies.
 
