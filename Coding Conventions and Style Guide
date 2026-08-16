@@ -1,0 +1,102 @@
+# Coding Conventions and Style Guide
+
+This document outlines the coding conventions and style standards for the Timbuk2 Games Hub project. These conventions ensure consistency, readability, and maintainability across all games and the hub itself.
+
+## General Principles
+
+1. **Self-contained Games**: Each game must be fully self-contained within its own directory under `src/games/<game>/`. No external dependencies or build steps are allowed.
+
+2. **Vanilla Technologies**: Games must be built using strict-mode ES6+ JavaScript, standard HTML5 DOM/Canvas, and CSS3. No frameworks, package managers, or build tools are permitted.
+
+3. **Responsive & Accessible**: All games must support mouse, keyboard, and touch interactions with accessible status regions and semantic HTML.
+
+4. **Hub Integration**: Playable games must be linked from `src/games/index.html` and provide back navigation to the hub.
+
+## JavaScript Conventions
+
+### Strict Mode
+All JavaScript files must begin with `"use strict";` to enforce stricter parsing and error handling.
+
+### State Management
+- State should be managed in a single, well-defined object.
+- Game state should be initialized using a `createInitialState()` function.
+- State mutations should be handled in a single, predictable manner per user action.
+
+### Naming Conventions
+- Constants should be uppercase with underscores (e.g., `MAX_GUESSES`, `STATUS_PLAYING`).
+- Variables and functions should use camelCase (e.g., `renderBoard`, `isValidWord`).
+- Classes should use PascalCase (e.g., `GameEngine`).
+
+### File Structure
+Each game must follow this structure:
+```text
+src/games/<game>/
+├── index.html       # Semantic page structure and controls
+├── style.css        # Game-specific responsive styling
+├── game.js          # State, rules, rendering, and input handling
+├── rules.html       # Optional standalone instructions
+└── *_design.md      # Game behavior and implementation specification
+```
+
+### Code Organization
+- Functions should be small and focused on a single responsibility.
+- Game logic should be separated from DOM manipulation.
+- Event handlers should be clearly defined and documented.
+- State transitions should be predictable and well-documented.
+
+## HTML and CSS Conventions
+
+### Semantic HTML
+- Use semantic HTML elements where appropriate.
+- Use `role` attributes for accessibility.
+- Use `aria-*` attributes to enhance accessibility.
+
+### CSS Styling
+- Use CSS3 features for styling.
+- Avoid inline styles.
+- Use CSS classes for styling instead of IDs where possible.
+- Implement responsive design principles.
+
+### Responsive Design
+- Games must be usable on both desktop and mobile devices.
+- Touch controls should be appropriately sized for mobile interaction.
+- Layouts should adapt to different screen sizes.
+
+## Game-Specific Conventions
+
+### Game Loop and State
+- Games should have a clear game loop or state machine.
+- State transitions should be well-defined and documented.
+- Terminal states (win, lose, draw) should be handled gracefully.
+
+### Input Handling
+- Support for keyboard, mouse, and touch input.
+- Input validation should occur before state changes.
+- Invalid actions should not corrupt game state.
+
+### User Experience
+- Clear game status and final results should be visible.
+- A reliable way to start a new game should be provided.
+- Controls should be understandable without relying only on color, animation, or sound.
+
+## Testing and Verification
+
+### Manual Testing
+- Games must be tested manually across different browsers and devices.
+- All documented game rules and state transitions must work in supported browsers.
+- Invalid and terminal-state inputs must leave game state unchanged.
+- Reset or restart must return every relevant state value and visual element to a valid initial state.
+
+### Browser Compatibility
+- Games must run in modern browsers without requiring polyfills or additional libraries.
+- Responsive layouts must remain usable at desktop and narrow mobile widths.
+
+## Documentation
+
+### Design Documents
+- Each game must have a design document (`*_design.md`) that specifies behavior and implementation details.
+- Design documents should be referenced in the project overview.
+
+### Code Comments
+- Code should be well-commented to explain complex logic or non-obvious decisions.
+- Comments should be concise and relevant.
