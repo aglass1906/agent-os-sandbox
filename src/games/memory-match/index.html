@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Memory Match</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="game">
+    <h1 class="game-title">Memory&nbsp;Match</h1>
+
+    <a class="back-link" href="../index.html">Back to Game Selection</a>
+
+    <section class="status-hud" aria-label="Game status">
+      <div id="status" class="status" aria-live="polite">Find all matching pairs</div>
+      <div id="stats" class="stats" aria-live="polite">
+        <span id="pairsMatched" class="stat">Pairs: 0</span>
+        <span id="moves" class="stat">Moves: 0</span>
+        <span id="timer" class="stat">Time: 0:00</span>
+      </div>
+    </section>
+
+    <div id="celebration" class="celebration" aria-live="polite"></div>
+
+    <div class="board-wrap">
+      <canvas id="board" class="board" role="img" aria-label="Memory Match card grid"
+              aria-describedby="status" tabindex="0"></canvas>
+    </div>
+
+    <div class="controls">
+      <button id="reset" class="reset" type="button">New Game</button>
+      <button id="aboutBtn" class="reset about" type="button" aria-haspopup="dialog">How to Play</button>
+    </div>
+  </main>
+
+  <div id="aboutModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="about-title" hidden>
+    <div class="modal-card">
+      <h2 id="about-title" class="modal-title">How to Play Memory Match</h2>
+
+      <div class="modal-objective">
+        <span class="modal-label">Objective</span>
+        <p>Flip over cards to find every matching pair on the board.</p>
+      </div>
+
+      <div class="modal-section">
+        <span class="modal-label">The Board</span>
+        <ol>
+          <li>The board holds a grid of face-down cards, each showing a hidden symbol.</li>
+          <li>Every symbol appears on exactly two cards, forming a matching pair.</li>
+        </ol>
+      </div>
+
+      <div class="modal-section">
+        <span class="modal-label">Playing</span>
+        <ol>
+          <li>Click or tap a card to flip it face up and reveal its symbol.</li>
+          <li>Click or tap a second card to try to find its match.</li>
+          <li>If the two cards match, they stay face up. If not, they flip face down again.</li>
+          <li>The game ends when every pair has been matched.</li>
+        </ol>
+      </div>
+
+      <div class="modal-section">
+        <span class="modal-label">Winning</span>
+        <ol>
+          <li>Match all of the pairs on the board to win.</li>
+          <li>Your score tracks the number of pairs matched, the moves taken, and the elapsed time.</li>
+          <li>Press <strong>New Game</strong> to shuffle the cards and start fresh at any time.</li>
+        </ol>
+      </div>
+
+      <button id="aboutClose" class="reset about" type="button">Close</button>
+    </div>
+  </div>
+
+  <script src="game.js"></script>
+</body>
+</html>
