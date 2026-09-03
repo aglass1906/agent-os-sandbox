@@ -70,15 +70,54 @@ function inBounds(row, col) {
   );
 }
 
+// ---- Game flow logic -------------------------------------------------------
+
+// Win condition detection: the game is won once every pair is matched.
+function checkWin() {
+  return state.matchedPairs === TOTAL_PAIRS;
+}
+
+// Move counting: a move is completed each time a second card is flipped.
+function incrementMove() {
+  state.moves += 1;
+}
+
+// Game completion handling: record a matched pair and, if that was the last
+// pair, transition to the terminal WON state. Returns the outcome result.
+function handleMatch() {
+  const firstPos = state.flippedCards[0];
+  const secondPos = state.flippedCards[1];
+  const firstCard = state.cards[firstPos.row][firstPos.col];
+  const secondCard = state.cards[secondPos.row][secondPos.col];
+
+  firstCard.matched = true;
+  secondCard.matched = true;
+  state.matchedPairs += 1;
+  state.flippedCards = [];
+
+  if (checkWin()) {
+    state.status = STATUS_WON;
+    return "MATCH_WON";
+  }
+  return "MATCH";
+}
+
+// Terminal state locking: reject any interaction once the game is no longer
+// PLAYING (for example after a win) or while the board is temporarily locked
+// during a mismatch resolution.
+function isTerminalLocked() {
+  return state.status !== STATUS_PLAYING || state.locked;
+}
+
 // Core logic: attempt to flip the card at (row, col).
 // Returns an object describing the outcome; returns {accepted:false, reason}
 // for any invalid move, leaving the state untouched.
 function flipCard(row, col) {
-  if (state.status !== STATUS_PLAYING) {
-    return { accepted: false, reason: "NOT_PLAYING" };
-  }
-  if (state.locked) {
-    return { accepted: false, reason: "LOCKED" };
+  if (isTerminalLocked()) {
+    return {
+      accepted: false,
+      reason: state.status !== STATUS_PLAYING ? "NOT_PLAYING" : "LOCKED"
+    };
   }
   if (!inBounds(row, col)) {
     return { accepted: false, reason: "OUT_OF_BOUNDS" };
@@ -99,24 +138,14 @@ function flipCard(row, col) {
     return { accepted: true, result: "FLIPPED" };
   }
 
-  // Two cards are now face up: apply matching logic once.
-  state.moves += 1;
+  // Two cards are now face up: count the move and evaluate the pair.
+  incrementMove();
 
-  const firstCard =
-    state.cards[state.flippedCards[0].row][state.flippedCards[0].col];
-  const secondCard = state.cards[row][col];
+  const firstPos = state.flippedCards[0];
+  const firstCard = state.cards[firstPos.row][firstPos.col];
 
-  if (firstCard.symbol === secondCard.symbol) {
-    firstCard.matched = true;
-    secondCard.matched = true;
-    state.matchedPairs += 1;
-    state.flippedCards = [];
-
-    if (state.matchedPairs === TOTAL_PAIRS) {
-      state.status = STATUS_WON;
-      return { accepted: true, result: "MATCH_WON" };
-    }
-    return { accepted: true, result: "MATCH" };
+  if (firstCard.symbol === card.symbol) {
+    return { accepted: true, result: handleMatch() };
   }
 
   // Mismatch: lock the board so no further cards can be flipped while the
