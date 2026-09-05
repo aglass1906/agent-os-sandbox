@@ -9,7 +9,11 @@ const STATUS_LOST = "LOST";
 const PAD_COUNT = 4;
 const PAD_IDS = [0, 1, 2, 3];
 const PAD_COLORS = ["green", "red", "yellow", "blue"];
-const PAD_KEYS = { "1": 0, "2": 1, "3": 2, "4": 3 };
+const PAD_KEYS = {
+  "1": 0, "2": 1, "3": 2, "4": 3,
+  "q": 0, "w": 1, "a": 2, "s": 3,
+  "Q": 0, "W": 1, "A": 2, "S": 3,
+};
 
 const WIN_LEVEL = 20;
 
@@ -68,6 +72,19 @@ function setPadLit(padId, lit) {
   const pad = getPadElements()[padId];
   if (pad) {
     pad.classList.toggle("lit", !!lit);
+  }
+}
+
+function setPadActive(padId, active) {
+  const pad = getPadElements()[padId];
+  if (pad) {
+    pad.classList.toggle("active", !!active);
+  }
+}
+
+function clearAllActivePads() {
+  for (let i = 0; i < PAD_COUNT; i++) {
+    setPadActive(i, false);
   }
 }
 
@@ -257,18 +274,45 @@ function hideCelebration() {
   }
 }
 
+function padIdFromPadElement(pad) {
+  if (!pad) {
+    return -1;
+  }
+  const color = pad.getAttribute("data-color");
+  return padIdForColor(color);
+}
+
 function setupBoard() {
   const board = document.getElementById("board");
   if (!board) {
     return;
   }
+
+  board.addEventListener("pointerdown", function (event) {
+    const pad = event.target.closest(".pad");
+    const padId = padIdFromPadElement(pad);
+    if (padId !== -1) {
+      setPadActive(padId, true);
+    }
+  });
+
+  function releasePad(event) {
+    const pad = event.target.closest(".pad");
+    const padId = padIdFromPadElement(pad);
+    if (padId !== -1) {
+      setPadActive(padId, false);
+    }
+  }
+
+  board.addEventListener("pointerup", releasePad);
+  board.addEventListener("pointercancel", releasePad);
+  board.addEventListener("pointerleave", clearAllActivePads);
+  document.addEventListener("pointerup", clearAllActivePads);
+  document.addEventListener("pointercancel", clearAllActivePads);
+
   board.addEventListener("click", function (event) {
     const pad = event.target.closest(".pad");
-    if (!pad) {
-      return;
-    }
-    const color = pad.getAttribute("data-color");
-    const padId = padIdForColor(color);
+    const padId = padIdFromPadElement(pad);
     if (padId !== -1) {
       handlePadInput(padId);
     }
@@ -277,13 +321,22 @@ function setupBoard() {
 
 function setupKeyboard() {
   document.addEventListener("keydown", function (event) {
-    if (event.key in PAD_KEYS) {
-      if (aboutModalOpen()) {
-        return;
-      }
-      event.preventDefault();
-      handlePadInput(PAD_KEYS[event.key]);
+    if (!(event.key in PAD_KEYS)) {
+      return;
     }
+    if (aboutModalOpen()) {
+      return;
+    }
+    event.preventDefault();
+    const padId = PAD_KEYS[event.key];
+    setPadActive(padId, true);
+    handlePadInput(padId);
+  });
+  document.addEventListener("keyup", function (event) {
+    if (!(event.key in PAD_KEYS)) {
+      return;
+    }
+    setPadActive(PAD_KEYS[event.key], false);
   });
 }
 
