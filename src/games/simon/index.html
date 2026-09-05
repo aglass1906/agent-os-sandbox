@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Simon</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="game">
+    <h1 class="game-title">Simon</h1>
+
+    <a class="back-link" href="../index.html">Back to Game Selection</a>
+
+    <section class="status-hud" aria-label="Game status">
+      <div id="status" class="status" aria-live="polite">Press Start to begin</div>
+      <div id="stats" class="stats" aria-live="polite">
+        <span id="level" class="stat">Level: 0</span>
+        <span id="score" class="stat">Score: 0</span>
+        <span id="highScore" class="stat">Best: 0</span>
+      </div>
+    </section>
+
+    <div id="celebration" class="celebration" aria-live="polite"></div>
+
+    <div id="board" class="board" role="group" aria-label="Simon color pads">
+      <button id="pad-green" class="pad pad-green" type="button" data-color="green" data-key="1" aria-label="Green pad, keyboard shortcut 1">
+        <span class="pad-label">Green <kbd>1</kbd></span>
+      </button>
+      <button id="pad-red" class="pad pad-red" type="button" data-color="red" data-key="2" aria-label="Red pad, keyboard shortcut 2">
+        <span class="pad-label">Red <kbd>2</kbd></span>
+      </button>
+      <button id="pad-yellow" class="pad pad-yellow" type="button" data-color="yellow" data-key="3" aria-label="Yellow pad, keyboard shortcut 3">
+        <span class="pad-label">Yellow <kbd>3</kbd></span>
+      </button>
+      <button id="pad-blue" class="pad pad-blue" type="button" data-color="blue" data-key="4" aria-label="Blue pad, keyboard shortcut 4">
+        <span class="pad-label">Blue <kbd>4</kbd></span>
+      </button>
+    </div>
+
+    <div class="controls">
+      <button id="startBtn" class="reset" type="button">Start</button>
+      <button id="aboutBtn" class="reset about" type="button" aria-haspopup="dialog">How to Play</button>
+    </div>
+  </main>
+
+  <div id="aboutModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="about-title" hidden>
+    <div class="modal-card">
+      <h2 id="about-title" class="modal-title">How to Play Simon</h2>
+
+      <div class="modal-objective">
+        <span class="modal-label">Objective</span>
+        <p>Repeat an ever-growing sequence of color flashes to score as many levels as you can.</p>
+      </div>
+
+      <div class="modal-section">
+        <span class="modal-label">The Board</span>
+        <ol>
+          <li>The board displays four colored pads arranged in a square: <strong>Green</strong>, <strong>Red</strong>, <strong>Yellow</strong>, and <strong>Blue</strong>.</li>
+          <li>Each pad has a keyboard shortcut: <kbd>1</kbd> Green, <kbd>2</kbd> Red, <kbd>3</kbd> Yellow, <kbd>4</kbd> Blue.</li>
+        </ol>
+      </div>
+
+      <div class="modal-section">
+        <span class="modal-label">Playing</span>
+        <ol>
+          <li>Press <strong>Start</strong> to begin a new game.</li>
+          <li>Watch the sequence of pads that flash during the computer's turn.</li>
+          <li>Repeat the exact sequence by clicking the pads or pressing their keyboard shortcuts.</li>
+          <li>If you repeat the sequence correctly, a new color is added and the sequence replays.</li>
+          <li>If you make a mistake, the game is over.</li>
+        </ol>
+      </div>
+
+      <div class="modal-section">
+        <span class="modal-label">Scoring</span>
+        <ol>
+          <li>Your <strong>level</strong> equals the number of sequences you have completed.</li>
+          <li>Your <strong>score</strong> is calculated from the levels reached.</li>
+          <li>The <strong>best</strong> score is saved for the duration of the browser session.</li>
+          <li>Press <strong>Start</strong> at any time to restart the game.</li>
+        </ol>
+      </div>
+
+      <div class="modal-section">
+        <span class="modal-label">Game States</span>
+        <p class="modal-note">The game cycles through these states: <strong>Idle</strong> (waiting to start), <strong>Demo</strong> (pads are flashing the sequence), <strong>Player</strong> (your turn to repeat the sequence), <strong>Won</strong> (sequence completed), and <strong>Game Over</strong> (mistake made). The status bar shows the current state.</p>
+      </div>
+
+      <button id="aboutClose" class="reset about" type="button">Close</button>
+    </div>
+  </div>
+
+  <script src="game.js"></script>
+</body>
+</html>
