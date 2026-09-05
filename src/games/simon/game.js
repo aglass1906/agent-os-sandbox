@@ -33,10 +33,19 @@ const TONE_VOLUME = 0.25;
 const TONE_ATTACK_MS = 10;
 const TONE_DECAY_MS = 80;
 
+const FAIL_TONE_FREQUENCY = 100;
+const FAIL_TONE_MS = 300;
+
+const FANFARE_NOTES = [523.25, 659.25, 783.99, 1046.5, 1318.51];
+const FANFARE_STEP_MS = 160;
+const FANFARE_NOTE_MS = 120;
+const FANFARE_FINAL_MS = 400;
+
 let state = createInitialState();
 let pendingTimers = [];
 let audioContext = null;
 let audioMasterGain = null;
+let activeSounds = [];
 
 function createInitialState() {
   return {
@@ -108,17 +117,23 @@ function clearAllPads() {
 }
 
 function createAudioContext() {
-  const AudioContextCtor = window.AudioContext || window.webkitAudioContext;
-  if (!AudioContextCtor) {
+  try {
+    const AudioContextCtor = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContextCtor) {
+      return null;
+    }
+    const context = new AudioContextCtor();
+    const masterGain = context.createGain();
+    masterGain.gain.value = TONE_VOLUME;
+    masterGain.connect(context.destination);
+    audioContext = context;
+    audioMasterGain = masterGain;
+    return context;
+  } catch (error) {
+    audioContext = null;
+    audioMasterGain = null;
     return null;
   }
-  const context = new AudioContextCtor();
-  const masterGain = context.createGain();
-  masterGain.gain.value = TONE_VOLUME;
-  masterGain.connect(context.destination);
-  audioContext = context;
-  audioMasterGain = masterGain;
-  return context;
 }
 
 function getAudioContext() {
@@ -141,7 +156,7 @@ function resumeAudio() {
   }
 }
 
-function playTone(frequency, durationMs) {
+function playTone(frequency, durationMs, type) {
   const context = getAudioContext();
   if (!context || !audioMasterGain) {
     return;
@@ -160,7 +175,7 @@ function playTone(frequency, durationMs) {
   const sustainEndSec = Math.max(attackSec, durationSec - decaySec);
 
   const oscillator = context.createOscillator();
-  oscillator.type = "sine";
+  oscillator.type = typeof type === "string" && type ? type : "sine";
   oscillator.frequency.setValueAtTime(frequency, now);
 
   const envelope = context.createGain();
@@ -172,14 +187,64 @@ function playTone(frequency, durationMs) {
   oscillator.connect(envelope);
   envelope.connect(audioMasterGain);
 
+  const sound = { oscillator: oscillator, envelope: envelope };
+  activeSounds.push(sound);
+
+  const scheduledStop = now + durationSec + 0.02;
   oscillator.start(now);
-  oscillator.stop(now + durationSec + 0.02);
+  oscillator.stop(scheduledStop);
 
   oscillator.addEventListener("ended", function cleanup() {
     oscillator.removeEventListener("ended", cleanup);
+    removeActiveSound(sound);
     oscillator.disconnect();
     envelope.disconnect();
   });
+}
+
+function removeActiveSound(sound) {
+  const index = activeSounds.indexOf(sound);
+  if (index !== -1) {
+    activeSounds.splice(index, 1);
+  }
+}
+
+function stopAllAudio() {
+  while (activeSounds.length > 0) {
+    const sound = activeSounds[activeSounds.length - 1];
+    activeSounds.pop();
+    if (sound.oscillator && typeof sound.oscillator.stop === "function") {
+      try {
+        sound.oscillator.stop();
+      } catch (error) {
+      }
+    }
+    if (sound.oscillator && typeof sound.oscillator.disconnect === "function") {
+      sound.oscillator.disconnect();
+    }
+    if (sound.envelope && typeof sound.envelope.disconnect === "function") {
+      sound.envelope.disconnect();
+    }
+  }
+}
+
+function playFailTone() {
+  playTone(FAIL_TONE_FREQUENCY, FAIL_TONE_MS, "sawtooth");
+}
+
+function playVictoryFanfare() {
+  const context = getAudioContext();
+  if (!context || !audioMasterGain) {
+    return;
+  }
+  for (let i = 0; i < FANFARE_NOTES.length; i++) {
+    scheduleTimer(function () {
+      playTone(
+        FANFARE_NOTES[i],
+        i === FANFARE_NOTES.length - 1 ? FANFARE_FINAL_MS : FANFARE_NOTE_MS
+      );
+    }, i * FANFARE_STEP_MS);
+  }
 }
 
 function flashPad(padId) {
@@ -252,6 +317,7 @@ function startGame() {
 
 function resetGame() {
   cancelTimers();
+  stopAllAudio();
   const previousHighScore = state.highScore;
   state = createInitialState();
   state.highScore = previousHighScore;
@@ -292,11 +358,13 @@ function levelWon() {
 function gameWin() {
   state.status = STATUS_IDLE;
   render();
+  playVictoryFanfare();
 }
 
 function gameLost() {
   state.status = STATUS_LOST;
   render();
+  playFailTone();
 }
 
 function handlePadInput(padId) {
