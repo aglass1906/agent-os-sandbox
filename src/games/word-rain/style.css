@@ -353,6 +353,15 @@ body {
   80% { transform: translateX(6px); }
 }
 
+.arena.life-lost {
+  animation: arena-life-flash 0.5s ease;
+}
+
+@keyframes arena-life-flash {
+  0%, 100% { border-color: var(--panel-border); box-shadow: none; }
+  50% { border-color: var(--incorrect); box-shadow: 0 0 18px 4px rgba(192, 57, 43, 0.4); }
+}
+
 .back-link:focus-visible,
 .listen-btn:focus-visible,
 .reset:focus-visible {
@@ -474,6 +483,7 @@ body {
   .falling-word,
   .falling-word.correct,
   .falling-word.incorrect,
+  .arena.life-lost,
   .listen-btn,
   .reset,
   .back-link {
