@@ -28,21 +28,21 @@ const MAX_FRAME_DELAY_MS = 250;
 const ROUND_TRANSITION_MS = 900;
 const LIVES_ICON = "\u2665";
 const PROMPT_IDLE_TEXT =
-  "Press Start to begin. Pick the word that matches the prompt before it falls off the bottom.";
+  "Press Start to begin. Match the Spanish word to its English meaning before it falls.";
 
 const BUILTIN_WORDS = [
-  { id: "sun", word: "sun", concept: "the star that lights the day", difficulty: 0 },
-  { id: "cat", word: "cat", concept: "a small furry pet", difficulty: 0 },
-  { id: "cup", word: "cup", concept: "holds your drink", difficulty: 0 },
-  { id: "fish", word: "fish", concept: "swims in the sea", difficulty: 0 },
-  { id: "leaf", word: "leaf", concept: "grows on a tree", difficulty: 1 },
-  { id: "star", word: "star", concept: "a dot that lights the night", difficulty: 1 },
-  { id: "bridge", word: "bridge", concept: "crosses over a river", difficulty: 1 },
-  { id: "storm", word: "storm", concept: "strong wind and heavy rain", difficulty: 1 },
-  { id: "whale", word: "whale", concept: "the largest ocean animal", difficulty: 2 },
-  { id: "castle", word: "castle", concept: "a king's stone home", difficulty: 2 },
-  { id: "snake", word: "snake", concept: "a long animal without legs", difficulty: 2 },
-  { id: "rainbow", word: "rainbow", concept: "a colorful arc after rain", difficulty: 2 }
+  { id: "sun", word: "sol", concept: "the star that lights the day", difficulty: 0 },
+  { id: "cat", word: "gato", concept: "a small furry pet", difficulty: 0 },
+  { id: "cup", word: "taza", concept: "holds your drink", difficulty: 0 },
+  { id: "fish", word: "pez", concept: "swims in the sea", difficulty: 0 },
+  { id: "leaf", word: "hoja", concept: "grows on a tree", difficulty: 1 },
+  { id: "star", word: "estrella", concept: "a dot that lights the night", difficulty: 1 },
+  { id: "bridge", word: "puente", concept: "crosses over a river", difficulty: 1 },
+  { id: "storm", word: "tormenta", concept: "strong wind and heavy rain", difficulty: 1 },
+  { id: "whale", word: "ballena", concept: "the largest ocean animal", difficulty: 2 },
+  { id: "castle", word: "castillo", concept: "a king's stone home", difficulty: 2 },
+  { id: "snake", word: "serpiente", concept: "a long animal without legs", difficulty: 2 },
+  { id: "rainbow", word: "arcoíris", concept: "a colorful arc after rain", difficulty: 2 }
 ];
 
 const BAND_INDEX = buildBandIndex();
@@ -364,6 +364,7 @@ function resolveCorrect(word) {
   state.level = Math.floor(state.totalCorrect / WORDS_PER_LEVEL);
   state.roundResolved = true;
   markCorrectVisual(word);
+  speakSpanish(word.word);
   syncHud();
   announce(
     "Correct! \u201c" +
@@ -441,23 +442,23 @@ function selectLane(laneNumber) {
   return { accepted: true, action: "selectLane", lane: laneNumber, wasCorrect: wasCorrect };
 }
 
-function speakPrompt() {
+const SPANISH_LANG = "es-ES";
+const SPANISH_LANG_FALLBACK = "es-MX";
+const SPANISH_RATE = 0.875;
+
+function speakSpanish(text) {
   if (!hasDom()) return;
   if (typeof window === "undefined") return;
   if (!("speechSynthesis" in window)) return;
-  if (state.currentPrompt === "") return;
-  const targetWord = findWordByEntryId(state.targetEntryId);
+  if (typeof text !== "string" || text === "") return;
   let utterance;
   try {
-    utterance =
-      targetWord === null
-        ? new SpeechSynthesisUtterance(state.currentPrompt)
-        : new SpeechSynthesisUtterance(targetWord.word);
+    utterance = new SpeechSynthesisUtterance(text);
   } catch (error) {
     return;
   }
-  utterance.lang = "en-US";
-  utterance.rate = 0.9;
+  utterance.lang = SPANISH_LANG;
+  utterance.rate = SPANISH_RATE;
   utterance.volume = 1;
   try {
     window.speechSynthesis.cancel();
@@ -465,6 +466,13 @@ function speakPrompt() {
   } catch (error) {
     return;
   }
+}
+
+function speakPrompt() {
+  if (state.currentPrompt === "") return;
+  const targetWord = findWordByEntryId(state.targetEntryId);
+  const text = targetWord === null ? state.currentPrompt : targetWord.word;
+  speakSpanish(text);
 }
 
 function hitTestFallingWord(event) {
@@ -883,6 +891,9 @@ if (typeof module !== "undefined" && module.exports) {
     FALL_VELOCITY_STEP_PS: FALL_VELOCITY_STEP_PS,
     DEFAULT_ARENA_HEIGHT_PX: DEFAULT_ARENA_HEIGHT_PX,
     WORD_HEIGHT_PX: WORD_HEIGHT_PX,
+    SPANISH_LANG: SPANISH_LANG,
+    SPANISH_LANG_FALLBACK: SPANISH_LANG_FALLBACK,
+    SPANISH_RATE: SPANISH_RATE,
     createInitialState: createInitialState,
     fallVelocityPxPerSecond: fallVelocityPxPerSecond,
     hasCrossedFloor: hasCrossedFloor,
@@ -902,6 +913,7 @@ if (typeof module !== "undefined" && module.exports) {
     resolveIncorrect: resolveIncorrect,
     findWordByEntryId: findWordByEntryId,
     findWordByLane: findWordByLane,
+    speakSpanish: speakSpanish,
     getState: function () {
       return state;
     }
