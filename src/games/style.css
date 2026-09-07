@@ -95,6 +95,19 @@ body {
   color: #546e7a;
 }
 
+.game-badge {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 2px 8px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  color: #fff;
+  background: var(--accent);
+  border-radius: 8px;
+  vertical-align: middle;
+}
+
 @media (max-width: 480px) {
   .game-list {
     flex-direction: column;
