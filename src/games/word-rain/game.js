@@ -118,10 +118,23 @@ function cancelPendingTimers() {
   pendingTimers = [];
 }
 
+function cancelPendingSpeech() {
+  if (!hasDom()) return;
+  if (typeof window === "undefined") return;
+  if ("speechSynthesis" in window) {
+    try {
+      window.speechSynthesis.cancel();
+    } catch (error) {
+      return;
+    }
+  }
+}
+
 function resetGame() {
   cancelAnimationFrameId();
   cancelPendingTimers();
   stopAllAudio();
+  cancelPendingSpeech();
   wordElementByEntryId.clear();
   const previousHighScore = state.sessionHighScore;
   state = createInitialState();
