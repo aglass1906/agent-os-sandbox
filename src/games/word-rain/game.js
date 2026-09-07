@@ -8,6 +8,7 @@ const STATUS_GAME_OVER = "STATUS_GAME_OVER";
 const LANE_COUNT = 3;
 const MAX_LIVES = 3;
 const SCORE_BASE = 10;
+const STREAK_BONUS = 5;
 const STREAK_TIER = 5;
 const WORDS_PER_LEVEL = 5;
 const FALL_TIME_BASE_MS = 8000;
@@ -67,6 +68,7 @@ function createInitialState() {
     status: STATUS_IDLE,
     score: 0,
     streak: 0,
+    totalCorrect: 0,
     lives: MAX_LIVES,
     speed: FALL_TIME_BASE_MS,
     level: 0,
@@ -310,6 +312,270 @@ function markMissedVisual(missedWord) {
   }
 }
 
+function findWordByEntryId(entryId) {
+  for (let i = 0; i < state.fallingWords.length; i += 1) {
+    if (state.fallingWords[i].entryId === entryId) {
+      return state.fallingWords[i];
+    }
+  }
+  return null;
+}
+
+function findWordByLane(laneNumber) {
+  for (let i = 0; i < state.fallingWords.length; i += 1) {
+    if (state.fallingWords[i].lane === laneNumber) {
+      return state.fallingWords[i];
+    }
+  }
+  return null;
+}
+
+function markCorrectVisual(word) {
+  if (!hasDom()) return;
+  const element = wordElementByEntryId.get(word.entryId);
+  if (element) {
+    element.classList.add("correct");
+  }
+}
+
+function markIncorrectVisual(pickedWord) {
+  if (!hasDom()) return;
+  const pickedElement = wordElementByEntryId.get(pickedWord.entryId);
+  if (pickedElement) {
+    pickedElement.classList.add("incorrect");
+  }
+  const targetElement = wordElementByEntryId.get(state.targetEntryId);
+  if (targetElement) {
+    targetElement.classList.add("correct");
+  }
+  const arena = document.getElementById("arena");
+  if (arena) {
+    arena.classList.remove("life-lost");
+    void arena.offsetWidth;
+    arena.classList.add("life-lost");
+  }
+}
+
+function resolveCorrect(word) {
+  const gained = SCORE_BASE + state.streak * STREAK_BONUS;
+  state.score += gained;
+  state.streak += 1;
+  state.totalCorrect += 1;
+  state.level = Math.floor(state.totalCorrect / WORDS_PER_LEVEL);
+  state.roundResolved = true;
+  markCorrectVisual(word);
+  syncHud();
+  announce(
+    "Correct! \u201c" +
+      word.word +
+      "\u201d is a match. +" +
+      gained +
+      " points. Streak is now " +
+      state.streak +
+      "."
+  );
+  scheduleNextRound();
+}
+
+function resolveIncorrect(pickedWord) {
+  state.lives -= 1;
+  state.streak = 0;
+  state.roundResolved = true;
+  markIncorrectVisual(pickedWord);
+  syncHud();
+  const targetWord = findWordByEntryId(state.targetEntryId);
+  const targetLabel = targetWord === null ? state.currentPrompt : targetWord.word;
+  announce(
+    "Wrong pick. \u201c" +
+      pickedWord.word +
+      "\u201d does not match. The correct word was \u201c" +
+      targetLabel +
+      "\u201d. One life lost. " +
+      state.lives +
+      " lives left."
+  );
+  if (state.lives <= 0) {
+    endGame();
+  } else {
+    scheduleNextRound();
+  }
+}
+
+function handleWordSelection(entryId) {
+  if (state.status !== STATUS_PLAYING || state.roundResolved) {
+    return { accepted: false, action: "selectWord", reason: "STATE_GUARD" };
+  }
+  if (typeof entryId !== "string" || entryId === "") {
+    return { accepted: false, action: "selectWord", reason: "INVALID_TARGET" };
+  }
+  const word = findWordByEntryId(entryId);
+  if (word === null) {
+    return { accepted: false, action: "selectWord", reason: "UNKNOWN_WORD" };
+  }
+  const wasCorrect = word.entryId === state.targetEntryId;
+  if (wasCorrect) {
+    resolveCorrect(word);
+  } else {
+    resolveIncorrect(word);
+  }
+  return { accepted: true, action: "selectWord", word: word.word, wasCorrect: wasCorrect };
+}
+
+function selectLane(laneNumber) {
+  if (state.status !== STATUS_PLAYING || state.roundResolved) {
+    return { accepted: false, action: "selectLane", reason: "STATE_GUARD" };
+  }
+  if (typeof laneNumber !== "number" || laneNumber < 0 || laneNumber >= LANE_COUNT) {
+    return { accepted: false, action: "selectLane", reason: "OUT_OF_RANGE" };
+  }
+  const word = findWordByLane(laneNumber);
+  if (word === null) {
+    return { accepted: false, action: "selectLane", reason: "NO_WORD_IN_LANE" };
+  }
+  const wasCorrect = word.entryId === state.targetEntryId;
+  if (wasCorrect) {
+    resolveCorrect(word);
+  } else {
+    resolveIncorrect(word);
+  }
+  return { accepted: true, action: "selectLane", lane: laneNumber, wasCorrect: wasCorrect };
+}
+
+function speakPrompt() {
+  if (!hasDom()) return;
+  if (typeof window === "undefined") return;
+  if (!("speechSynthesis" in window)) return;
+  if (state.currentPrompt === "") return;
+  const targetWord = findWordByEntryId(state.targetEntryId);
+  let utterance;
+  try {
+    utterance =
+      targetWord === null
+        ? new SpeechSynthesisUtterance(state.currentPrompt)
+        : new SpeechSynthesisUtterance(targetWord.word);
+  } catch (error) {
+    return;
+  }
+  utterance.lang = "en-US";
+  utterance.rate = 0.9;
+  utterance.volume = 1;
+  try {
+    window.speechSynthesis.cancel();
+    window.speechSynthesis.speak(utterance);
+  } catch (error) {
+    return;
+  }
+}
+
+function hitTestFallingWord(event) {
+  if (typeof document !== "undefined" && typeof document.elementsFromPoint === "function") {
+    const elements = document.elementsFromPoint(event.clientX, event.clientY);
+    for (let i = 0; i < elements.length; i += 1) {
+      if (elements[i].classList && elements[i].classList.contains("falling-word")) {
+        return elements[i];
+      }
+    }
+    return null;
+  }
+  const target = event.target;
+  if (target && typeof target.closest === "function") {
+    return target.closest(".falling-word");
+  }
+  return null;
+}
+
+function handleArenaClick(event) {
+  if (state.status !== STATUS_PLAYING || state.roundResolved) return;
+  const wordElement = hitTestFallingWord(event);
+  if (!wordElement) return;
+  const entryId = wordElement.getAttribute("data-word-id");
+  if (typeof entryId === "string" && entryId !== "") {
+    handleWordSelection(entryId);
+  }
+}
+
+function handleArenaPointerDown(event) {
+  if (state.status !== STATUS_PLAYING || state.roundResolved) return;
+  if (typeof event.pointerType === "string" && event.pointerType === "mouse") {
+    return;
+  }
+  const wordElement = hitTestFallingWord(event);
+  if (!wordElement) return;
+  const entryId = wordElement.getAttribute("data-word-id");
+  if (typeof entryId === "string" && entryId !== "") {
+    handleWordSelection(entryId);
+  }
+}
+
+function handleKeyDown(event) {
+  const target = event.target;
+  if (target && (target.tagName === "INPUT" || target.tagName === "TEXTAREA")) {
+    return;
+  }
+  const key = event.key;
+  if (key === "1" || key === "2" || key === "3") {
+    event.preventDefault();
+    applyAction("selectLane", Number(key) - 1);
+    return;
+  }
+  if (key === " " || key === "Spacebar") {
+    event.preventDefault();
+    if (state.status === STATUS_PLAYING) {
+      applyAction("pauseGame");
+    } else if (state.status === STATUS_PAUSED) {
+      applyAction("resumeGame");
+    }
+    return;
+  }
+  if (key === "p" || key === "P") {
+    if (state.status === STATUS_PLAYING) {
+      applyAction("pauseGame");
+    } else if (state.status === STATUS_PAUSED) {
+      applyAction("resumeGame");
+    }
+    return;
+  }
+  if (key === "Enter") {
+    event.preventDefault();
+    applyAction("startGame");
+    return;
+  }
+  if (key === "l" || key === "L") {
+    applyAction("listenPrompt");
+  }
+}
+
+function handleVisibilityChange() {
+  if (typeof document === "undefined") return;
+  if (document.hidden) {
+    applyAction("visibilityHidden");
+  }
+}
+
+function handleWindowBlur() {
+  applyAction("visibilityHidden");
+}
+
+function handlePageHide() {
+  if (!hasDom()) return;
+  if (typeof window === "undefined") return;
+  if ("speechSynthesis" in window) {
+    try {
+      window.speechSynthesis.cancel();
+    } catch (error) {
+      return;
+    }
+  }
+}
+
+function focusArena() {
+  if (!hasDom()) return;
+  const arena = document.getElementById("arena");
+  if (arena) {
+    arena.focus();
+  }
+}
+
 function scheduleNextRound() {
   const timer = setTimeout(function () {
     if (state.status !== STATUS_PLAYING || !state.roundResolved) return;
@@ -500,6 +766,7 @@ function beginGame() {
   state.status = STATUS_PLAYING;
   spawnRound();
   startLoop();
+  focusArena();
 }
 
 function applyAction(action, payload) {
@@ -529,6 +796,34 @@ function applyAction(action, payload) {
     startLoop();
     return { accepted: true, action: action };
   }
+  if (action === "selectLane") {
+    const laneNumber =
+      typeof payload === "number" ? payload : payload && typeof payload.lane === "number" ? payload.lane : Number.NaN;
+    return selectLane(laneNumber);
+  }
+  if (action === "selectWord") {
+    const entryId = typeof payload === "string" ? payload : payload && payload.entryId;
+    return handleWordSelection(entryId);
+  }
+  if (action === "listenPrompt") {
+    if (state.status !== STATUS_PLAYING) {
+      return { accepted: false, action: action, reason: "STATE_GUARD" };
+    }
+    if (state.currentPrompt === "") {
+      return { accepted: false, action: action, reason: "NO_PROMPT" };
+    }
+    speakPrompt();
+    return { accepted: true, action: action };
+  }
+  if (action === "visibilityHidden") {
+    if (state.status !== STATUS_PLAYING) {
+      return { accepted: false, action: action, reason: "STATE_GUARD" };
+    }
+    state.status = STATUS_PAUSED;
+    cancelAnimationFrameId();
+    state.lastFrameTimeMs = null;
+    return { accepted: true, action: action };
+  }
   if (action === "tick") {
     if (state.status !== STATUS_PLAYING) {
       return { accepted: false, action: action, reason: "STATE_GUARD" };
@@ -546,6 +841,23 @@ function init() {
     startButton.addEventListener("click", function () {
       applyAction("startGame");
     });
+  }
+  const listenButton = document.getElementById("listenBtn");
+  if (listenButton) {
+    listenButton.addEventListener("click", function () {
+      applyAction("listenPrompt");
+    });
+  }
+  const arena = document.getElementById("arena");
+  if (arena) {
+    arena.addEventListener("click", handleArenaClick);
+    arena.addEventListener("pointerdown", handleArenaPointerDown);
+  }
+  document.addEventListener("keydown", handleKeyDown);
+  document.addEventListener("visibilitychange", handleVisibilityChange);
+  if (typeof window !== "undefined") {
+    window.addEventListener("blur", handleWindowBlur);
+    window.addEventListener("pagehide", handlePageHide);
   }
   renderPrompt();
   syncHud();
@@ -565,6 +877,7 @@ if (typeof module !== "undefined" && module.exports) {
     MAX_LIVES: MAX_LIVES,
     RECENT_WINDOW: RECENT_WINDOW,
     BAND_COUNT: BAND_COUNT,
+    STREAK_BONUS: STREAK_BONUS,
     FALL_VELOCITY_BASE_PS: FALL_VELOCITY_BASE_PS,
     FALL_VELOCITY_MAX_PS: FALL_VELOCITY_MAX_PS,
     FALL_VELOCITY_STEP_PS: FALL_VELOCITY_STEP_PS,
@@ -583,6 +896,12 @@ if (typeof module !== "undefined" && module.exports) {
     resetGame: resetGame,
     beginGame: beginGame,
     applyAction: applyAction,
+    selectLane: selectLane,
+    handleWordSelection: handleWordSelection,
+    resolveCorrect: resolveCorrect,
+    resolveIncorrect: resolveIncorrect,
+    findWordByEntryId: findWordByEntryId,
+    findWordByLane: findWordByLane,
     getState: function () {
       return state;
     }
