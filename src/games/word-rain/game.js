@@ -17,6 +17,22 @@ const FALL_DECAY = 0.93;
 const RECENT_WINDOW = 6;
 const BAND_COUNT = 4;
 const AUDIO_MASTER_GAIN = 0.15;
+const TONE_ATTACK_MS = 0.01;
+const TONE_RELEASE_MS = 0.08;
+const CHIME_NOTE_1_HZ = 523;
+const CHIME_NOTE_2_HZ = 659;
+const CHIME_NOTE_1_MS = 140;
+const CHIME_NOTE_2_MS = 220;
+const CHIME_STEP_MS = 90;
+const MISS_BUZZER_HZ = 110;
+const MISS_BUZZER_MS = 260;
+const GAME_OVER_NOTES = [392, 330, 262];
+const GAME_OVER_NOTE_MS = 200;
+const GAME_OVER_STEP_MS = 140;
+const STREAK_BONUS_FREQUENCY_HZ = 880;
+const STREAK_BONUS_FREQUENCY_2_HZ = 1174.66;
+const STREAK_BONUS_MS = 130;
+const STREAK_BONUS_STEP_MS = 80;
 
 const WORD_HEIGHT_PX = 48;
 const SPAWN_STAGGER_PX = 26;
@@ -51,6 +67,9 @@ let state = createInitialState();
 let animationFrameId = null;
 let pendingTimers = [];
 let wordElementByEntryId = new Map();
+let audioContext = null;
+let audioMasterGain = null;
+let activeSounds = [];
 
 function buildBandIndex() {
   const bands = [];
@@ -102,6 +121,7 @@ function cancelPendingTimers() {
 function resetGame() {
   cancelAnimationFrameId();
   cancelPendingTimers();
+  stopAllAudio();
   wordElementByEntryId.clear();
   const previousHighScore = state.sessionHighScore;
   state = createInitialState();
@@ -287,6 +307,7 @@ function resolveMiss(missedWord) {
   state.roundResolved = true;
   markMissedVisual(missedWord);
   removeDistractorsFromArena(missedWord);
+  playMissBuzzer();
   syncHud();
   announce(
     "Missed \u201c" + missedWord.word + "\u201d. One life lost. " + state.lives + " lives left."
@@ -365,6 +386,10 @@ function resolveCorrect(word) {
   state.roundResolved = true;
   markCorrectVisual(word);
   speakSpanish(word.word);
+  playCorrectChime();
+  if (state.streak > 0 && state.streak % STREAK_TIER === 0) {
+    playStreakBonus();
+  }
   syncHud();
   announce(
     "Correct! \u201c" +
@@ -383,6 +408,7 @@ function resolveIncorrect(pickedWord) {
   state.streak = 0;
   state.roundResolved = true;
   markIncorrectVisual(pickedWord);
+  playMissBuzzer();
   syncHud();
   const targetWord = findWordByEntryId(state.targetEntryId);
   const targetLabel = targetWord === null ? state.currentPrompt : targetWord.word;
@@ -473,6 +499,184 @@ function speakPrompt() {
   const targetWord = findWordByEntryId(state.targetEntryId);
   const text = targetWord === null ? state.currentPrompt : targetWord.word;
   speakSpanish(text);
+}
+
+function audioSupported() {
+  return typeof window !== "undefined" &&
+    !!(window.AudioContext || window.webkitAudioContext);
+}
+
+function createAudioContext() {
+  if (!audioSupported()) return null;
+  try {
+    const AudioContextCtor = window.AudioContext || window.webkitAudioContext;
+    const context = new AudioContextCtor();
+    const masterGain = context.createGain();
+    masterGain.gain.value = AUDIO_MASTER_GAIN;
+    masterGain.connect(context.destination);
+    audioContext = context;
+    audioMasterGain = masterGain;
+    return context;
+  } catch (error) {
+    audioContext = null;
+    audioMasterGain = null;
+    return null;
+  }
+}
+
+function getAudioContext() {
+  if (!audioContext && audioSupported()) {
+    createAudioContext();
+  }
+  return audioContext;
+}
+
+function resumeAudio() {
+  const context = getAudioContext();
+  if (!context) return;
+  if (context.state === "suspended" && typeof context.resume === "function") {
+    const resumePromise = context.resume();
+    if (resumePromise && typeof resumePromise.catch === "function") {
+      resumePromise.catch(function () {});
+    }
+  }
+}
+
+function suspendAudio() {
+  if (!audioContext) return;
+  if (audioContext.state === "running" && typeof audioContext.suspend === "function") {
+    try {
+      audioContext.suspend();
+    } catch (error) {
+    }
+  }
+}
+
+function removeActiveSound(sound) {
+  const index = activeSounds.indexOf(sound);
+  if (index !== -1) {
+    activeSounds.splice(index, 1);
+  }
+}
+
+function playTone(frequency, type, duration, gain) {
+  const context = getAudioContext();
+  if (!context || !audioMasterGain) return;
+  if (typeof frequency !== "number" || !isFinite(frequency) || frequency <= 0) return;
+  if (typeof duration !== "number" || !isFinite(duration) || duration <= 0) return;
+  const oscillatorType = typeof type === "string" && type !== "" ? type : "sine";
+  const volume = typeof gain === "number" && isFinite(gain) && gain > 0 ? gain : 1;
+
+  const now = context.currentTime;
+  const attackSec = TONE_ATTACK_MS / 1000;
+  const releaseSec = TONE_RELEASE_MS / 1000;
+  const durationSec = duration / 1000;
+  const sustainEndSec = Math.max(attackSec, durationSec - releaseSec);
+
+  const oscillator = context.createOscillator();
+  oscillator.type = oscillatorType;
+  oscillator.frequency.setValueAtTime(frequency, now);
+
+  const envelope = context.createGain();
+  envelope.gain.setValueAtTime(0, now);
+  envelope.gain.linearRampToValueAtTime(volume, now + attackSec);
+  envelope.gain.setValueAtTime(volume, now + sustainEndSec);
+  envelope.gain.linearRampToValueAtTime(0, now + durationSec);
+
+  oscillator.connect(envelope);
+  envelope.connect(audioMasterGain);
+
+  const sound = { oscillator: oscillator, envelope: envelope };
+  activeSounds.push(sound);
+
+  const stopTime = now + durationSec + 0.02;
+  try {
+    oscillator.start(now);
+    oscillator.stop(stopTime);
+  } catch (error) {
+    removeActiveSound(sound);
+    return;
+  }
+
+  oscillator.addEventListener("ended", function cleanup() {
+    oscillator.removeEventListener("ended", cleanup);
+    removeActiveSound(sound);
+    try {
+      oscillator.disconnect();
+    } catch (error) {
+    }
+    try {
+      envelope.disconnect();
+    } catch (error) {
+    }
+  });
+}
+
+function stopAllAudio() {
+  while (activeSounds.length > 0) {
+    const sound = activeSounds[activeSounds.length - 1];
+    activeSounds.pop();
+    if (sound.oscillator) {
+      try {
+        sound.oscillator.stop();
+      } catch (error) {
+      }
+      try {
+        sound.oscillator.disconnect();
+      } catch (error) {
+      }
+    }
+    if (sound.envelope) {
+      try {
+        sound.envelope.disconnect();
+      } catch (error) {
+      }
+    }
+  }
+}
+
+function playCorrectChime() {
+  playTone(CHIME_NOTE_1_HZ, "triangle", CHIME_NOTE_1_MS, 1);
+  const timer = setTimeout(function () {
+    playTone(CHIME_NOTE_2_HZ, "triangle", CHIME_NOTE_2_MS, 1);
+  }, CHIME_STEP_MS);
+  pendingTimers.push(timer);
+}
+
+function playMissBuzzer() {
+  playTone(MISS_BUZZER_HZ, "sawtooth", MISS_BUZZER_MS, 1);
+}
+
+function playGameOverSound() {
+  for (let i = 0; i < GAME_OVER_NOTES.length; i += 1) {
+    const timer = setTimeout(function () {
+      playTone(GAME_OVER_NOTES[i], "sawtooth", GAME_OVER_NOTE_MS, 1);
+    }, i * GAME_OVER_STEP_MS);
+    pendingTimers.push(timer);
+  }
+}
+
+function playStreakBonus() {
+  playTone(STREAK_BONUS_FREQUENCY_HZ, "square", STREAK_BONUS_MS, 0.7);
+  const timer = setTimeout(function () {
+    playTone(STREAK_BONUS_FREQUENCY_2_HZ, "square", STREAK_BONUS_MS, 0.7);
+  }, STREAK_BONUS_STEP_MS);
+  pendingTimers.push(timer);
+}
+
+function closeAudio() {
+  cancelPendingTimers();
+  stopAllAudio();
+  if (audioContext) {
+    try {
+      if (typeof audioContext.close === "function") {
+        audioContext.close();
+      }
+    } catch (error) {
+    }
+  }
+  audioContext = null;
+  audioMasterGain = null;
 }
 
 function hitTestFallingWord(event) {
@@ -574,6 +778,7 @@ function handlePageHide() {
       return;
     }
   }
+  closeAudio();
 }
 
 function focusArena() {
@@ -601,6 +806,7 @@ function endGame() {
   cancelAnimationFrameId();
   cancelPendingTimers();
   clearArena();
+  playGameOverSound();
   renderGameOver();
   announce("Game over. Final score " + state.score + ".");
 }
@@ -768,6 +974,7 @@ function resetDom() {
 
 function beginGame() {
   resetGame();
+  resumeAudio();
   const seed = generateSeed();
   state.rngSeed = seed;
   state.rng = initRng(seed);
@@ -794,6 +1001,7 @@ function applyAction(action, payload) {
     state.status = STATUS_PAUSED;
     cancelAnimationFrameId();
     state.lastFrameTimeMs = null;
+    suspendAudio();
     return { accepted: true, action: action };
   }
   if (action === "resumeGame") {
@@ -801,6 +1009,7 @@ function applyAction(action, payload) {
       return { accepted: false, action: action, reason: "STATE_GUARD" };
     }
     state.status = STATUS_PLAYING;
+    resumeAudio();
     startLoop();
     return { accepted: true, action: action };
   }
@@ -830,6 +1039,7 @@ function applyAction(action, payload) {
     state.status = STATUS_PAUSED;
     cancelAnimationFrameId();
     state.lastFrameTimeMs = null;
+    suspendAudio();
     return { accepted: true, action: action };
   }
   if (action === "tick") {
@@ -843,7 +1053,21 @@ function applyAction(action, payload) {
   return { accepted: false, action: action, reason: "UNKNOWN_ACTION" };
 }
 
+function setupAudioUnlock() {
+  if (typeof document === "undefined") return;
+  function unlock() {
+    resumeAudio();
+    document.removeEventListener("pointerdown", unlock);
+    document.removeEventListener("keydown", unlock);
+    document.removeEventListener("touchstart", unlock);
+  }
+  document.addEventListener("pointerdown", unlock);
+  document.addEventListener("keydown", unlock);
+  document.addEventListener("touchstart", unlock);
+}
+
 function init() {
+  setupAudioUnlock();
   const startButton = document.getElementById("startBtn");
   if (startButton) {
     startButton.addEventListener("click", function () {
@@ -914,6 +1138,17 @@ if (typeof module !== "undefined" && module.exports) {
     findWordByEntryId: findWordByEntryId,
     findWordByLane: findWordByLane,
     speakSpanish: speakSpanish,
+    audioSupported: audioSupported,
+    getAudioContext: getAudioContext,
+    resumeAudio: resumeAudio,
+    suspendAudio: suspendAudio,
+    closeAudio: closeAudio,
+    playTone: playTone,
+    playCorrectChime: playCorrectChime,
+    playMissBuzzer: playMissBuzzer,
+    playGameOverSound: playGameOverSound,
+    playStreakBonus: playStreakBonus,
+    stopAllAudio: stopAllAudio,
     getState: function () {
       return state;
     }
