@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Asteroids Redux</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="game">
+    <header class="game-header">
+      <h1 class="game-title">Asteroids&nbsp;Redux</h1>
+      <a class="back-link" href="../index.html">Back to Game Selection</a>
+    </header>
+
+    <div id="announcements" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></div>
+
+    <section class="hud" aria-label="Score, lives, and wave">
+      <div class="hud-item">
+        <span class="hud-label" id="scoreLabel">Score</span>
+        <span class="hud-value" id="score">0</span>
+      </div>
+      <div class="hud-item">
+        <span class="hud-label" id="livesLabel">Lives</span>
+        <span class="hud-value" id="lives">3</span>
+      </div>
+      <div class="hud-item">
+        <span class="hud-label" id="waveLabel">Wave</span>
+        <span class="hud-value" id="wave">1</span>
+      </div>
+    </section>
+
+    <section class="status-hud" aria-label="Game status">
+      <div id="status" class="status" aria-live="polite">Press Start to pilot your ship</div>
+    </section>
+
+    <section class="board-panel" aria-labelledby="board-title">
+      <h2 id="board-title" class="panel-title sr-only">Game Area</h2>
+      <div class="board-wrap">
+        <canvas id="board" class="board" role="img" aria-label="Asteroids Redux game canvas"
+                aria-describedby="status" tabindex="0">
+          Your browser does not support the HTML5 canvas element.
+        </canvas>
+      </div>
+    </section>
+
+    <section class="touch-controls" aria-label="Touch controls" id="touchControls" hidden>
+      <button id="touchLeft" class="touch-btn" type="button" aria-label="Rotate left">&#8592;</button>
+      <button id="touchFire" class="touch-btn" type="button" aria-label="Fire">&#9679;</button>
+      <button id="touchRight" class="touch-btn" type="button" aria-label="Rotate right">&#8594;</button>
+      <button id="touchThrust" class="touch-btn" type="button" aria-label="Thrust">&#9650;</button>
+    </section>
+
+    <div class="controls">
+      <button id="startBtn" class="reset" type="button">Start</button>
+      <button id="pauseBtn" class="reset about" type="button">Pause</button>
+    </div>
+
+    <section class="instructions" aria-labelledby="instructions-title">
+      <h2 id="instructions-title" class="panel-title">How to Play</h2>
+      <ol class="instructions-list">
+        <li>Press <strong>Start</strong> to launch a new game.</li>
+        <li>Steer your ship with the <strong>Arrow</strong> keys or <strong>WASD</strong>: &#8592;/<kbd>A</kbd> and &#8594;/<kbd>D</kbd> rotate, &#8593;/<kbd>W</kbd> thrusts.</li>
+        <li>Hold/press <strong>Space</strong> to fire at the asteroids.</li>
+        <li>Every asteroid you destroy scores points; survive each wave as the next one begins.</li>
+        <li>You start with <strong>3 lives</strong>. Losing all of them ends the game.</li>
+        <li>On touch devices, use the on-screen buttons shown below the game area.</li>
+      </ol>
+    </section>
+  </main>
+
+  <script src="game.js"></script>
+</body>
+</html>
