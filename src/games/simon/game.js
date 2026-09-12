@@ -220,12 +220,31 @@ function stopAllAudio() {
       }
     }
     if (sound.oscillator && typeof sound.oscillator.disconnect === "function") {
-      sound.oscillator.disconnect();
+      try {
+        sound.oscillator.disconnect();
+      } catch (error) {
+      }
     }
     if (sound.envelope && typeof sound.envelope.disconnect === "function") {
-      sound.envelope.disconnect();
+      try {
+        sound.envelope.disconnect();
+      } catch (error) {
+      }
     }
   }
+}
+
+function closeAudio() {
+  cancelTimers();
+  stopAllAudio();
+  if (audioContext && typeof audioContext.close === "function") {
+    try {
+      audioContext.close();
+    } catch (error) {
+    }
+  }
+  audioContext = null;
+  audioMasterGain = null;
 }
 
 function playFailTone() {
@@ -565,6 +584,9 @@ function init() {
   setupStartButton();
   setupAboutModal();
   setupAudioUnlock();
+  if (typeof window !== "undefined") {
+    window.addEventListener("pagehide", closeAudio);
+  }
   render();
 }
 
