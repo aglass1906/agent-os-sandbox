@@ -46,6 +46,16 @@ const SCORE_SMALL = 100;
 const SPAWN_SAFE_RADIUS = 150;    // margin around the ship for new asteroids
 const MAX_PARTICLES = 260;
 
+// Design Doc Section 8 (procedural audio feedback).
+const EXPLOSION_NOISE_DURATION = 0.6;   // seconds — white noise buffer length
+const EXPLOSION_VOLUME = 0.45;          // master gain for explosion playback
+const EXPLOSION_CUTOFF_BASE = 400;      // Hz — low-pass cutoff for small asteroids
+const EXPLOSION_CUTOFF_LARGE = 900;     // Hz — low-pass cutoff for large asteroids
+const EXPLOSION_DECAY_BASE = 0.08;      // seconds — shortest exponential tail
+const EXPLOSION_DECAY_LARGE = 0.32;     // seconds — longest exponential tail
+const EXPLOSION_DURATION_BASE = 0.06;   // seconds — shortest envelope length
+const EXPLOSION_DURATION_LARGE = 0.30;  // seconds — longest envelope length
+
 // ---- Helpers ---------------------------------------------------------------
 
 const TAU = Math.PI * 2;
@@ -91,6 +101,141 @@ function prefersReducedMotion() {
     typeof window.matchMedia === "function" &&
     window.matchMedia("(prefers-reduced-motion: reduce)").matches
   );
+}
+
+// ---- Audio ------------------------------------------------------------------
+// Procedural explosion feedback (Design Doc Section 8): a shared AudioContext is
+// created lazily on the first user gesture and every explosion is a filtered
+// white-noise buffer shaped by an exponential decay envelope whose duration and
+// cutoff scale with the destroyed asteroid's size.
+
+let audioContext = null;
+let audioMasterGain = null;
+let noiseBuffer = null;
+
+function audioSupported() {
+  return !!(window.AudioContext || window.webkitAudioContext);
+}
+
+function createAudioContext() {
+  try {
+    const AudioContextCtor = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContextCtor) return null;
+    const context = new AudioContextCtor();
+    const masterGain = context.createGain();
+    masterGain.gain.value = EXPLOSION_VOLUME;
+    masterGain.connect(context.destination);
+    audioContext = context;
+    audioMasterGain = masterGain;
+    return context;
+  } catch (error) {
+    audioContext = null;
+    audioMasterGain = null;
+    return null;
+  }
+}
+
+function getAudioContext() {
+  if (!audioContext && audioSupported()) {
+    createAudioContext();
+  }
+  return audioContext;
+}
+
+// Autoplay-policy unlock: called from within a user gesture so the context is
+// already running when the first explosion is scheduled.
+function resumeAudio() {
+  const context = getAudioContext();
+  if (!context) return;
+  if (context.state === "suspended" && typeof context.resume === "function") {
+    const resumePromise = context.resume();
+    if (resumePromise && typeof resumePromise.catch === "function") {
+      resumePromise.catch(function () {});
+    }
+  }
+}
+
+// Release Web Audio resources on navigation so the page never leaks graph nodes.
+function closeAudio() {
+  resumeAudio();
+  if (audioContext && typeof audioContext.close === "function") {
+    try {
+      audioContext.close();
+    } catch (error) {
+    }
+  }
+  audioContext = null;
+  audioMasterGain = null;
+  noiseBuffer = null;
+}
+
+// White-noise buffer is generated once and shared by every explosion so no
+// per-shot buffer allocation is needed.
+function getNoiseBuffer(context) {
+  if (noiseBuffer) return noiseBuffer;
+  const buffer = context.createBuffer(
+    1,
+    Math.max(1, Math.floor(context.sampleRate * EXPLOSION_NOISE_DURATION)),
+    context.sampleRate
+  );
+  const channel = buffer.getChannelData(0);
+  for (let i = 0; i < channel.length; i++) {
+    channel[i] = Math.random() * 2 - 1;
+  }
+  noiseBuffer = buffer;
+  return noiseBuffer;
+}
+
+// Normalized size drives every parameter: larger rocks boom lower and longer.
+function explosionParameters(size) {
+  const t = (size - ASTEROID_SIZE_SMALL) / (ASTEROID_SIZE_LARGE - ASTEROID_SIZE_SMALL);
+  return {
+    cutoff: EXPLOSION_CUTOFF_BASE + t * (EXPLOSION_CUTOFF_LARGE - EXPLOSION_CUTOFF_BASE),
+    decay: EXPLOSION_DECAY_BASE + t * (EXPLOSION_DECAY_LARGE - EXPLOSION_DECAY_BASE),
+    duration: EXPLOSION_DURATION_BASE + t * (EXPLOSION_DURATION_LARGE - EXPLOSION_DURATION_BASE),
+  };
+}
+
+function playExplosionSound(size) {
+  const context = getAudioContext();
+  if (!context || !audioMasterGain || !audioSupported()) return;
+
+  const now = context.currentTime;
+
+  // Unlock a suspended context from within this user-gesture chain so the very
+  // first explosion is audible instead of silently queued.
+  if (context.state === "suspended" && typeof context.resume === "function") {
+    const resumePromise = context.resume();
+    if (resumePromise && typeof resumePromise.catch === "function") {
+      resumePromise.catch(function () {});
+    }
+  }
+
+  const source = context.createBufferSource();
+  source.buffer = getNoiseBuffer(context);
+  source.loop = true;
+
+  // Low-pass filter turns broadband noise into a deep explosive rumble that
+  // slides down as the blast dissipates.
+  const filter = context.createBiquadFilter();
+  filter.type = "lowpass";
+  const params = explosionParameters(size);
+  filter.frequency.setValueAtTime(params.cutoff, now);
+  filter.frequency.exponentialRampToValueAtTime(80, now + params.duration);
+  filter.Q.value = 0.8;
+
+  // Exponential decay envelope: an instant attack snapping straight into a
+  // size-scaled exponential tail so larger asteroids ring out longer.
+  const envelope = context.createGain();
+  envelope.gain.setValueAtTime(1.0, now);
+  envelope.gain.exponentialRampToValueAtTime(0.001, now + params.decay);
+
+  source.connect(filter);
+  filter.connect(envelope);
+  envelope.connect(audioMasterGain);
+
+  source.start(now);
+  source.stop(now + params.duration);
 }
 
 // ---- State -----------------------------------------------------------------
@@ -296,6 +441,7 @@ function destroyAsteroid(state, asteroid) {
   if (idx !== -1) state.asteroids.splice(idx, 1);
 
   state.score += scoreValue(asteroid.size);
+  playExplosionSound(asteroid.size);
   spawnParticles(
     state,
     asteroid.x,
@@ -314,6 +460,7 @@ function destroyAsteroid(state, asteroid) {
 function damageShip(state) {
   state.lives -= 1;
   updateHUD(state);
+  playExplosionSound(ASTEROID_SIZE_LARGE);
   spawnParticles(state, state.ship.x, state.ship.y, "#ff2e93", 40);
   if (state.lives <= 0) {
     state.ship.alive = false;
@@ -330,6 +477,7 @@ function damageShip(state) {
 
 // Design Doc Section 5: full reset returns the object to its initial defaults.
 function startNewGame(state) {
+  resumeAudio();
   const fresh = createInitialState();
   fresh.status = STATUS_PLAYING;
   Object.assign(state, fresh, { keys: state.keys });
@@ -708,6 +856,9 @@ if (isBrowser) {
       setStatus(state, STATUS_PAUSED);
     }
   });
+
+  // Release Web Audio graph nodes when the page is navigated away from.
+  window.addEventListener("pagehide", closeAudio);
 
   // Main loop.
   let lastTime = performance.now();
