@@ -155,6 +155,17 @@ oscillator whose frequency is swept from **880 Hz down to 110 Hz over 120 ms**
 (`exponentialRampToValueAtTime`), passed through a low-pass filter and an
 exponential decay envelope, so every shot is a short bright downward "pew".
 
+While the ship is thrusting a procedural engine rumble plays. It is a single
+low-frequency **sawtooth oscillator** running at **70 Hz**, passed through a
+**low-pass filter** (~420 Hz) that rounds the sharp sawtooth harmonics into a
+grumbly engine note. A gain envelope fades the note in over **80 ms** when
+thrust engages and releases it exponentially over **160 ms** when thrust stops,
+so holding the key sustains a steady rumble while rapid taps never click. The
+oscillator is created once (lazily, on the first user gesture) and kept running
+under a muted gain until the audio graph closes. The rumble sounds only while
+`status === PLAYING` and the ship is alive, and is silenced on pause, game
+over, reset, or page hide.
+
 A background heartbeat plays whenever `status === PLAYING`. Every beat is a
 dual-tone sine pulse: a short **110 Hz** sine thump immediately followed by a
 quieter **98 Hz** sine thump, each shaped by an instant-attack exponential
