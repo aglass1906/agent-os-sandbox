@@ -45,6 +45,7 @@ let state = createInitialState();
 let pendingTimers = [];
 let audioContext = null;
 let audioMasterGain = null;
+let audioUnlocked = false;
 let activeSounds = [];
 
 function createInitialState() {
@@ -137,6 +138,9 @@ function createAudioContext() {
 }
 
 function getAudioContext() {
+  if (!audioUnlocked) {
+    return null;
+  }
   if (!audioContext && typeof window !== "undefined") {
     createAudioContext();
   }
@@ -154,6 +158,11 @@ function resumeAudio() {
       resumePromise.catch(function () {});
     }
   }
+}
+
+function unlockAudio() {
+  audioUnlocked = true;
+  resumeAudio();
 }
 
 function playTone(frequency, durationMs, type) {
@@ -245,6 +254,7 @@ function closeAudio() {
   }
   audioContext = null;
   audioMasterGain = null;
+  audioUnlocked = false;
 }
 
 function playFailTone() {
@@ -330,7 +340,7 @@ function advanceRound() {
 function startGame() {
   cancelTimers();
   resetGame();
-  resumeAudio();
+  unlockAudio();
   advanceRound();
 }
 
@@ -466,7 +476,7 @@ function setupBoard() {
   }
 
   board.addEventListener("pointerdown", function (event) {
-    resumeAudio();
+    unlockAudio();
     const pad = event.target.closest(".pad");
     const padId = padIdFromPadElement(pad);
     if (padId !== -1) {
@@ -506,7 +516,7 @@ function setupKeyboard() {
       return;
     }
     event.preventDefault();
-    resumeAudio();
+    unlockAudio();
     const padId = PAD_KEYS[event.key];
     setPadActive(padId, true);
     handlePadInput(padId);
@@ -568,7 +578,7 @@ function setupAudioUnlock() {
     return;
   }
   function unlock() {
-    resumeAudio();
+    unlockAudio();
     document.removeEventListener("pointerdown", unlock);
     document.removeEventListener("keydown", unlock);
     document.removeEventListener("touchstart", unlock, { passive: true });
