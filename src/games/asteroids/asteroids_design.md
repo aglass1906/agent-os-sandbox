@@ -155,6 +155,16 @@ oscillator whose frequency is swept from **880 Hz down to 110 Hz over 120 ms**
 (`exponentialRampToValueAtTime`), passed through a low-pass filter and an
 exponential decay envelope, so every shot is a short bright downward "pew".
 
+A background heartbeat plays whenever `status === PLAYING`. Every beat is a
+dual-tone sine pulse: a short **110 Hz** sine thump immediately followed by a
+quieter **98 Hz** sine thump, each shaped by an instant-attack exponential
+decay envelope, so the loop reads as a soft "lub-dub". The interval between
+beats is driven by the surviving asteroid count: roughly 1.1 s while the field
+is still full down to roughly 0.42 s when a single rock remains, so the pulse
+accelerates and tension builds as a wave is cleared. Beats are scheduled on the
+Web Audio clock, sound only during `PLAYING`, and are silenced (and the
+scheduler reset) on pause, game over, reset, or page hide.
+
 ## 9. Invariants
 
 These hold after construction, every accepted input, and every reset:

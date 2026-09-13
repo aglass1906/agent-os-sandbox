@@ -63,6 +63,15 @@ const LASER_DURATION = 0.120;      // seconds — frequency sweep length
 const LASER_VOLUME = 0.5;          // peak envelope gain before the shared master
 const LASER_FILTER_CUTOFF = 3000;  // Hz — low-pass brightness ceiling
 
+// Design Doc Section 8 (procedural audio feedback) — background heartbeat.
+const HEART_LUB_FREQ = 110;          // Hz — first sine tone of each beat ("lub")
+const HEART_DUB_FREQ = 98;           // Hz — second sine tone of each beat ("dub")
+const HEART_PULSE_GAP = 0.16;        // seconds — space between the two tones
+const HEART_PULSE_DURATION = 0.15;   // seconds — exponential thump envelope tail
+const HEART_VOLUME = 0.5;            // peak envelope gain before the shared master
+const HEART_INTERVAL_SLOW = 1.1;     // seconds — beat spacing on a full field
+const HEART_INTERVAL_FAST = 0.42;    // seconds — beat spacing with one rock left
+
 // ---- Helpers ---------------------------------------------------------------
 
 const TAU = Math.PI * 2;
@@ -119,6 +128,7 @@ function prefersReducedMotion() {
 let audioContext = null;
 let audioMasterGain = null;
 let noiseBuffer = null;
+let heartbeatLastBeatAt = null; // AudioContext time of the last scheduled beat
 
 function audioSupported() {
   return !!(window.AudioContext || window.webkitAudioContext);
@@ -174,6 +184,7 @@ function closeAudio() {
   audioContext = null;
   audioMasterGain = null;
   noiseBuffer = null;
+  heartbeatLastBeatAt = null;
 }
 
 // White-noise buffer is generated once and shared by every explosion so no
@@ -282,6 +293,68 @@ function playLaserSound() {
 
   oscillator.start(now);
   oscillator.stop(now + LASER_DURATION);
+}
+
+// Background heartbeat: a procedural dual-tone sine "lub-dub" pulse. Each beat
+// fires a short 110 Hz sine thump immediately followed by a quieter 98 Hz sine
+// thump, both shaped by an instant-attack exponential decay envelope so the
+// loop reads as a soft heartbeat. Beats are scheduled against the Web Audio
+// clock, so they stay aligned with the emitted oscillators.
+function playHeartbeatPulse(context, time) {
+  const thump = (freq, at, volume) => {
+    const oscillator = context.createOscillator();
+    oscillator.type = "sine";
+    oscillator.frequency.value = freq;
+
+    const envelope = context.createGain();
+    envelope.gain.setValueAtTime(volume, at);
+    envelope.gain.exponentialRampToValueAtTime(0.001, at + HEART_PULSE_DURATION);
+
+    oscillator.connect(envelope);
+    envelope.connect(audioMasterGain);
+
+    oscillator.start(at);
+    oscillator.stop(at + HEART_PULSE_DURATION);
+  };
+
+  thump(HEART_LUB_FREQ, time, HEART_VOLUME);
+  thump(HEART_DUB_FREQ, time + HEART_PULSE_GAP, HEART_VOLUME * 0.72);
+}
+
+// Design Doc Section 8: the beat interval lerps from the slow default on a full
+// field down to the fast floor as the surviving asteroid count approaches one.
+function heartbeatInterval(remaining, wave) {
+  const startCount = Math.max(1, Math.min(3 + wave, 11));
+  const t = Math.min(
+    Math.max((startCount - remaining) / (startCount - 1), 0),
+    1
+  );
+  return HEART_INTERVAL_SLOW + t * (HEART_INTERVAL_FAST - HEART_INTERVAL_SLOW);
+}
+
+// Schedules the heartbeat only while PLAYING. Recomputing the interval against
+// the last scheduled beat each frame makes destroyed asteroids pull the next
+// beat earlier, so the pulse audibly accelerates as the field thins out.
+function updateHeartbeat(state) {
+  const context = audioContext;
+  if (!context || !audioMasterGain || !audioSupported()) return;
+
+  if (state.status !== STATUS_PLAYING) {
+    heartbeatLastBeatAt = null;
+    return;
+  }
+
+  const now = context.currentTime;
+  if (heartbeatLastBeatAt === null) {
+    heartbeatLastBeatAt = now;
+    return;
+  }
+
+  const interval = heartbeatInterval(state.asteroids.length, state.wave);
+  if (heartbeatLastBeatAt + interval <= now) {
+    playHeartbeatPulse(context, now);
+    heartbeatLastBeatAt = now;
+  }
 }
 
 // ---- State -----------------------------------------------------------------
@@ -918,6 +991,7 @@ if (isBrowser) {
     }
     renderFrame(ctx, state);
     updateHUD(state);
+    updateHeartbeat(state);
 
     window.requestAnimationFrame(frame);
   }
