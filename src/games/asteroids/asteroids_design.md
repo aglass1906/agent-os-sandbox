@@ -164,7 +164,10 @@ so holding the key sustains a steady rumble while rapid taps never click. The
 oscillator is created once (lazily, on the first user gesture) and kept running
 under a muted gain until the audio graph closes. The rumble sounds only while
 `status === PLAYING` and the ship is alive, and is silenced on pause, game
-over, reset, or page hide.
+over, reset, or page hide. Sustained audio (thrust and heartbeat) is silenced
+synchronously whenever the state machine leaves `PLAYING`, so the graph never
+depends on the next animation-frame tick — important when a hidden tab
+throttles or suspends `requestAnimationFrame`.
 
 A background heartbeat plays whenever `status === PLAYING`. Every beat is a
 dual-tone sine pulse: a short **110 Hz** sine thump immediately followed by a

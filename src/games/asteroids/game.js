@@ -377,6 +377,17 @@ function updateThrustSound(state) {
   }
 }
 
+// Design Doc Section 8: silence the sustained audio graph immediately when the
+// state machine leaves PLAYING (pause, game over, reset, page hide) instead of
+// waiting for the next animation frame, which may be throttled in a hidden tab.
+// Also reset the heartbeat scheduler so the next PLAYING period starts a fresh
+// beat cadence. The per-frame update functions remain as a safety net, but this
+// hook guarantees audio tracks state transitions deterministically.
+function silenceSustainedAudio() {
+  stopThrustSound();
+  heartbeatLastBeatAt = null;
+}
+
 // Background heartbeat: a procedural dual-tone sine "lub-dub" pulse. Each beat
 // fires a short 110 Hz sine thump immediately followed by a quieter 98 Hz sine
 // thump, both shaped by an instant-attack exponential decay envelope so the
@@ -507,9 +518,15 @@ function announce(state, message) {
   }
 }
 
+// Any status change leaves PLAYING, sustained audio is silenced immediately so
+// pause, game over, and auto-pause-on-hide all mute the graph on the very same
+// event instead of on the next animation frame.
 function setStatus(state, status) {
   state.status = status;
   renderStatus(state);
+  if (status !== STATUS_PLAYING) {
+    silenceSustainedAudio();
+  }
 }
 
 function renderStatus(state) {
@@ -679,6 +696,7 @@ function damageShip(state) {
 
 // Design Doc Section 5: full reset returns the object to its initial defaults.
 function startNewGame(state) {
+  silenceSustainedAudio();
   resumeAudio();
   const fresh = createInitialState();
   fresh.status = STATUS_PLAYING;
