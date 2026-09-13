@@ -56,6 +56,13 @@ const EXPLOSION_DECAY_LARGE = 0.32;     // seconds — longest exponential tail
 const EXPLOSION_DURATION_BASE = 0.06;   // seconds — shortest envelope length
 const EXPLOSION_DURATION_LARGE = 0.30;  // seconds — longest envelope length
 
+// Design Doc Section 8 (procedural audio feedback) — laser blast.
+const LASER_START_FREQ = 880;      // Hz — oscillator sweep start
+const LASER_END_FREQ = 110;        // Hz — oscillator sweep end
+const LASER_DURATION = 0.120;      // seconds — frequency sweep length
+const LASER_VOLUME = 0.5;          // peak envelope gain before the shared master
+const LASER_FILTER_CUTOFF = 3000;  // Hz — low-pass brightness ceiling
+
 // ---- Helpers ---------------------------------------------------------------
 
 const TAU = Math.PI * 2;
@@ -238,6 +245,45 @@ function playExplosionSound(size) {
   source.stop(now + params.duration);
 }
 
+// Laser blast: a sawtooth oscillator swept from 880 Hz down to 110 Hz over
+// 120 ms, shaped by a low-pass filter and an exponential decay envelope. This
+// produces the classic short arcade "pew" that sits above the explosion rumbles.
+function playLaserSound() {
+  const context = getAudioContext();
+  if (!context || !audioMasterGain || !audioSupported()) return;
+
+  const now = context.currentTime;
+
+  if (context.state === "suspended" && typeof context.resume === "function") {
+    const resumePromise = context.resume();
+    if (resumePromise && typeof resumePromise.catch === "function") {
+      resumePromise.catch(function () {});
+    }
+  }
+
+  const oscillator = context.createOscillator();
+  oscillator.type = "sawtooth";
+  oscillator.frequency.setValueAtTime(LASER_START_FREQ, now);
+  oscillator.frequency.exponentialRampToValueAtTime(LASER_END_FREQ, now + LASER_DURATION);
+
+  const filter = context.createBiquadFilter();
+  filter.type = "lowpass";
+  filter.Q.value = 0.8;
+  filter.frequency.setValueAtTime(LASER_FILTER_CUTOFF, now);
+  filter.frequency.exponentialRampToValueAtTime(LASER_END_FREQ, now + LASER_DURATION);
+
+  const envelope = context.createGain();
+  envelope.gain.setValueAtTime(LASER_VOLUME, now);
+  envelope.gain.exponentialRampToValueAtTime(0.001, now + LASER_DURATION);
+
+  oscillator.connect(filter);
+  filter.connect(envelope);
+  envelope.connect(audioMasterGain);
+
+  oscillator.start(now);
+  oscillator.stop(now + LASER_DURATION);
+}
+
 // ---- State -----------------------------------------------------------------
 // Design Doc Section 5: every game property lives on this single object,
 // initialized by createInitialState() so reset restores a clean slate.
@@ -352,6 +398,7 @@ function fireBullet(state) {
     age: 0,
   });
   state.fireCooldown = BULLET_COOLDOWN;
+  playLaserSound();
 }
 
 // Design Doc Section 6: spawn a wave of asteroids, keeping large rocks clear of

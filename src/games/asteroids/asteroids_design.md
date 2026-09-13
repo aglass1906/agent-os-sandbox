@@ -148,6 +148,13 @@ over) are pushed to a visually hidden `role="status"` region so screen readers
 announce them. Under `prefers-reduced-motion` particle bursts are suppressed
 and CSS transitions removed.
 
+Feedback audio is fully procedural (Web Audio, created lazily on the first user
+gesture, no asset files). Asteroid destruction plays a filtered white-noise
+rumble scaled by rock size. The ship's laser blast is a single sawtooth
+oscillator whose frequency is swept from **880 Hz down to 110 Hz over 120 ms**
+(`exponentialRampToValueAtTime`), passed through a low-pass filter and an
+exponential decay envelope, so every shot is a short bright downward "pew".
+
 ## 9. Invariants
 
 These hold after construction, every accepted input, and every reset:
