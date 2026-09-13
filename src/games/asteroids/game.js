@@ -63,6 +63,13 @@ const LASER_DURATION = 0.120;      // seconds — frequency sweep length
 const LASER_VOLUME = 0.5;          // peak envelope gain before the shared master
 const LASER_FILTER_CUTOFF = 3000;  // Hz — low-pass brightness ceiling
 
+// Design Doc Section 8 (procedural audio feedback) — engine thrust.
+const THRUST_FREQ = 70;            // Hz — low sawtooth engine fundamental
+const THRUST_FILTER_CUTOFF = 420;  // Hz — low-pass brightness ceiling
+const THRUST_VOLUME = 0.4;         // peak envelope gain before the shared master
+const THRUST_ATTACK = 0.08;        // seconds — linear fade-in on engage
+const THRUST_RELEASE = 0.16;       // seconds — exponential fade-out on release
+
 // Design Doc Section 8 (procedural audio feedback) — background heartbeat.
 const HEART_LUB_FREQ = 110;          // Hz — first sine tone of each beat ("lub")
 const HEART_DUB_FREQ = 98;           // Hz — second sine tone of each beat ("dub")
@@ -129,6 +136,10 @@ let audioContext = null;
 let audioMasterGain = null;
 let noiseBuffer = null;
 let heartbeatLastBeatAt = null; // AudioContext time of the last scheduled beat
+let thrustOscillator = null;    // persistent engine node: sawtooth at THRUST_FREQ
+let thrustFilter = null;        // persistent engine node: low-pass brightness
+let thrustGain = null;          // persistent engine node: mute/sustain envelope
+let thrustActive = false;       // whether the engine rumble is currently audible
 
 function audioSupported() {
   return !!(window.AudioContext || window.webkitAudioContext);
@@ -185,6 +196,10 @@ function closeAudio() {
   audioMasterGain = null;
   noiseBuffer = null;
   heartbeatLastBeatAt = null;
+  thrustOscillator = null;
+  thrustFilter = null;
+  thrustGain = null;
+  thrustActive = false;
 }
 
 // White-noise buffer is generated once and shared by every explosion so no
@@ -293,6 +308,73 @@ function playLaserSound() {
 
   oscillator.start(now);
   oscillator.stop(now + LASER_DURATION);
+}
+
+// Engine thrust rumble (Design Doc Section 8): a single low-frequency sawtooth
+// oscillator passed through a low-pass filter. The graph is created once and
+// left running under a silent gain envelope; fades in/out avoid clicks on rapid
+// thrust taps while holding a key sustains a steady rumble.
+function ensureThrustNodes(context) {
+  if (thrustOscillator && thrustFilter && thrustGain) return;
+
+  thrustOscillator = context.createOscillator();
+  thrustOscillator.type = "sawtooth";
+  thrustOscillator.frequency.value = THRUST_FREQ;
+
+  thrustFilter = context.createBiquadFilter();
+  thrustFilter.type = "lowpass";
+  thrustFilter.frequency.value = THRUST_FILTER_CUTOFF;
+  thrustFilter.Q.value = 0.6;
+
+  thrustGain = context.createGain();
+  thrustGain.gain.value = 0.0001;
+
+  thrustOscillator.connect(thrustFilter);
+  thrustFilter.connect(thrustGain);
+  thrustGain.connect(audioMasterGain);
+
+  thrustOscillator.start();
+}
+
+function startThrustSound() {
+  const context = getAudioContext();
+  if (!context || !audioMasterGain || !audioSupported()) return;
+  if (thrustActive) return;
+
+  if (context.state === "suspended" && typeof context.resume === "function") {
+    const resumePromise = context.resume();
+    if (resumePromise && typeof resumePromise.catch === "function") {
+      resumePromise.catch(function () {});
+    }
+  }
+
+  ensureThrustNodes(context);
+  const now = context.currentTime;
+  thrustGain.gain.cancelScheduledValues(now);
+  thrustGain.gain.setValueAtTime(Math.max(thrustGain.gain.value, 0.0001), now);
+  thrustGain.gain.linearRampToValueAtTime(THRUST_VOLUME, now + THRUST_ATTACK);
+  thrustActive = true;
+}
+
+function stopThrustSound() {
+  const context = audioContext;
+  if (!context || !thrustGain || !thrustActive) return;
+
+  const now = context.currentTime;
+  thrustGain.gain.cancelScheduledValues(now);
+  thrustGain.gain.setValueAtTime(Math.max(thrustGain.gain.value, 0.0001), now);
+  thrustGain.gain.exponentialRampToValueAtTime(0.0001, now + THRUST_RELEASE);
+  thrustActive = false;
+}
+
+// Design Doc Section 8: the rumble is audible only while PLAYING and the ship
+// is alive, the same condition that renders the engine flame.
+function updateThrustSound(state) {
+  if (state.status === STATUS_PLAYING && state.ship.alive && state.ship.thrusting) {
+    startThrustSound();
+  } else {
+    stopThrustSound();
+  }
 }
 
 // Background heartbeat: a procedural dual-tone sine "lub-dub" pulse. Each beat
@@ -992,6 +1074,7 @@ if (isBrowser) {
     renderFrame(ctx, state);
     updateHUD(state);
     updateHeartbeat(state);
+    updateThrustSound(state);
 
     window.requestAnimationFrame(frame);
   }
