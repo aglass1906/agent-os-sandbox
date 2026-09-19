@@ -493,6 +493,7 @@ function createInitialState() {
   return {
     status: STATUS_READY,
     score: 0,
+    highScore: 0,
     lives: START_LIVES,
     wave: START_WAVE,
     ship: createShip(),
@@ -550,11 +551,26 @@ function renderStatus(state) {
 
 function updateHUD(state) {
   const scoreEl = document.getElementById("score");
+  const highScoreEl = document.getElementById("high-score");
   const livesEl = document.getElementById("lives");
   const waveEl = document.getElementById("wave");
   if (scoreEl) scoreEl.textContent = String(state.score);
+  if (highScoreEl) highScoreEl.textContent = String(state.highScore);
   if (livesEl) livesEl.textContent = String(state.lives);
   if (waveEl) waveEl.textContent = String(state.wave);
+}
+
+// Design Doc scope constraints: the session high score is in-memory only. It is
+// never persisted to a browser store or backend, so a reload ends the session
+// and starts the best back at zero. The HUD cell is refreshed the moment a new
+// best is set, so the display tracks the state without waiting for the next
+// frame.
+function updateHighScore(state) {
+  if (state.score > state.highScore) {
+    state.highScore = state.score;
+    const highScoreEl = document.getElementById("high-score");
+    if (highScoreEl) highScoreEl.textContent = String(state.highScore);
+  }
 }
 
 // Design Doc Section 4: fire a single bullet toward the ship's heading. Caps
@@ -660,6 +676,7 @@ function destroyAsteroid(state, asteroid) {
   if (idx !== -1) state.asteroids.splice(idx, 1);
 
   state.score += scoreValue(asteroid.size);
+  updateHighScore(state);
   playExplosionSound(asteroid.size);
   spawnParticles(
     state,
@@ -698,8 +715,10 @@ function damageShip(state) {
 function startNewGame(state) {
   silenceSustainedAudio();
   resumeAudio();
+  const previousHighScore = state.highScore;
   const fresh = createInitialState();
   fresh.status = STATUS_PLAYING;
+  fresh.highScore = previousHighScore;
   Object.assign(state, fresh, { keys: state.keys });
   spawnWave(state);
   updateHUD(state);
