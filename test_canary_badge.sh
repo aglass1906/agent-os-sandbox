@@ -22,6 +22,9 @@ fi
 
 if [ "$ACTUAL" = "$EXPECTED" ]; then
   echo "PASS: canary badge label matches"
+  # Agent OS's Tester requires a positive test count, not merely a zero
+  # exit status. This assertion is one completed test when it succeeds.
+  echo "1 passed"
   exit 0
 else
   echo "FAIL: expected line matching $EXPECTED"
