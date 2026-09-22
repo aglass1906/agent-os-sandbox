@@ -15,7 +15,7 @@ Timbuk2 Games Hub is a collection of casual browser games built with vanilla HTM
 | **Wordle** | Implemented | Physical / on-screen keyboard | `src/games/wordle/` |
 | **Sudoku** | Implemented | Grid selection & digit entry | `src/games/sudoku/` |
 | **Connect Four** | Design Phase | Local 2-player column selection | `src/games/connect-four/` |
-| **Asteroids Redux** | Design Phase | Real-time keyboard & touch controls | `src/games/asteroids/` |
+| **Asteroids Redux** | Implemented | Real-time keyboard & touch controls | `src/games/asteroids/` |
 
 ---
 
@@ -39,7 +39,7 @@ src/games/
 ├── wordle/          # Wordle implementation
 ├── sudoku/          # Sudoku implementation
 ├── connect-four/    # Connect Four design & specification
-└── asteroids/       # Asteroids Redux design & specification
+└── asteroids/       # Asteroids Redux implementation
 ```
 
 ### Conventions & Principles

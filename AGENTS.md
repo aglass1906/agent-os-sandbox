@@ -64,7 +64,7 @@ Grounded in **`PROJECT_OVERVIEW_DRAFT.md`**:
 | **Wordle** | Implemented & Linked | `src/games/wordle/` | `wordle_design.md` |
 | **Sudoku** | Implemented & Linked | `src/games/sudoku/` | `sudoku_design.md` |
 | **Connect Four** | Design Phase | `src/games/connect-four/` | `connectfour_design.md` |
-| **Asteroids Redux** | Design Phase | `src/games/asteroids/` | `Asteroids Redux Design Document` / `asteroids_design.md` |
+| **Asteroids Redux** | Implemented & Linked | `src/games/asteroids/` | `asteroids_design.md` |
 
 ---
 
