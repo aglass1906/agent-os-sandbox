@@ -2,7 +2,7 @@
 
 > **Document Type:** Narrative Design Specification
 > **Target Path:** `docs/supporting_characters.md`
-> **Stage:** Author — Supporting Character Archetypes
+> **Stage:** Editor — Supporting Character Archetypes (revises Author draft)
 > **Source Documents:** Grounded in `PROJECT_OVERVIEW_DRAFT.md`, `AGENTS.md`, and the Timbuk2 Games Hub narrative language-learning concept.
 
 ---
@@ -79,7 +79,7 @@ Relationships evolve through three natural beats. Evolution is **cumulative**: e
 ### 4.2 Beat Two — Collaboration (partnership)
 - Characters work together in paired or group scenes (market → festival, road → homestead).
 - Language demands rise: characters stop correcting form first and instead push for meaning.
-- Outcome: cross-character vocabulary merges (Ama's grocery words meet Ama/Kofi's travel dialogues), and characters begin referencing each other's lessons.
+- Outcome: cross-character vocabulary merges (Ama's market vocabulary meets Kofi's travel dialogues), and characters begin referencing each other's lessons.
 
 ### 4.3 Beat Three — Mutual Growth (independence)
 - The protagonist can now lead a scene; supporting characters ask *them* for help.
