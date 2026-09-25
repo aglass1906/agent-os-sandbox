@@ -1,6 +1,7 @@
 # Spanish Learner Character — Primary Arc & Growth Stages
 
 > **Document Type:** Narrative & Character Development Specification
+> **Document Status:** Final — author draft integrated with editor pass
 > **Target Path:** `docs/spanish_learner_character.md`
 > **Source Grounding:** `historia_espanol.md`, `src/games/word-rain/word_rain_design.md` (§7 Lexical bands, §9 Scoring), `PROJECT_OVERVIEW_DRAFT.md`, `AGENTS.md`
 
@@ -78,7 +79,7 @@ strength across the four stages.
 | **Resilience (grit)** | A wrong pick is data, not a verdict; a missed word teaches, a lost life reminds. | Streak resets and `lives` loss are framed as pit stops, never failures. |
 | **Risk-taking** | Guesses aloud even when unsure; courage beats correctness early. | Free-text answers are always rewarded for effort, then corrected gently. |
 | **Playfulness** | Treats accent, rhythm, and tone as music; repetition is a game, not drills. | Shadowing TTS pronunciation in Word Rain's prompt. |
-| **Pattern sense** | Spots cognates, roots, and gender endings early. | Bonus recognition cues: *✦* for spotting *"la"/"el"* or *"-ción"/"-dad"* patterns. |
+| **Pattern sense** | Spots cognates, roots, and gender endings early. | Building a cognate wall in *mi cuaderno*; predicting same-band Word Rain distractors by shared root or the *"la"/"el"* and *"-ción"/"-dad"* endings. |
 | **Patience** | Trusts the slow climb; fluency is a season, not a sprint. | Mirrors the gradual difficulty escalation across lexical bands. |
 | **Connection** | The emotional engine — learning is *for Abuela María*, never for a grade. | All story passages (`historia_espanol.md`) center on her world. |
 
@@ -193,11 +194,14 @@ actions, the family table.
 **Trait bloom.** **Risk-taking** and **connection** peak. He speaks despite the
 accent he once feared, and María's joy is a bigger reward than any score.
 
-**Setback & recovery.** On New Year's Eve he freezes mid-story, loses the thread
-in front of the whole family, and flees to the kitchen. María follows and tells
-him the story's real ending: *"Hijo, yo llevo sesenta años aprendiendo español y
-todavía tropiezo. Tropezar es la prueba de que vas andando."* He returns and
-finishes the story with everyone cheering the wrong-word he made.
+**Setback & recovery.** The prize is the promise itself: reading *El gato de
+María* to Abuela, out loud, in her language. On New Year's Eve he finally tries —
+freezes mid-sentence, loses the thread in front of the whole family, and flees to
+the kitchen. María follows and tells him the story's real ending: *"Hijo, yo
+llevo sesenta años aprendiendo español y todavía tropiezo. Tropezar es la prueba
+de que vas andando."* He returns, finds the thread, and finishes the cat story
+haltingly, mix-and-match, out loud, while the family cheers the one wrong word he
+made. Uneven, imperfect, real: the summer promise is kept.
 
 **Aha moment.** Abuela María says, *"Tu español tiene música,"* — the first time
 anyone has praised his *voice*, not his vocabulary.
@@ -236,9 +240,10 @@ laughs, repeats it, and thanks him — and reads the line again. Growth is
 demonstrated by how a setback is metabolized, not by the absence of setbacks.
 
 **Aha moment.** At the Christmas display table the following year he reads
-*El gato de María* aloud from memory — his one-year promise, kept — and Abuela
-María, Tomás in her lap, cries happy tears. Then she hands him a blank notebook
-and says, *"Ahora tú escribes la siguiente historia."*
+*El gato de María* aloud from memory — the promise first kept, haltingly, the
+Christmas before, now delivered flawlessly to a room that watched him grow — and
+Abuela María, Tomás in her lap, cries happy tears. Then she hands him a blank
+notebook and says, *"Ahora tú escribes la siguiente historia."*
 
 **Stage-exit checkpoint.** Pass Band 3; write, rehearse, and read aloud an
 original five-sentence Spanish story in a shared setting; and complete one act of
@@ -265,7 +270,8 @@ gating is a **content rule** shared by all Spanish features in the Hub.
 
 - `historia_espanol.md` ( *El gato de María* ) is the **anchor text** of the
   journey: Maria and Tomás are canon, and the promise "read the cat story to
-  Abuela" bookends Stage 1 → Stage 4.
+  Abuela" is made in Stage 1, kept haltingly across the Stage 3 Christmas visit,
+  and crowned publicly at the Stage 4 display table.
 - María is canonically Leo's **abuela**; her warm, simple story style sets the
   register of every in-world passage.
 - Chispas (Leo's own cat) is introduced as a parallel to Tomás and appears in
