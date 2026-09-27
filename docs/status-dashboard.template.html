@@ -1,5 +1,5 @@
 <!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1"><style>:root{color-scheme:light}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
-<title>AgentOS Sandbox — Status & Architecture Dashboard</title>
+<title>Agent OS — Status & Architecture Dashboard</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
 <style>
 :root{
@@ -247,12 +247,30 @@ body{
   flex-shrink:0;color:var(--ink-dim);transition:transform .15s ease;
   font-size:.7rem;
 }
-.plan-link{
+.plan-link, .design-link, .adr-link{
   font-family:var(--mono);font-size:.7rem;color:var(--ink-dim);
   flex-shrink:0;padding:.15rem .45rem;border:1px solid var(--line-strong);
-  border-radius:3px;transition:color .12s ease,border-color .12s ease;
+  border-radius:3px;transition:color .12s ease,border-color .12s ease,background .12s ease;
 }
-.plan-link:hover{color:var(--accent);border-color:var(--accent);}
+.plan-link:hover{color:var(--accent);border-color:var(--accent);background:var(--accent-dim);}
+.design-link:hover{color:#8b5cf6;border-color:#8b5cf6;background:rgba(139,92,246,0.08);}
+.adr-link:hover{color:#f59e0b;border-color:#f59e0b;background:rgba(245,158,11,0.08);}
+.drawer-associated-bar{
+  display:flex;flex-wrap:wrap;gap:.5rem;align-items:center;
+  padding:.55rem 1.4rem;background:var(--card);border-bottom:1px solid var(--line);
+  font-size:.78rem;
+}
+.drawer-assoc-label{color:var(--ink-dim);font-weight:600;font-size:.72rem;text-transform:uppercase;letter-spacing:.04em;}
+.drawer-assoc-btn{
+  display:inline-flex;align-items:center;gap:.35rem;padding:.2rem .55rem;
+  border-radius:4px;border:1px solid var(--line-strong);background:var(--bg);
+  color:var(--ink);font-size:.75rem;cursor:pointer;transition:all .12s ease;
+  font-family:inherit;
+}
+.drawer-assoc-btn:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-dim);}
+.drawer-assoc-btn.design:hover{border-color:#8b5cf6;color:#8b5cf6;background:rgba(139,92,246,0.08);}
+.drawer-assoc-btn.adr:hover{border-color:#f59e0b;color:#f59e0b;background:rgba(245,158,11,0.08);}
+.drawer-assoc-btn.epic:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-dim);}
 .phase[data-open="true"] > .phase-head .chev{transform:rotate(90deg);}
 .stories{
   display:none;padding:.15rem .9rem 1rem 3.4rem;
@@ -542,7 +560,7 @@ a{color:var(--accent);}
 <div class="wrap">
   <div class="masthead">
     <div>
-      <h1>AgentOS Sandbox</h1>
+      <h1>Agent OS</h1>
       <p class="kicker" style="margin:.35rem 0 0;">Project Roadmap &middot; Architecture Dashboard</p>
     </div>
     <div class="meta">
@@ -662,6 +680,7 @@ a{color:var(--accent);}
       <button type="button" class="btn-close" id="drawerCloseBtn" aria-label="Close drawer">✕</button>
     </div>
   </div>
+  <div class="drawer-associated-bar hidden" id="drawerAssociatedBar"></div>
   <div class="drawer-body" id="drawerBody"></div>
 </aside>
 
@@ -838,11 +857,15 @@ function buildEpicRow(p, isChild){
   head.type = "button";
   head.setAttribute("aria-expanded","false");
   const planLinkHtml = p.plan_content ? `<span class="plan-link" title="View plan document">plan &rsaquo;</span>` : "";
+  const designLinkHtml = p.design_spec ? `<span class="design-link" title="View feature design spec: ${p.design_spec.title || 'design'}">design &rsaquo;</span>` : "";
+  const adrLinkHtml = (p.adrs && p.adrs.length) ? `<span class="adr-link" title="View ${p.adrs.length} associated ADR(s)">adr (${p.adrs.length}) &rsaquo;</span>` : "";
   const addStoryBtnHtml = `<span role="button" tabindex="0" class="btn-sm-action add-story-btn" title="Scaffold new story under this epic">＋ Story</span>`;
   head.innerHTML = `
     <span class="phase-id">${p.id}</span>
     <span class="phase-name">${p.name}${p.note ? `<span class="phase-note">${p.note}</span>` : ""}</span>
     ${planLinkHtml}
+    ${designLinkHtml}
+    ${adrLinkHtml}
     ${addStoryBtnHtml}
     ${fracHtml}
     <span class="pill ${p.status}">${statusLabel}</span>
@@ -864,7 +887,53 @@ function buildEpicRow(p, isChild){
         statusClass: p.status,
         relLink: p.plan_rel_link,
         path: p.plan_path,
-        content: p.plan_content
+        content: p.plan_content,
+        designSpec: p.design_spec,
+        adrs: p.adrs,
+        epicData: p
+      });
+    });
+  }
+
+  const designLinkEl = head.querySelector(".design-link");
+  if (designLinkEl && p.design_spec) {
+    designLinkEl.addEventListener("click", (e) => {
+      e.stopPropagation();
+      openUniversalDrawer({
+        docType: "design-spec",
+        title: p.design_spec.title,
+        badgeText: p.design_spec.id,
+        badgeClass: p.design_spec.status === "living" ? "living" : "draft",
+        contextName: `Feature Design Specification`,
+        statusLabel: (p.design_spec.status || "DRAFT").toUpperCase(),
+        statusClass: p.design_spec.status === "living" ? "living" : "draft",
+        relLink: p.design_spec.rel_link,
+        path: p.design_spec.path,
+        content: p.design_spec.content,
+        parentEpic: p
+      });
+    });
+  }
+
+  const adrLinkEl = head.querySelector(".adr-link");
+  if (adrLinkEl && p.adrs && p.adrs.length > 0) {
+    adrLinkEl.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const firstAdr = p.adrs[0];
+      const stLower = (firstAdr.status || "proposed").toLowerCase();
+      const pillClass = stLower === "accepted" ? "accepted" : (stLower === "proposed" ? "proposed" : "superseded");
+      openUniversalDrawer({
+        docType: "adr",
+        title: firstAdr.title,
+        badgeText: `ADR ${firstAdr.number}`,
+        badgeClass: pillClass,
+        contextName: `Architecture Decision Record`,
+        statusLabel: firstAdr.status,
+        statusClass: pillClass,
+        relLink: firstAdr.rel_link,
+        path: firstAdr.path,
+        content: firstAdr.content,
+        parentEpic: p
       });
     });
   }
@@ -911,7 +980,8 @@ function buildEpicRow(p, isChild){
           statusClass: sClass,
           relLink: s.rel_link,
           path: s.path,
-          content: s.content
+          content: s.content,
+          parentEpic: p
         });
       });
       storiesEl.appendChild(sDiv);
@@ -1135,6 +1205,7 @@ function renderDesignSpecs(){
         <div class="doc-row-summary">${spec.summary || "No executive summary provided."}</div>
       </div>
       <div class="doc-row-meta">
+        ${spec.parent_epic ? `<span class="doc-tag" title="Parent Initiative">📋 Epic ${spec.parent_epic.id}</span>` : ""}
         ${spec.category ? `<span class="doc-tag">🎨 ${spec.category}</span>` : ""}
         ${spec.surfaces ? `<span class="doc-tag">${spec.surfaces}</span>` : ""}
         <span class="pill ${pillClass}">${spec.status}</span>
@@ -1153,7 +1224,8 @@ function renderDesignSpecs(){
         statusClass: pillClass,
         relLink: spec.rel_link,
         path: spec.path,
-        content: spec.content
+        content: spec.content,
+        parentEpic: spec.parent_epic
       });
     });
 
@@ -1227,6 +1299,7 @@ function renderAdrs(){
         <div class="doc-row-summary">${adr.summary || "No context summary available."}</div>
       </div>
       <div class="doc-row-meta">
+        ${adr.parent_epic ? `<span class="doc-tag" title="Associated Initiative">📋 Epic ${adr.parent_epic.id}</span>` : ""}
         ${adr.date ? `<span class="doc-date">${adr.date}</span>` : ""}
         <span class="pill ${pillClass}">${adr.status}</span>
         <span class="doc-action">view &rsaquo;</span>
@@ -1244,7 +1317,8 @@ function renderAdrs(){
         statusClass: pillClass,
         relLink: adr.rel_link,
         path: adr.path,
-        content: adr.content
+        content: adr.content,
+        parentEpic: adr.parent_epic
       });
     });
 
@@ -1307,10 +1381,20 @@ const drawerStatusPill = document.getElementById("drawerStatusPill");
 const drawerIdBadge = document.getElementById("drawerIdBadge");
 const drawerContextName = document.getElementById("drawerContextName");
 const drawerDocTitle = document.getElementById("drawerDocTitle");
+const drawerAssociatedBar = document.getElementById("drawerAssociatedBar");
 const drawerBody = document.getElementById("drawerBody");
 const drawerRawLink = document.getElementById("drawerRawLink");
 const drawerCopyPathBtn = document.getElementById("drawerCopyPathBtn");
 const drawerCloseBtn = document.getElementById("drawerCloseBtn");
+
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
 
 function openUniversalDrawer(doc){
   activeDoc = doc;
@@ -1329,6 +1413,165 @@ function openUniversalDrawer(doc){
     drawerRawLink.style.display = "inline-flex";
   } else {
     drawerRawLink.style.display = "none";
+  }
+
+  // Populate associated documents bar
+  if (drawerAssociatedBar) {
+    drawerAssociatedBar.innerHTML = "";
+    let hasAssoc = false;
+
+    if (doc.docType === "epic") {
+      const ds = doc.designSpec || (doc.epicData && doc.epicData.design_spec);
+      const adrs = doc.adrs || (doc.epicData && doc.epicData.adrs);
+
+      if (ds || (adrs && adrs.length > 0)) {
+        const lbl = document.createElement("span");
+        lbl.className = "drawer-assoc-label";
+        lbl.textContent = "Associated:";
+        drawerAssociatedBar.appendChild(lbl);
+        hasAssoc = true;
+      }
+
+      if (ds) {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "drawer-assoc-btn design";
+        btn.innerHTML = `🎨 Design Spec: ${escapeHtml(ds.title || ds.id)} &rsaquo;`;
+        btn.title = ds.path || "";
+        btn.addEventListener("click", () => {
+          openUniversalDrawer({
+            docType: "design-spec",
+            title: ds.title,
+            badgeText: ds.id,
+            badgeClass: ds.status === "living" ? "living" : "draft",
+            contextName: `Feature Design Specification`,
+            statusLabel: (ds.status || "DRAFT").toUpperCase(),
+            statusClass: ds.status === "living" ? "living" : "draft",
+            relLink: ds.rel_link,
+            path: ds.path,
+            content: ds.content,
+            parentEpic: doc.epicData || doc
+          });
+        });
+        drawerAssociatedBar.appendChild(btn);
+      }
+
+      if (adrs && adrs.length > 0) {
+        adrs.forEach(adr => {
+          const btn = document.createElement("button");
+          btn.type = "button";
+          btn.className = "drawer-assoc-btn adr";
+          const stLower = (adr.status || "proposed").toLowerCase();
+          const pillClass = stLower === "accepted" ? "accepted" : (stLower === "proposed" ? "proposed" : "superseded");
+          btn.innerHTML = `⚖️ ADR ${escapeHtml(adr.number)}: ${escapeHtml(adr.title)} &rsaquo;`;
+          btn.title = adr.path || "";
+          btn.addEventListener("click", () => {
+            openUniversalDrawer({
+              docType: "adr",
+              title: adr.title,
+              badgeText: `ADR ${adr.number}`,
+              badgeClass: pillClass,
+              contextName: `Architecture Decision Record`,
+              statusLabel: adr.status,
+              statusClass: pillClass,
+              relLink: adr.rel_link,
+              path: adr.path,
+              content: adr.content,
+              parentEpic: doc.epicData || doc
+            });
+          });
+          drawerAssociatedBar.appendChild(btn);
+        });
+      }
+    } else if (doc.parentEpic) {
+      const pe = doc.parentEpic;
+      const lbl = document.createElement("span");
+      lbl.className = "drawer-assoc-label";
+      lbl.textContent = "Initiative:";
+      drawerAssociatedBar.appendChild(lbl);
+      hasAssoc = true;
+
+      const epicBtn = document.createElement("button");
+      epicBtn.type = "button";
+      epicBtn.className = "drawer-assoc-btn epic";
+      epicBtn.innerHTML = `📋 Epic ${escapeHtml(pe.id)}: ${escapeHtml(pe.name || '')} (Plan) &rsaquo;`;
+      epicBtn.title = pe.plan_path || "";
+      epicBtn.addEventListener("click", () => {
+        openUniversalDrawer({
+          docType: "epic",
+          title: pe.name,
+          badgeText: `Epic ${pe.id}`,
+          badgeClass: pe.status || "planned",
+          contextName: `Platform Initiative`,
+          statusLabel: pe.status === "done" ? "Done" : pe.status === "progress" ? "In Progress" : "Planned",
+          statusClass: pe.status || "planned",
+          relLink: pe.plan_rel_link,
+          path: pe.plan_path,
+          content: pe.plan_content,
+          designSpec: pe.design_spec,
+          adrs: pe.adrs,
+          epicData: pe
+        });
+      });
+      drawerAssociatedBar.appendChild(epicBtn);
+
+      if (doc.docType === "adr" && pe.design_spec) {
+        const ds = pe.design_spec;
+        const dsBtn = document.createElement("button");
+        dsBtn.type = "button";
+        dsBtn.className = "drawer-assoc-btn design";
+        dsBtn.innerHTML = `🎨 Design Spec: ${escapeHtml(ds.title || ds.id)} &rsaquo;`;
+        dsBtn.addEventListener("click", () => {
+          openUniversalDrawer({
+            docType: "design-spec",
+            title: ds.title,
+            badgeText: ds.id,
+            badgeClass: ds.status === "living" ? "living" : "draft",
+            contextName: `Feature Design Specification`,
+            statusLabel: (ds.status || "DRAFT").toUpperCase(),
+            statusClass: ds.status === "living" ? "living" : "draft",
+            relLink: ds.rel_link,
+            path: ds.path,
+            content: ds.content,
+            parentEpic: pe
+          });
+        });
+        drawerAssociatedBar.appendChild(dsBtn);
+      }
+
+      if (doc.docType === "design-spec" && pe.adrs && pe.adrs.length > 0) {
+        pe.adrs.forEach(adr => {
+          const btn = document.createElement("button");
+          btn.type = "button";
+          btn.className = "drawer-assoc-btn adr";
+          const stLower = (adr.status || "proposed").toLowerCase();
+          const pillClass = stLower === "accepted" ? "accepted" : (stLower === "proposed" ? "proposed" : "superseded");
+          btn.innerHTML = `⚖️ ADR ${escapeHtml(adr.number)}: ${escapeHtml(adr.title)} &rsaquo;`;
+          btn.addEventListener("click", () => {
+            openUniversalDrawer({
+              docType: "adr",
+              title: adr.title,
+              badgeText: `ADR ${adr.number}`,
+              badgeClass: pillClass,
+              contextName: `Architecture Decision Record`,
+              statusLabel: adr.status,
+              statusClass: pillClass,
+              relLink: adr.rel_link,
+              path: adr.path,
+              content: adr.content,
+              parentEpic: pe
+            });
+          });
+          drawerAssociatedBar.appendChild(btn);
+        });
+      }
+    }
+
+    if (hasAssoc) {
+      drawerAssociatedBar.classList.remove("hidden");
+    } else {
+      drawerAssociatedBar.classList.add("hidden");
+    }
   }
 
   drawerBody.innerHTML = renderMarkdown(doc.content || "*No content provided.*");
@@ -1690,17 +1933,27 @@ function getScaffoldData() {
     fileName = `EPIC-${epicId}-${upperSlug}.md`;
     relPath = `docs/backlog/epic-${epicId}-${slug}/${fileName}`;
     makeCmd = `make new-epic ID=${epicId} SLUG=${slug} TITLE="${title}"`;
-    promptText = `Please scaffold and plan Epic ${epicId} (${title}) following Agent OS governance (AGENTS.md).
+    const makeDesignCmd = `make new-design-spec SLUG=${slug} TITLE="${title}"`;
+    promptText = `Please scaffold and plan Epic ${epicId} (${title}) following Agent OS governance (AGENTS.md and docs/architecture/15-DOCUMENTATION-AND-PLANNING-GOVERNANCE.md).
 
-1. Run the terminal scaffolding command:
+1. Run the terminal scaffolding commands:
    ${makeCmd}
+   ${makeDesignCmd}
 
-2. Register the new epic in:
+2. Author the Feature Design Spec and register in:
+   - docs/design-specs/${upperSlug}.md
+   - docs/design-specs/README.md
+
+3. Register the new epic in:
    - docs/backlog/BACKLOG.md
    - docs/backlog/README.md
    - docs/STATUS.md
 
-3. Detail the executive summary, invariants, story breakdown, and acceptance gates.
+4. Link the design spec in the Epic plan's frontmatter (design_spec) and Section 2 (Architecture Lineage).
+
+5. Detail the executive summary, invariants, story breakdown (scaffolding story specs under stories/ via make new-story), and acceptance gates.
+
+Finally, run \`make dashboard\` to regenerate docs/status-dashboard.html and verify zero documentation drift.
 ${desc ? `\nContext/Objective:\n${desc}\n` : ''}`;
 
     let template = (TEMPLATES && TEMPLATES["EPIC-TEMPLATE.md"]) || "";
@@ -1710,6 +1963,7 @@ ${desc ? `\nContext/Objective:\n${desc}\n` : ''}`;
         .replace(/Epic X/g, `Epic ${epicId}`)
         .replace(/\[Initiative \/ Capability Title\]/g, title)
         .replace(/\[Initiative Name\]/g, title)
+        .replace(/docs\/design-specs\/FEATURE-SPEC\.md/g, `docs/design-specs/${upperSlug}.md`)
         .replace(/YYYY-MM-DD/g, today);
       if (desc) {
         markdownContent = markdownContent.replace(
@@ -1750,6 +2004,8 @@ ${desc ? `\nContext/Objective:\n${desc}\n` : ''}`;
    - Update handoff record (docs/history/handoffs/) if applicable
 
 3. Fill in atomic tasks, technical requirements, and acceptance gates.
+
+Finally, run \`make dashboard\` to regenerate docs/status-dashboard.html and verify zero documentation drift.
 ${desc ? `\nContext/Objective:\n${desc}\n` : ''}`;
 
     let template = (TEMPLATES && TEMPLATES["STORY-TEMPLATE.md"]) || "";
@@ -1766,7 +2022,7 @@ ${desc ? `\nContext/Objective:\n${desc}\n` : ''}`;
       if (desc) {
         markdownContent = markdownContent.replace(
           /## 1\. Executive Summary & User\/Operator Benefit[\s\S]*?(?=\n## 2)/,
-          `## 1. Executive Summary & User/Operator Benefit\n\n${desc}\n\n`
+          `## 1. Executive Summary & User\/Operator Benefit\n\n${desc}\n\n`
         );
       }
     } else {
@@ -1785,6 +2041,8 @@ ${desc ? `\nContext/Objective:\n${desc}\n` : ''}`;
 2. Register the PRD in docs/product/README.md.
 
 3. Detail user personas, problem statement, user journeys, functional requirements, and success metrics.
+
+Finally, run \`make dashboard\` to regenerate docs/status-dashboard.html and verify zero documentation drift.
 ${desc ? `\nContext/Objective:\n${desc}\n` : ''}`;
 
     let template = (TEMPLATES && TEMPLATES["PRD-TEMPLATE.md"]) || "";
@@ -1816,6 +2074,8 @@ ${desc ? `\nContext/Objective:\n${desc}\n` : ''}`;
 2. Register the spec in docs/design-specs/README.md.
 
 3. Detail UX walkthroughs, component architecture, data flow, error handling, and visual invariants.
+
+Finally, run \`make dashboard\` to regenerate docs/status-dashboard.html and verify zero documentation drift.
 ${desc ? `\nContext/Objective:\n${desc}\n` : ''}`;
 
     let template = (TEMPLATES && TEMPLATES["DESIGN-SPEC-TEMPLATE.md"]) || "";
@@ -1849,6 +2109,8 @@ ${desc ? `\nContext/Objective:\n${desc}\n` : ''}`;
 2. Register the ADR in docs/adr/README.md.
 
 3. Detail context, decision drivers, considered options, decision outcome, and positive/negative consequences.
+
+Finally, run \`make dashboard\` to regenerate docs/status-dashboard.html and verify zero documentation drift.
 ${desc ? `\nContext/Objective:\n${desc}\n` : ''}`;
 
     let template = (TEMPLATES && TEMPLATES["ADR-TEMPLATE.md"]) || "";

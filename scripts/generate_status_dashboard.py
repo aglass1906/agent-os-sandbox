@@ -45,21 +45,38 @@ def _esc(text: str) -> str:
     return text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
 
 
-def extract_frontmatter(content: str) -> dict[str, str]:
+def extract_frontmatter(content: str) -> dict[str, any]:
     if not content.startswith("---"):
         return {}
     parts = content.split("---", 2)
     if len(parts) < 3:
         return {}
     fm_text = parts[1]
-    data: dict[str, str] = {}
+    data: dict[str, any] = {}
+    current_list_key = None
     for line in fm_text.splitlines():
         line = line.strip()
         if not line or line.startswith("#"):
             continue
+        if line.startswith("- ") and current_list_key:
+            item = line[2:].strip().strip("\"'")
+            if isinstance(data.get(current_list_key), list):
+                data[current_list_key].append(item)
+            else:
+                data[current_list_key] = [item]
+            continue
         if ":" in line:
             k, v = line.split(":", 1)
-            data[k.strip()] = v.strip().strip("\"'")
+            k = k.strip()
+            v = v.strip().strip("\"'")
+            if not v:
+                current_list_key = k
+                data[k] = []
+            else:
+                current_list_key = None
+                data[k] = v
+        else:
+            current_list_key = None
     return data
 
 
@@ -93,7 +110,10 @@ def parse_epic_summary(content: str) -> str:
     return ""
 
 
-def parse_roadmap_documents() -> list[dict]:
+def parse_roadmap_documents(
+    design_specs_data: list[dict] | None = None,
+    adrs_data: list[dict] | None = None,
+) -> list[dict]:
     if not ROADMAP_DIR.exists():
         return []
     epic_dirs = sorted(
@@ -190,6 +210,137 @@ def parse_roadmap_documents() -> list[dict]:
             else:
                 calc_status = "planned"
 
+        # Cross-reference associated design specification
+        associated_design_spec = None
+        ds_val = p_fm.get("design_spec")
+        if design_specs_data:
+            if ds_val and isinstance(ds_val, str) and ds_val.strip():
+                ds_clean = ds_val.strip()
+                for ds in design_specs_data:
+                    if (
+                        ds["path"] == ds_clean
+                        or ds["rel_link"] == ds_clean
+                        or ds_clean.endswith("/" + Path(ds["path"]).name)
+                        or ds_clean == Path(ds["path"]).name
+                    ):
+                        associated_design_spec = {
+                            "id": ds["id"],
+                            "title": ds["title"],
+                            "status": ds["status"],
+                            "rel_link": ds["rel_link"],
+                            "path": ds["path"],
+                            "content": ds["content"],
+                        }
+                        break
+            if not associated_design_spec:
+                # Fallback: match by epic_id declared in design spec frontmatter
+                for ds in design_specs_data:
+                    ds_epic = str(ds.get("epic_id", "")).strip().upper()
+                    if ds_epic in (f"EPIC-{epic_id}", epic_id, f"EPIC {epic_id}"):
+                        associated_design_spec = {
+                            "id": ds["id"],
+                            "title": ds["title"],
+                            "status": ds["status"],
+                            "rel_link": ds["rel_link"],
+                            "path": ds["path"],
+                            "content": ds["content"],
+                        }
+                        break
+
+        # Cross-reference associated ADRs
+        associated_adrs = []
+        if adrs_data:
+            adr_list = p_fm.get("adrs", [])
+            if isinstance(adr_list, str):
+                adr_list = [adr_list]
+            for adr_path in adr_list:
+                adr_clean = str(adr_path).strip()
+                for adr in adrs_data:
+                    if (
+                        adr["path"] == adr_clean
+                        or adr["rel_link"] == adr_clean
+                        or adr_clean.endswith("/" + Path(adr["path"]).name)
+                        or adr_clean == Path(adr["path"]).name
+                    ):
+                        associated_adrs.append(
+                            {
+                                "id": adr["id"],
+                                "number": adr["number"],
+                                "title": adr["title"],
+                                "status": adr["status"],
+                                "rel_link": adr["rel_link"],
+                                "path": adr["path"],
+                                "content": adr["content"],
+                            }
+                        )
+                        break
+            for adr in adrs_data:
+                adr_epic = str(adr.get("epic_id", "")).strip().upper()
+                if adr_epic in (f"EPIC-{epic_id}", epic_id, f"EPIC {epic_id}"):
+                    if not any(a["id"] == adr["id"] for a in associated_adrs):
+                        associated_adrs.append(
+                            {
+                                "id": adr["id"],
+                                "number": adr["number"],
+                                "title": adr["title"],
+                                "status": adr["status"],
+                                "rel_link": adr["rel_link"],
+                                "path": adr["path"],
+                                "content": adr["content"],
+                            }
+                        )
+
+        plan_rel = plan_file.relative_to(REPO_ROOT / "docs").as_posix()
+        plan_p = plan_file.relative_to(REPO_ROOT).as_posix()
+
+        # Back-link parent_epic onto design spec and ADR records
+        if associated_design_spec and design_specs_data:
+            for ds in design_specs_data:
+                if ds["id"] == associated_design_spec["id"]:
+                    ds["parent_epic"] = {
+                        "id": epic_id,
+                        "name": title,
+                        "status": calc_status,
+                        "plan_rel_link": plan_rel,
+                        "plan_path": plan_p,
+                        "plan_content": p_content,
+                        "adrs": [
+                            {
+                                "id": a["id"],
+                                "number": a["number"],
+                                "title": a["title"],
+                                "status": a["status"],
+                                "rel_link": a["rel_link"],
+                                "path": a["path"],
+                                "content": a["content"],
+                            }
+                            for a in associated_adrs
+                        ],
+                    }
+        for a in associated_adrs:
+            for adr in adrs_data:
+                if adr["id"] == a["id"]:
+                    adr["parent_epic"] = {
+                        "id": epic_id,
+                        "name": title,
+                        "status": calc_status,
+                        "plan_rel_link": plan_rel,
+                        "plan_path": plan_p,
+                        "plan_content": p_content,
+                        "design_spec": (
+                            {
+                                "id": associated_design_spec["id"],
+                                "title": associated_design_spec["title"],
+                                "status": associated_design_spec["status"],
+                                "rel_link": associated_design_spec["rel_link"],
+                                "path": associated_design_spec["path"],
+                                "content": associated_design_spec["content"],
+                            }
+                            if associated_design_spec
+                            else None
+                        ),
+                    }
+
         epics_data.append(
             {
                 "id": epic_id,
@@ -197,9 +348,11 @@ def parse_roadmap_documents() -> list[dict]:
                 "status": calc_status,
                 "note": _esc(note) if note else None,
                 "stories": stories_data,
-                "plan_rel_link": plan_file.relative_to(REPO_ROOT / "docs").as_posix(),
-                "plan_path": plan_file.relative_to(REPO_ROOT).as_posix(),
+                "plan_rel_link": plan_rel,
+                "plan_path": plan_p,
                 "plan_content": p_content,
+                "design_spec": associated_design_spec,
+                "adrs": associated_adrs,
             }
         )
 
@@ -401,6 +554,7 @@ def parse_adr_documents() -> list[dict]:
                 "title": title,
                 "status": status_clean,
                 "raw_status": raw_status,
+                "epic_id": fm.get("epic_id", ""),
                 "date": date,
                 "summary": summary,
                 "rel_link": af.relative_to(REPO_ROOT / "docs").as_posix(),
@@ -544,6 +698,10 @@ def generate(
         }
         if ep.get("note"):
             item["note"] = ep["note"]
+        if ep.get("design_spec"):
+            item["design_spec"] = ep["design_spec"]
+        if ep.get("adrs"):
+            item["adrs"] = ep["adrs"]
         if ep.get("stories"):
             item["stories"] = [
                 {
@@ -591,10 +749,10 @@ def main() -> int:
     )
     args = parser.parse_args()
 
-    epics_data = parse_roadmap_documents()
-    prds_data = parse_product_documents()
     design_specs_data = parse_design_specs()
     adrs_data = parse_adr_documents()
+    epics_data = parse_roadmap_documents(design_specs_data, adrs_data)
+    prds_data = parse_product_documents()
     templates_data = parse_templates()
 
     status_text = STATUS_MD.read_text(encoding="utf-8") if STATUS_MD.exists() else ""
