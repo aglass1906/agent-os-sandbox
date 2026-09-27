@@ -60,6 +60,10 @@ MAKEFILE_SNIPPET = """
 # Documentation & Governance Scaffolding Targets
 # ------------------------------------------------------------------------------
 
+## Pull latest governance scripts and templates from GitHub and rebuild dashboard.
+update-governance:
+	python3 scripts/bootstrap_governance.py --update
+
 ## Regenerate docs/status-dashboard.html directly from canonical backlog documents.
 dashboard:
 	python3 scripts/generate_status_dashboard.py
@@ -820,14 +824,213 @@ def bootstrap_project(
     print(f"To scaffold new work:\n    cd {target}\n    make new-epic ID=1 SLUG=core TITLE=\"Core Subsystem\"\n")
 
 
+CANONICAL_GOVERNANCE_FILES = [
+    "scripts/bootstrap_governance.py",
+    "scripts/generate_status_dashboard.py",
+    "docs/status-dashboard.template.html",
+    "docs/templates/PRD-TEMPLATE.md",
+    "docs/templates/EPIC-TEMPLATE.md",
+    "docs/templates/STORY-TEMPLATE.md",
+    "docs/templates/ADR-TEMPLATE.md",
+    "docs/templates/DESIGN-SPEC-TEMPLATE.md",
+    "docs/templates/HANDOFF-TEMPLATE.md",
+    "docs/templates/PR-TEMPLATE.md",
+    "docs/templates/README.md",
+]
+
+
+def get_github_auth_token() -> str | None:
+    # 1. gh CLI if authenticated
+    try:
+        clean_env = os.environ.copy()
+        clean_env.pop("GH_TOKEN", None)
+        out = subprocess.check_output(
+            ["gh", "auth", "token"],
+            env=clean_env,
+            stderr=subprocess.DEVNULL,
+            text=True,
+            timeout=3,
+        ).strip()
+        if out and out.startswith(("gho_", "ghp_", "github_pat_")):
+            return out
+    except Exception:
+        pass
+
+    # 2. git credential fill
+    try:
+        clean_env = os.environ.copy()
+        clean_env.pop("GH_TOKEN", None)
+        proc = subprocess.Popen(
+            ["git", "credential", "fill"],
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL,
+            text=True,
+            env=clean_env,
+        )
+        stdout, _ = proc.communicate("protocol=https\nhost=github.com\n", timeout=3)
+        for line in stdout.splitlines():
+            if line.startswith("password="):
+                token = line.split("=", 1)[1].strip()
+                if token and token.startswith(("gho_", "ghp_", "github_pat_")):
+                    return token
+    except Exception:
+        pass
+
+    # 3. Ambient env var if valid
+    for env_var in ("GITHUB_TOKEN", "GH_TOKEN"):
+        t = os.environ.get(env_var, "").strip()
+        if t and t.startswith(("gho_", "ghp_", "github_pat_")):
+            return t
+
+    return None
+
+
+def update_governance(
+    target: Path,
+    remote: str = "aglass1906/agent-os",
+    branch: str = "master",
+    source: Path | None = None,
+) -> None:
+    target = target.resolve()
+    print_step(f"Updating governance tooling in: {target}")
+
+    if source:
+        source = source.resolve()
+        print_info(f"Source: Local directory ({source})")
+        for rel_str in CANONICAL_GOVERNANCE_FILES:
+            src_file = source / rel_str
+            dst_file = target / rel_str
+            if src_file.exists():
+                dst_file.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(src_file, dst_file)
+                print_info(f"✓ Copied {rel_str}")
+            else:
+                print_info(f"⚠ Warning: {rel_str} not found in local source {source}")
+    else:
+        print_info(f"Source: GitHub (https://github.com/{remote}/tree/{branch})")
+        import urllib.error
+        import urllib.request
+
+        base_url = f"https://raw.githubusercontent.com/{remote}/{branch}/"
+        headers = {"User-Agent": "agent-os-bootstrap/1.0"}
+        token = get_github_auth_token()
+        if token:
+            headers["Authorization"] = f"token {token}"
+
+        updated_count = 0
+        for rel_str in CANONICAL_GOVERNANCE_FILES:
+            file_url = base_url + rel_str
+            dst_file = target / rel_str
+            dst_file.parent.mkdir(parents=True, exist_ok=True)
+            req = urllib.request.Request(file_url, headers=headers)
+            try:
+                with urllib.request.urlopen(req, timeout=15) as resp:
+                    if resp.status == 200:
+                        content = resp.read()
+                        dst_file.write_bytes(content)
+                        if rel_str.endswith(".py"):
+                            st = dst_file.stat()
+                            dst_file.chmod(st.st_mode | 0o111)
+                        print_info(f"✓ Updated {rel_str}")
+                        updated_count += 1
+                    else:
+                        print_info(f"⚠ Failed to download {rel_str}: HTTP {resp.status}")
+            except Exception as e:
+                print_info(f"⚠ Error downloading {rel_str}: {e}")
+
+        # If HTTP download failed (e.g. auth issue on private repo), fallback to git shallow clone
+        if updated_count < len(CANONICAL_GOVERNANCE_FILES):
+            print_info("Attempting ephemeral git clone fallback...")
+            import tempfile
+            with tempfile.TemporaryDirectory(prefix="agentos-gov-sync-") as tmpdir:
+                clean_env = os.environ.copy()
+                clean_env.pop("GH_TOKEN", None)
+                repo_url = f"https://github.com/{remote}.git"
+                try:
+                    subprocess.run(
+                        ["git", "clone", "--depth", "1", "--branch", branch, repo_url, tmpdir],
+                        env=clean_env,
+                        check=True,
+                        stdout=subprocess.DEVNULL,
+                        stderr=subprocess.DEVNULL,
+                    )
+                    tmp_path = Path(tmpdir)
+                    for rel_str in CANONICAL_GOVERNANCE_FILES:
+                        src_file = tmp_path / rel_str
+                        dst_file = target / rel_str
+                        if src_file.exists():
+                            dst_file.parent.mkdir(parents=True, exist_ok=True)
+                            shutil.copy2(src_file, dst_file)
+                            if rel_str.endswith(".py"):
+                                st = dst_file.stat()
+                                dst_file.chmod(st.st_mode | 0o111)
+                            print_info(f"✓ Synced {rel_str} via git")
+                            updated_count += 1
+                except Exception as e:
+                    print_info(f"⚠ Git fallback error: {e}")
+
+        print_step(f"Refreshed {updated_count}/{len(CANONICAL_GOVERNANCE_FILES)} canonical files from GitHub.")
+
+    # Ensure target Makefile has update-governance
+    makefile_path = target / "Makefile"
+    if makefile_path.exists():
+        mf_content = makefile_path.read_text(encoding="utf-8")
+        if "update-governance:" not in mf_content:
+            target_str = """
+## Pull latest governance scripts and templates from GitHub and rebuild dashboard.
+update-governance:
+	python3 scripts/bootstrap_governance.py --update
+"""
+            makefile_path.write_text(mf_content + target_str, encoding="utf-8")
+            print_step("Added update-governance target to Makefile")
+
+    # Run dashboard generator in target
+    generator_script = target / "scripts" / "generate_status_dashboard.py"
+    if generator_script.exists():
+        print_step("Regenerating docs/status-dashboard.html with updated generator...")
+        subprocess.run(
+            [sys.executable, str(generator_script)],
+            cwd=target,
+            check=True,
+        )
+
+    print("\n\033[1;32m🎉 Successfully updated governance tooling & status dashboard!\033[0m")
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Bootstrap Agent OS documentation and governance into any target repository."
+        description="Bootstrap or update Agent OS documentation and governance into any target repository."
     )
     parser.add_argument(
         "target",
         type=Path,
-        help="Path to the target repository or directory.",
+        nargs="?",
+        default=Path.cwd(),
+        help="Path to the target repository or directory (defaults to current working directory).",
+    )
+    parser.add_argument(
+        "--update",
+        action="store_true",
+        help="Pull and update governance scripts and templates from GitHub without touching project backlog or documents.",
+    )
+    parser.add_argument(
+        "--remote",
+        type=str,
+        default="aglass1906/agent-os",
+        help="GitHub repository to pull updates from in format 'owner/repo' (default: aglass1906/agent-os).",
+    )
+    parser.add_argument(
+        "--branch",
+        type=str,
+        default="master",
+        help="Git branch to fetch from GitHub (default: master).",
+    )
+    parser.add_argument(
+        "--source",
+        type=Path,
+        default=None,
+        help="Optional local path to source agent-os repo instead of pulling from GitHub.",
     )
     parser.add_argument(
         "--name",
@@ -852,6 +1055,10 @@ def main() -> int:
         help="Analyze target repository and print a preview of planned changes without modifying any files.",
     )
     args = parser.parse_args()
+
+    if args.update:
+        update_governance(args.target, remote=args.remote, branch=args.branch, source=args.source)
+        return 0
 
     project_name = args.name or args.target.name.replace("-", " ").replace("_", " ").title()
     if args.analyze:

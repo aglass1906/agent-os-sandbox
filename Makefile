@@ -24,6 +24,10 @@ help:
 # Documentation & Governance Scaffolding Targets
 # ------------------------------------------------------------------------------
 
+## Pull latest governance scripts and templates from GitHub and rebuild dashboard.
+update-governance:
+	python3 scripts/bootstrap_governance.py --update
+
 ## Regenerate docs/status-dashboard.html directly from canonical backlog documents.
 dashboard:
 	python3 scripts/generate_status_dashboard.py
