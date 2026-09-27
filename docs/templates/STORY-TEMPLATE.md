@@ -42,11 +42,45 @@ adrs:
 
 ---
 
-## 4. Acceptance Gates & Verification Evidence
-- **Automated Verification**:
-  - `pytest -q tests/test_feature.py`
-  - `xcodebuild -workspace mac-app/AgentOS.xcworkspace -scheme AgentOS build`
-- **Manual Verification**:
-  - [Step-by-step verification steps in running Mac app / CLI]
-- **Evidence Record**:
-  - [Test output log, pass counts, or link to handoff document]
+## 4. Acceptance Gates & AI Self-Audit
+
+### Automated Verification Gates
+- [ ] `[Test command 1 — e.g. pytest -q tests/test_feature.py]`
+- [ ] `[Build / compile command — e.g. xcodebuild or make build]`
+- [ ] `[Lint / type-check — e.g. make lint or mypy]`
+
+### AI Self-Audit & Defect Remediation (Mandatory for Code Changes)
+> *The AI agent MUST complete this audit and resolve all issues prior to marking the story completed or submitting work.*
+- [ ] **Diff Hygiene**: Inspect `git diff` to verify only intended files/lines were touched. Ensure no leftover debugging statements, temporary prints, or commented-out code.
+- [ ] **Defect & Regression Triage**: Investigate and fix any newly failing tests, compilation errors, or linter warnings immediately. Never bypass or silence failing checks.
+- [ ] **Edge Cases & Error Handling**: Verify null/nil safety, error boundary captures, network timeouts, and boundary condition inputs.
+- [ ] **State & Resource Teardown**: Confirm scratch databases, temp files, ephemeral worktrees, and test processes have been safely cleaned up.
+
+---
+
+## 5. Human Verification Procedure (Step-by-Step)
+> *Required for any functional, visual, or interactive change. Provides explicit, step-by-step instructions for human operator validation.*
+
+### Prerequisites
+- [e.g. Services running: local orchestrator on port 8000, Postgres running]
+- [e.g. Test account / user role configured]
+- [e.g. App launched or test environment URL: `http://localhost:3000` / Mac app running]
+
+### Step-by-Step Verification Flow
+1. **[Step 1: Initial State & Navigation]**:
+   - **Action**: [e.g. Navigate to Backlog View from the sidebar]
+   - **Expected Outcome**: [e.g. View loads with current Epics listed, search bar visible]
+2. **[Step 2: Trigger Primary Functional Action]**:
+   - **Action**: [e.g. Click 'New Epic' button, enter title 'Billing Service', click 'Create']
+   - **Expected Outcome**: [e.g. Modal closes cleanly, new Epic appears at the top with 'Planned' status pill]
+3. **[Step 3: Verify Persistence & Feedback]**:
+   - **Action**: [e.g. Refresh the window or reopen the view]
+   - **Expected Outcome**: [e.g. Newly created Epic remains present with data intact]
+4. **[Step 4: Edge Case / Failure Path]**:
+   - **Action**: [e.g. Attempt to submit the form with an empty title]
+   - **Expected Outcome**: [e.g. Form displays an inline error 'Title is required' and prevents submission]
+
+### Operator Sign-Off
+- [ ] **Human Verification Verified By**: `[Operator Name / Handle]`
+- [ ] **Verification Date**: `YYYY-MM-DD`
+- [ ] **Outcome**: Pass / Needs Revision
