@@ -1,5 +1,5 @@
 <!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1"><style>:root{color-scheme:light}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
-<title>AgentOS Sandbox — Status Dashboard</title>
+<title>AgentOS Sandbox — Status & Architecture Dashboard</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
 <style>
 :root{
@@ -18,6 +18,8 @@
   --progress-soft:#f5e6d0;
   --planned:#6b7178;
   --planned-soft:#e7e6e1;
+  --blue:#2b6cb0;
+  --blue-soft:#ebf8ff;
   --mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
   --sans: 'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif;
 }
@@ -38,6 +40,8 @@
     --progress-soft:#332711;
     --planned:#9096a0;
     --planned-soft:#24272b;
+    --blue:#63b3ed;
+    --blue-soft:#1a365d;
   }
 }
 :root[data-theme="dark"]{
@@ -56,6 +60,8 @@
   --progress-soft:#332711;
   --planned:#9096a0;
   --planned-soft:#24272b;
+  --blue:#63b3ed;
+  --blue-soft:#1a365d;
 }
 *{box-sizing:border-box;}
 body{
@@ -66,7 +72,7 @@ body{
   font-size:15px;
   line-height:1.5;
 }
-.wrap{max-width:920px;margin:0 auto;padding:2.75rem 1.5rem 5rem;}
+.wrap{max-width:960px;margin:0 auto;padding:2.5rem 1.5rem 5rem;}
 
 /* ---- Header ---- */
 .masthead{
@@ -89,30 +95,58 @@ body{
 }
 .masthead .meta strong{color:var(--ink);font-weight:600;}
 
+/* ---- Top Navigation Tabs ---- */
+.nav-tabs{
+  display:flex;gap:.4rem;border-bottom:1px solid var(--line);
+  margin:1.2rem 0 1.6rem;overflow-x:auto;padding-bottom:1px;
+}
+.nav-tab{
+  display:inline-flex;align-items:center;gap:.5rem;
+  background:none;border:none;border-bottom:2px solid transparent;
+  padding:.65rem .9rem;color:var(--ink-dim);cursor:pointer;
+  font-family:var(--sans);font-size:.88rem;font-weight:500;
+  white-space:nowrap;transition:all .15s ease;
+  margin-bottom:-1px;
+}
+.nav-tab:hover{color:var(--ink);border-bottom-color:var(--line-strong);}
+.nav-tab.active{
+  color:var(--accent);border-bottom-color:var(--accent);font-weight:600;
+}
+.nav-tab:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
+.tab-count{
+  font-family:var(--mono);font-size:.7rem;padding:.1rem .45rem;
+  border-radius:10px;background:var(--line);color:var(--ink-dim);
+  font-weight:600;line-height:1.2;
+}
+.nav-tab.active .tab-count{
+  background:var(--accent-soft);color:var(--accent);
+}
+
 /* ---- Summary stat rail ---- */
 .stats{
   display:grid;grid-template-columns:repeat(4,1fr);gap:1px;
   background:var(--line);border:1px solid var(--line);
-  margin:1.5rem 0 2rem;
+  margin:0 0 1.6rem;
 }
 .stat{
-  background:var(--paper-raised);padding:.9rem 1rem;
+  background:var(--paper-raised);padding:.85rem 1rem;
 }
 .stat .n{
-  font-family:var(--mono);font-size:1.7rem;font-weight:600;
+  font-family:var(--mono);font-size:1.6rem;font-weight:600;
   font-variant-numeric:tabular-nums;line-height:1;
 }
-.stat .n small{font-size:.9rem;color:var(--ink-dim);font-weight:400;}
+.stat .n small{font-size:.85rem;color:var(--ink-dim);font-weight:400;}
 .stat .l{
-  font-size:.72rem;color:var(--ink-dim);text-transform:uppercase;
+  font-size:.7rem;color:var(--ink-dim);text-transform:uppercase;
   letter-spacing:.07em;margin-top:.3rem;
 }
 .stat.done .n{color:var(--done);}
 .stat.progress .n{color:var(--progress);}
 .stat.planned .n{color:var(--planned);}
+.stat.blue .n{color:var(--blue);}
 
 /* progress bar */
-.bar{height:8px;background:var(--line);overflow:hidden;margin:0 0 2.2rem;display:flex;}
+.bar{height:7px;background:var(--line);overflow:hidden;margin:0 0 1.8rem;display:flex;}
 .bar span{display:block;height:100%;}
 .bar .b-done{background:var(--done);}
 .bar .b-progress{background:var(--progress);}
@@ -121,25 +155,25 @@ body{
 /* ---- Controls ---- */
 .controls{
   display:flex;gap:.5rem;align-items:center;flex-wrap:wrap;
-  margin-bottom:1.6rem;
+  margin-bottom:1.4rem;
 }
 .controls input[type="search"]{
   font-family:var(--sans);font-size:.85rem;
-  padding:.5rem .7rem;border:1px solid var(--line-strong);
+  padding:.48rem .7rem;border:1px solid var(--line-strong);
   border-radius:3px;background:var(--paper-raised);color:var(--ink);
-  flex:1;min-width:160px;
+  flex:1;min-width:180px;
 }
 .controls input[type="search"]:focus{outline:2px solid var(--accent);outline-offset:1px;}
 .filt{
   font-family:var(--mono);font-size:.72rem;letter-spacing:.03em;
-  padding:.42rem .7rem;border:1px solid var(--line-strong);
+  padding:.42rem .68rem;border:1px solid var(--line-strong);
   background:var(--paper-raised);color:var(--ink-dim);border-radius:3px;
   cursor:pointer;
 }
 .filt[aria-pressed="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink);}
 .filt:focus-visible{outline:2px solid var(--accent);outline-offset:1px;}
 
-/* ---- Phase list ---- */
+/* ---- Phase / Epic list ---- */
 .phase{
   border:1px solid var(--line);
   background:var(--paper-raised);
@@ -167,9 +201,12 @@ body{
   text-transform:uppercase;padding:.22rem .5rem;border-radius:2px;
   flex-shrink:0;white-space:nowrap;
 }
-.pill.done{background:var(--done-soft);color:var(--done);}
-.pill.progress{background:var(--progress-soft);color:var(--progress);}
-.pill.planned{background:var(--planned-soft);color:var(--planned);}
+.pill.done, .pill.completed, .pill.accepted, .pill.approved{background:var(--done-soft);color:var(--done);}
+.pill.progress, .pill.in_progress, .pill.proposed{background:var(--progress-soft);color:var(--progress);}
+.pill.planned, .pill.draft{background:var(--planned-soft);color:var(--planned);}
+.pill.living{background:var(--blue-soft);color:var(--blue);}
+.pill.superseded, .pill.deprecated{background:var(--line);color:var(--ink-dim);text-decoration:line-through;}
+
 .frac{
   font-family:var(--mono);font-size:.72rem;color:var(--ink-dim);
   flex-shrink:0;font-variant-numeric:tabular-nums;
@@ -228,6 +265,81 @@ body{
   flex-shrink:0;padding-left:.5rem;
 }
 .story:hover .story-open-hint{opacity:1;color:var(--accent);}
+
+/* ---- Document Card Grid (PRDs & Design Specs) ---- */
+.doc-grid{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(285px,1fr));gap:1rem;
+}
+.doc-card{
+  background:var(--paper-raised);border:1px solid var(--line);
+  border-radius:4px;padding:1.15rem 1.15rem;display:flex;flex-direction:column;
+  cursor:pointer;transition:border-color .15s ease,box-shadow .15s ease,transform .15s ease;
+}
+.doc-card:hover{
+  border-color:var(--accent);box-shadow:0 3px 12px rgba(0,0,0,0.06);
+  transform:translateY(-1px);
+}
+.doc-card-top{
+  display:flex;justify-content:space-between;align-items:flex-start;gap:.5rem;
+  margin-bottom:.55rem;
+}
+.doc-id{
+  font-family:var(--mono);font-size:.72rem;color:var(--ink-dim);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.doc-title{
+  font-size:1.02rem;font-weight:600;margin:0 0 .5rem;line-height:1.35;
+  color:var(--ink);
+}
+.doc-summary{
+  font-size:.84rem;color:var(--ink-dim);line-height:1.45;
+  flex:1;margin-bottom:1rem;
+}
+.doc-meta{
+  font-family:var(--mono);font-size:.72rem;color:var(--ink-dim);
+  display:flex;flex-wrap:wrap;gap:.4rem;align-items:center;
+  padding-top:.75rem;border-top:1px solid var(--line);
+}
+.doc-tag{
+  background:var(--paper);border:1px solid var(--line);
+  padding:.1rem .35rem;border-radius:3px;font-size:.68rem;
+}
+.doc-action{
+  font-family:var(--mono);font-size:.72rem;color:var(--accent);
+  font-weight:600;margin-left:auto;display:inline-flex;align-items:center;gap:.2rem;
+}
+
+/* ---- ADR List Rows ---- */
+.adr-list{
+  display:flex;flex-direction:column;gap:.55rem;
+}
+.adr-row{
+  background:var(--paper-raised);border:1px solid var(--line);
+  border-radius:4px;padding:.85rem 1.1rem;display:flex;align-items:center;
+  gap:1rem;cursor:pointer;transition:border-color .15s ease,background .15s ease;
+}
+.adr-row:hover{
+  border-color:var(--accent);background:var(--paper);
+}
+.adr-num{
+  font-family:var(--mono);font-size:.82rem;font-weight:600;
+  color:var(--ink-dim);min-width:3.2rem;flex-shrink:0;
+}
+.adr-info{flex:1;min-width:0;}
+.adr-row-title{
+  font-size:.92rem;font-weight:600;color:var(--ink);margin:0 0 .2rem;
+}
+.adr-row-summary{
+  font-size:.8rem;color:var(--ink-dim);white-space:nowrap;
+  overflow:hidden;text-overflow:ellipsis;
+}
+.adr-row-meta{
+  display:flex;align-items:center;gap:.6rem;flex-shrink:0;
+}
+.adr-date{
+  font-family:var(--mono);font-size:.72rem;color:var(--ink-dim);
+}
+
 .hidden{display:none !important;}
 
 .empty{
@@ -242,7 +354,7 @@ footer{
 }
 a{color:var(--accent);}
 
-/* ---- Slide-over Story Drawer ---- */
+/* ---- Slide-over Document Drawer ---- */
 .drawer-backdrop{
   position:fixed;inset:0;background:rgba(15,20,18,0.48);
   backdrop-filter:blur(3px);z-index:900;
@@ -252,7 +364,7 @@ a{color:var(--accent);}
 
 .drawer{
   position:fixed;top:0;right:0;bottom:0;
-  width:min(720px, 92vw);background:var(--paper-raised);
+  width:min(760px, 92vw);background:var(--paper-raised);
   border-left:1px solid var(--line-strong);
   box-shadow:-6px 0 28px rgba(0,0,0,0.18);
   z-index:1000;display:flex;flex-direction:column;
@@ -268,7 +380,7 @@ a{color:var(--accent);}
 .drawer-meta-badges{
   display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;margin-bottom:.4rem;
 }
-.drawer-epic-name{
+.drawer-context-name{
   font-family:var(--mono);font-size:.72rem;color:var(--ink-dim);
 }
 .drawer-header h2{
@@ -326,6 +438,20 @@ a{color:var(--accent);}
 }
 .drawer-link{color:var(--accent);text-decoration:underline;text-underline-offset:2px;}
 
+/* Table styling in drawer */
+.table-wrap{overflow-x:auto;margin:.8rem 0 1.2rem;}
+.drawer-table{
+  width:100%;border-collapse:collapse;font-size:.82rem;
+  border:1px solid var(--line);
+}
+.drawer-table th{
+  background:var(--paper);border:1px solid var(--line);
+  padding:.5rem .7rem;text-align:left;font-weight:600;
+}
+.drawer-table td{
+  border:1px solid var(--line);padding:.45rem .7rem;
+}
+
 @media (max-width:600px){
   .stats{grid-template-columns:repeat(2,1fr);}
   .masthead{flex-direction:column;align-items:flex-start;}
@@ -338,50 +464,115 @@ a{color:var(--accent);}
   <div class="masthead">
     <div>
       <h1>AgentOS Sandbox</h1>
-      <p class="kicker" style="margin:.35rem 0 0;">Project Roadmap &middot; Status Dashboard</p>
+      <p class="kicker" style="margin:.35rem 0 0;">Project Roadmap &middot; Architecture Dashboard</p>
     </div>
     <div class="meta">
-      source: <strong>docs/STATUS.md</strong><br>
+      source: <strong>docs/</strong><br>
       as of <strong>__AS_OF_DATE__</strong>
     </div>
   </div>
 
-  <div class="stats" id="stats"></div>
-  <div class="bar" id="bar"></div>
+  <!-- Top Navigation Tabs -->
+  <nav class="nav-tabs" role="tablist" aria-label="Documentation Categories">
+    <button class="nav-tab active" id="tab-roadmap" role="tab" aria-selected="true" aria-controls="view-roadmap" onclick="switchTab('roadmap')">
+      <span>🗺️ Roadmap & Backlog</span>
+      <span class="tab-count" id="count-roadmap">0</span>
+    </button>
+    <button class="nav-tab" id="tab-prds" role="tab" aria-selected="false" aria-controls="view-prds" onclick="switchTab('prds')">
+      <span>🎯 Product PRDs</span>
+      <span class="tab-count" id="count-prds">0</span>
+    </button>
+    <button class="nav-tab" id="tab-design-specs" role="tab" aria-selected="false" aria-controls="view-design-specs" onclick="switchTab('design-specs')">
+      <span>🎨 Design Specs</span>
+      <span class="tab-count" id="count-design-specs">0</span>
+    </button>
+    <button class="nav-tab" id="tab-adrs" role="tab" aria-selected="false" aria-controls="view-adrs" onclick="switchTab('adrs')">
+      <span>🏛️ Decisions (ADRs)</span>
+      <span class="tab-count" id="count-adrs">0</span>
+    </button>
+  </nav>
 
-  <div class="controls">
-    <input type="search" id="search" placeholder="Search epics or stories&hellip;" aria-label="Search epics or stories">
-    <button class="filt" data-filter="all" aria-pressed="true">ALL</button>
-    <button class="filt" data-filter="done" aria-pressed="false">DONE</button>
-    <button class="filt" data-filter="progress" aria-pressed="false">IN PROGRESS</button>
-    <button class="filt" data-filter="planned" aria-pressed="false">PLANNED</button>
+  <!-- VIEW 1: ROADMAP & BACKLOG -->
+  <div id="view-roadmap" class="tab-view" role="tabpanel" aria-labelledby="tab-roadmap">
+    <div class="stats" id="stats"></div>
+    <div class="bar" id="bar"></div>
+
+    <div class="controls">
+      <input type="search" id="search" placeholder="Search epics or stories&hellip;" aria-label="Search epics or stories">
+      <button class="filt" data-filter="all" aria-pressed="true">ALL</button>
+      <button class="filt" data-filter="done" aria-pressed="false">DONE</button>
+      <button class="filt" data-filter="progress" aria-pressed="false">IN PROGRESS</button>
+      <button class="filt" data-filter="planned" aria-pressed="false">PLANNED</button>
+    </div>
+
+    <div id="list"></div>
+    <p class="empty hidden" id="empty">No epics match your search.</p>
   </div>
 
-  <div id="list"></div>
-  <p class="empty hidden" id="empty">No epics match.</p>
+  <!-- VIEW 2: PRODUCT PRDS -->
+  <div id="view-prds" class="tab-view hidden" role="tabpanel" aria-labelledby="tab-prds">
+    <div class="stats" id="prds-stats"></div>
+    <div class="controls">
+      <input type="search" id="search-prds" placeholder="Search product requirements & personas&hellip;" aria-label="Search PRDs">
+      <button class="filt prd-filt" data-filter="all" aria-pressed="true">ALL</button>
+      <button class="filt prd-filt" data-filter="approved" aria-pressed="false">APPROVED</button>
+      <button class="filt prd-filt" data-filter="draft" aria-pressed="false">DRAFT</button>
+      <button class="filt prd-filt" data-filter="living" aria-pressed="false">LIVING</button>
+    </div>
+    <div class="doc-grid" id="prds-grid"></div>
+    <p class="empty hidden" id="prds-empty">No Product Requirements Documents match.</p>
+  </div>
+
+  <!-- VIEW 3: DESIGN SPECS -->
+  <div id="view-design-specs" class="tab-view hidden" role="tabpanel" aria-labelledby="tab-design-specs">
+    <div class="stats" id="specs-stats"></div>
+    <div class="controls">
+      <input type="search" id="search-specs" placeholder="Search feature walkthroughs, UI flows & specs&hellip;" aria-label="Search design specs">
+      <button class="filt spec-filt" data-filter="all" aria-pressed="true">ALL</button>
+      <button class="filt spec-filt" data-filter="living" aria-pressed="false">LIVING</button>
+      <button class="filt spec-filt" data-filter="draft" aria-pressed="false">DRAFT</button>
+    </div>
+    <div class="doc-grid" id="specs-grid"></div>
+    <p class="empty hidden" id="specs-empty">No design specifications match.</p>
+  </div>
+
+  <!-- VIEW 4: ARCHITECTURE DECISIONS (ADRs) -->
+  <div id="view-adrs" class="tab-view hidden" role="tabpanel" aria-labelledby="tab-adrs">
+    <div class="stats" id="adrs-stats"></div>
+    <div class="controls">
+      <input type="search" id="search-adrs" placeholder="Search architectural decisions & invariants&hellip;" aria-label="Search ADRs">
+      <button class="filt adr-filt" data-filter="all" aria-pressed="true">ALL</button>
+      <button class="filt adr-filt" data-filter="accepted" aria-pressed="false">ACCEPTED</button>
+      <button class="filt adr-filt" data-filter="proposed" aria-pressed="false">PROPOSED</button>
+      <button class="filt adr-filt" data-filter="superseded" aria-pressed="false">SUPERSEDED</button>
+    </div>
+    <div class="adr-list" id="adrs-list"></div>
+    <p class="empty hidden" id="adrs-empty">No architectural decision records match.</p>
+  </div>
 
   <footer>
-    <span id="phaseCount"></span>
-    <span>click any epic to expand &bull; click any story to read specification &bull; generated by scripts/generate_status_dashboard.py</span>
+    <span id="footerCount"></span>
+    <span>zero-dependency static dashboard &bull; generated by scripts/generate_status_dashboard.py</span>
   </footer>
 </div>
 
+<!-- Universal Slide-over Drawer -->
 <div class="drawer-backdrop" id="drawerBackdrop"></div>
-<aside class="drawer" id="storyDrawer" aria-hidden="true">
+<aside class="drawer" id="docDrawer" aria-hidden="true">
   <div class="drawer-header">
     <div style="flex:1;min-width:0;">
       <div class="drawer-meta-badges">
         <span class="pill" id="drawerStatusPill">DONE</span>
         <span class="badge" id="drawerIdBadge">Story 35.1</span>
-        <span class="drawer-epic-name" id="drawerEpicName">Epic 35 — Common Document Viewer</span>
+        <span class="drawer-context-name" id="drawerContextName">Epic 35 — Common Document Viewer</span>
       </div>
-      <h2 id="drawerStoryTitle">Story Title</h2>
+      <h2 id="drawerDocTitle">Document Title</h2>
     </div>
     <div class="drawer-actions">
       <button type="button" class="btn-action" id="drawerCopyPathBtn" title="Copy file path to clipboard">
         📋 Copy Path
       </button>
-      <a id="drawerRawLink" href="#" target="_blank" class="btn-action" title="Open raw markdown file in external app">
+      <a id="drawerRawLink" href="#" target="_blank" class="btn-action" title="Open raw markdown file in new tab">
         ↗ Open File
       </a>
       <button type="button" class="btn-close" id="drawerCloseBtn" aria-label="Close drawer">✕</button>
@@ -391,10 +582,44 @@ a{color:var(--accent);}
 </aside>
 
 <script>
-// ---- Data, generated directly from roadmap documents — DO NOT HAND-EDIT ----
-const DATA = __DATA_JSON__;
+// ---- Data, generated directly from repository documents — DO NOT HAND-EDIT ----
+const RAW_DATA = __DATA_JSON__;
+const DATA = Array.isArray(RAW_DATA) ? { epics: RAW_DATA, prds: [], design_specs: [], adrs: [] } : RAW_DATA;
+const EPICS = DATA.epics || [];
+const PRDS = DATA.prds || [];
+const DESIGN_SPECS = DATA.design_specs || [];
+const ADRS = DATA.adrs || [];
 
-// ---- Render ----
+// Update tab pill counts
+document.getElementById("count-roadmap").textContent = EPICS.length;
+document.getElementById("count-prds").textContent = PRDS.length;
+document.getElementById("count-design-specs").textContent = DESIGN_SPECS.length;
+document.getElementById("count-adrs").textContent = ADRS.length;
+
+// ---- Tab Switching ----
+let currentTab = "roadmap";
+function switchTab(tabId){
+  currentTab = tabId;
+  document.querySelectorAll(".nav-tab").forEach(tab => {
+    const active = tab.id === `tab-${tabId}`;
+    tab.classList.toggle("active", active);
+    tab.setAttribute("aria-selected", active ? "true" : "false");
+  });
+  document.querySelectorAll(".tab-view").forEach(view => {
+    view.classList.toggle("hidden", view.id !== `view-${tabId}`);
+  });
+  window.location.hash = tabId;
+  updateFooter();
+}
+
+window.addEventListener("hashchange", () => {
+  const hash = window.location.hash.replace("#", "");
+  if(["roadmap", "prds", "design-specs", "adrs"].includes(hash)){
+    switchTab(hash);
+  }
+});
+
+// ---- TAB 1: ROADMAP RENDERING ----
 const list = document.getElementById("list");
 const statsEl = document.getElementById("stats");
 const barEl = document.getElementById("bar");
@@ -406,14 +631,14 @@ function storyCounts(p){
   return {done,total};
 }
 
-function searchText(p){
+function searchEpicText(p){
   let txt = p.id+" "+p.name+" "+(p.note||"");
   if(p.stories) txt += " " + p.stories.map(s=>(s.id||"")+" "+(s.title||s.t)).join(" ");
-  if(p.children) txt += " " + p.children.map(searchText).join(" ");
+  if(p.children) txt += " " + p.children.map(searchEpicText).join(" ");
   return txt.toLowerCase();
 }
 
-function buildRow(p, isChild){
+function buildEpicRow(p, isChild){
   const counts = storyCounts(p);
   const hasKids = !!(p.children && p.children.length);
   const expandable = !!(p.stories && p.stories.length) || hasKids;
@@ -422,7 +647,7 @@ function buildRow(p, isChild){
   div.className = "phase" + (isChild ? " sub" : "");
   div.dataset.status = p.status;
   div.dataset.open = "false";
-  div.dataset.search = searchText(p);
+  div.dataset.search = searchEpicText(p);
 
   const statusLabel = p.status === "done" ? "Done" : p.status === "progress" ? "In progress" : "Planned";
   const fracHtml = counts ? `<span class="frac">${counts.done}/${counts.total}</span>` : (hasKids ? `<span class="frac">${p.children.length} sub</span>` : "");
@@ -447,10 +672,18 @@ function buildRow(p, isChild){
   if (planLinkEl) {
     planLinkEl.addEventListener("click", (e) => {
       e.stopPropagation();
-      openDrawer({
-        id: "", title: "", status: p.status, done: p.status === "done",
-        rel_link: p.plan_rel_link, path: p.plan_path, content: p.plan_content,
-      }, p);
+      openUniversalDrawer({
+        docType: "epic",
+        title: p.name,
+        badgeText: `Epic ${p.id}`,
+        badgeClass: p.status,
+        contextName: `Platform Initiative`,
+        statusLabel: p.status === "done" ? "Done" : p.status === "progress" ? "In Progress" : "Planned",
+        statusClass: p.status,
+        relLink: p.plan_rel_link,
+        path: p.plan_path,
+        content: p.plan_content
+      });
     });
   }
 
@@ -471,7 +704,18 @@ function buildRow(p, isChild){
       `;
       sDiv.addEventListener("click", (e) => {
         e.stopPropagation();
-        openDrawer(s, p);
+        openUniversalDrawer({
+          docType: "story",
+          title: s.title || (s.id ? `Story ${s.id}` : "Story"),
+          badgeText: s.id ? `Story ${s.id}` : "Story",
+          badgeClass: sClass,
+          contextName: `Epic ${p.id} — ${p.name}`,
+          statusLabel: sStatus === "completed" ? "Done" : sStatus === "in_progress" ? "In Progress" : "Planned",
+          statusClass: sClass,
+          relLink: s.rel_link,
+          path: s.path,
+          content: s.content
+        });
       });
       storiesEl.appendChild(sDiv);
     });
@@ -481,7 +725,7 @@ function buildRow(p, isChild){
   if(hasKids){
     const childrenEl = document.createElement("div");
     childrenEl.className = "children";
-    p.children.forEach(c => childrenEl.appendChild(buildRow(c, true)));
+    p.children.forEach(c => childrenEl.appendChild(buildEpicRow(c, true)));
     div.appendChild(childrenEl);
   }
 
@@ -498,25 +742,20 @@ function buildRow(p, isChild){
   return div;
 }
 
-DATA.forEach(p => list.appendChild(buildRow(p, false)));
+EPICS.forEach(p => list.appendChild(buildEpicRow(p, false)));
 
-let totalPhaseCount = DATA.length;
-DATA.forEach(p => { if(p.children) totalPhaseCount += p.children.length; });
-document.getElementById("phaseCount").textContent = `${DATA.length} epics logged (${totalPhaseCount} incl. sub-epics)`;
-
-// ---- Stats + progress bar ----
-function renderStats(){
-  const done = DATA.filter(p=>p.status==="done").length;
-  const progress = DATA.filter(p=>p.status==="progress").length;
-  const planned = DATA.filter(p=>p.status==="planned").length;
-  const total = DATA.length;
+function renderRoadmapStats(){
+  const done = EPICS.filter(p=>p.status==="done").length;
+  const progress = EPICS.filter(p=>p.status==="progress").length;
+  const planned = EPICS.filter(p=>p.status==="planned").length;
+  const total = EPICS.length;
 
   let storiesDone=0, storiesTotal=0;
   function tally(p){
     if(p.stories){ storiesTotal+=p.stories.length; storiesDone+=p.stories.filter(s=>s.done).length; }
     if(p.children) p.children.forEach(tally);
   }
-  DATA.forEach(tally);
+  EPICS.forEach(tally);
 
   statsEl.innerHTML = `
     <div class="stat done"><div class="n">${done}<small>/${total}</small></div><div class="l">Epics done</div></div>
@@ -525,24 +764,23 @@ function renderStats(){
     <div class="stat"><div class="n">${storiesDone}<small>/${storiesTotal}</small></div><div class="l">Tracked stories</div></div>
   `;
 
-  const pctDone = done/total*100, pctProgress = progress/total*100, pctPlanned = planned/total*100;
+  const pctDone = total ? done/total*100 : 0, pctProgress = total ? progress/total*100 : 0, pctPlanned = total ? planned/total*100 : 0;
   barEl.innerHTML = `
     <span class="b-done" style="width:${pctDone}%"></span>
     <span class="b-progress" style="width:${pctProgress}%"></span>
     <span class="b-planned" style="width:${pctPlanned}%"></span>
   `;
 }
-renderStats();
+renderRoadmapStats();
 
-// ---- Filter + search ----
 let activeFilter = "all";
-const rows = () => Array.from(list.children);
+const epicRows = () => Array.from(list.children);
 const emptyEl = document.getElementById("empty");
 
-function applyFilters(){
+function applyRoadmapFilters(){
   const q = document.getElementById("search").value.trim().toLowerCase();
   let anyVisible = false;
-  rows().forEach(row => {
+  epicRows().forEach(row => {
     const matchesFilter = activeFilter === "all" || row.dataset.status === activeFilter;
     const matchesSearch = !q || row.dataset.search.includes(q);
     const show = matchesFilter && matchesSearch;
@@ -559,52 +797,344 @@ function applyFilters(){
   emptyEl.classList.toggle("hidden", anyVisible);
 }
 
-document.querySelectorAll(".filt").forEach(btn=>{
+document.querySelectorAll(".filt:not(.prd-filt):not(.spec-filt):not(.adr-filt)").forEach(btn=>{
   btn.addEventListener("click", () => {
-    document.querySelectorAll(".filt").forEach(b=>b.setAttribute("aria-pressed","false"));
+    document.querySelectorAll(".filt:not(.prd-filt):not(.spec-filt):not(.adr-filt)").forEach(b=>b.setAttribute("aria-pressed","false"));
     btn.setAttribute("aria-pressed","true");
     activeFilter = btn.dataset.filter;
-    applyFilters();
+    applyRoadmapFilters();
   });
 });
-document.getElementById("search").addEventListener("input", applyFilters);
+document.getElementById("search").addEventListener("input", applyRoadmapFilters);
 
-// ---- Story Spec Slide-over Drawer ----
-let activeStory = null;
-const drawer = document.getElementById("storyDrawer");
+// ---- TAB 2: PRD RENDERING ----
+const prdsGrid = document.getElementById("prds-grid");
+const prdsStatsEl = document.getElementById("prds-stats");
+const prdsEmptyEl = document.getElementById("prds-empty");
+let activePrdFilter = "all";
+
+function renderPrds(){
+  const total = PRDS.length;
+  const approved = PRDS.filter(p => p.status === "approved").length;
+  const draft = PRDS.filter(p => p.status === "draft").length;
+  const living = PRDS.filter(p => p.status === "living").length;
+
+  prdsStatsEl.innerHTML = `
+    <div class="stat blue"><div class="n">${total}</div><div class="l">Total PRDs</div></div>
+    <div class="stat done"><div class="n">${approved}</div><div class="l">Approved</div></div>
+    <div class="stat progress"><div class="n">${draft}</div><div class="l">Draft</div></div>
+    <div class="stat planned"><div class="n">${living}</div><div class="l">Living</div></div>
+  `;
+
+  prdsGrid.innerHTML = "";
+  if(total === 0){
+    prdsEmptyEl.classList.remove("hidden");
+    prdsEmptyEl.textContent = "No Product Requirements Documents recorded yet in docs/product/.";
+    return;
+  }
+
+  PRDS.forEach(prd => {
+    const card = document.createElement("div");
+    card.className = "doc-card";
+    card.dataset.status = prd.status;
+    card.dataset.search = (prd.id + " " + prd.title + " " + (prd.summary || "") + " " + (prd.owner || "")).toLowerCase();
+
+    const pillClass = prd.status === "approved" ? "approved" : (prd.status === "living" ? "living" : "draft");
+
+    card.innerHTML = `
+      <div class="doc-card-top">
+        <span class="doc-id">${prd.id}</span>
+        <span class="pill ${pillClass}">${prd.status}</span>
+      </div>
+      <div class="doc-title">${prd.title}</div>
+      <div class="doc-summary">${prd.summary || "No executive summary provided."}</div>
+      <div class="doc-meta">
+        ${prd.owner ? `<span class="doc-tag">👤 ${prd.owner}</span>` : ""}
+        ${prd.target_epic ? `<span class="doc-tag">🎯 Backlog</span>` : ""}
+        <span class="doc-action">Read PRD &rsaquo;</span>
+      </div>
+    `;
+
+    card.addEventListener("click", () => {
+      openUniversalDrawer({
+        docType: "prd",
+        title: prd.title,
+        badgeText: prd.id,
+        badgeClass: pillClass,
+        contextName: `Product Requirements Document`,
+        statusLabel: prd.status.toUpperCase(),
+        statusClass: pillClass,
+        relLink: prd.rel_link,
+        path: prd.path,
+        content: prd.content
+      });
+    });
+
+    prdsGrid.appendChild(card);
+  });
+}
+renderPrds();
+
+function applyPrdFilters(){
+  const q = document.getElementById("search-prds").value.trim().toLowerCase();
+  let any = false;
+  Array.from(prdsGrid.children).forEach(card => {
+    const matchFilter = activePrdFilter === "all" || card.dataset.status === activePrdFilter;
+    const matchSearch = !q || card.dataset.search.includes(q);
+    const show = matchFilter && matchSearch;
+    card.classList.toggle("hidden", !show);
+    if(show) any = true;
+  });
+  prdsEmptyEl.classList.toggle("hidden", any);
+}
+
+document.querySelectorAll(".prd-filt").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".prd-filt").forEach(b => b.setAttribute("aria-pressed", "false"));
+    btn.setAttribute("aria-pressed", "true");
+    activePrdFilter = btn.dataset.filter;
+    applyPrdFilters();
+  });
+});
+document.getElementById("search-prds").addEventListener("input", applyPrdFilters);
+
+// ---- TAB 3: DESIGN SPECS RENDERING ----
+const specsGrid = document.getElementById("specs-grid");
+const specsStatsEl = document.getElementById("specs-stats");
+const specsEmptyEl = document.getElementById("specs-empty");
+let activeSpecFilter = "all";
+
+function renderDesignSpecs(){
+  const total = DESIGN_SPECS.length;
+  const living = DESIGN_SPECS.filter(s => s.status === "living").length;
+  const draft = DESIGN_SPECS.filter(s => s.status === "draft").length;
+
+  specsStatsEl.innerHTML = `
+    <div class="stat blue"><div class="n">${total}</div><div class="l">Total Specs</div></div>
+    <div class="stat done"><div class="n">${living}</div><div class="l">Living</div></div>
+    <div class="stat progress"><div class="n">${draft}</div><div class="l">Draft</div></div>
+    <div class="stat"><div class="n">docs/design-specs</div><div class="l">Repository Directory</div></div>
+  `;
+
+  specsGrid.innerHTML = "";
+  if(total === 0){
+    specsEmptyEl.classList.remove("hidden");
+    specsEmptyEl.textContent = "No design specifications recorded yet in docs/design-specs/.";
+    return;
+  }
+
+  DESIGN_SPECS.forEach(spec => {
+    const card = document.createElement("div");
+    card.className = "doc-card";
+    card.dataset.status = spec.status;
+    card.dataset.search = (spec.id + " " + spec.title + " " + (spec.summary || "") + " " + (spec.category || "") + " " + (spec.surfaces || "")).toLowerCase();
+
+    const pillClass = spec.status === "living" ? "living" : "draft";
+
+    card.innerHTML = `
+      <div class="doc-card-top">
+        <span class="doc-id">${spec.id}</span>
+        <span class="pill ${pillClass}">${spec.status}</span>
+      </div>
+      <div class="doc-title">${spec.title}</div>
+      <div class="doc-summary">${spec.summary || "No executive summary provided."}</div>
+      <div class="doc-meta">
+        ${spec.category ? `<span class="doc-tag">🎨 ${spec.category}</span>` : ""}
+        ${spec.surfaces ? `<span class="doc-tag">${spec.surfaces}</span>` : ""}
+        <span class="doc-action">Read Spec &rsaquo;</span>
+      </div>
+    `;
+
+    card.addEventListener("click", () => {
+      openUniversalDrawer({
+        docType: "design-spec",
+        title: spec.title,
+        badgeText: spec.id,
+        badgeClass: pillClass,
+        contextName: spec.category || `Feature Design Specification`,
+        statusLabel: spec.status.toUpperCase(),
+        statusClass: pillClass,
+        relLink: spec.rel_link,
+        path: spec.path,
+        content: spec.content
+      });
+    });
+
+    specsGrid.appendChild(card);
+  });
+}
+renderDesignSpecs();
+
+function applySpecFilters(){
+  const q = document.getElementById("search-specs").value.trim().toLowerCase();
+  let any = false;
+  Array.from(specsGrid.children).forEach(card => {
+    const matchFilter = activeSpecFilter === "all" || card.dataset.status === activeSpecFilter;
+    const matchSearch = !q || card.dataset.search.includes(q);
+    const show = matchFilter && matchSearch;
+    card.classList.toggle("hidden", !show);
+    if(show) any = true;
+  });
+  specsEmptyEl.classList.toggle("hidden", any);
+}
+
+document.querySelectorAll(".spec-filt").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".spec-filt").forEach(b => b.setAttribute("aria-pressed", "false"));
+    btn.setAttribute("aria-pressed", "true");
+    activeSpecFilter = btn.dataset.filter;
+    applySpecFilters();
+  });
+});
+document.getElementById("search-specs").addEventListener("input", applySpecFilters);
+
+// ---- TAB 4: ARCHITECTURE DECISIONS (ADRs) ----
+const adrsList = document.getElementById("adrs-list");
+const adrsStatsEl = document.getElementById("adrs-stats");
+const adrsEmptyEl = document.getElementById("adrs-empty");
+let activeAdrFilter = "all";
+
+function renderAdrs(){
+  const total = ADRS.length;
+  const accepted = ADRS.filter(a => a.status.toLowerCase() === "accepted").length;
+  const proposed = ADRS.filter(a => a.status.toLowerCase() === "proposed").length;
+  const superseded = ADRS.filter(a => a.status.toLowerCase() === "superseded" || a.status.toLowerCase() === "deprecated").length;
+
+  adrsStatsEl.innerHTML = `
+    <div class="stat blue"><div class="n">${total}</div><div class="l">Total ADRs</div></div>
+    <div class="stat done"><div class="n">${accepted}</div><div class="l">Accepted</div></div>
+    <div class="stat progress"><div class="n">${proposed}</div><div class="l">Proposed</div></div>
+    <div class="stat planned"><div class="n">${superseded}</div><div class="l">Superseded</div></div>
+  `;
+
+  adrsList.innerHTML = "";
+  if(total === 0){
+    adrsEmptyEl.classList.remove("hidden");
+    adrsEmptyEl.textContent = "No Architecture Decision Records recorded yet in docs/adr/.";
+    return;
+  }
+
+  ADRS.forEach(adr => {
+    const row = document.createElement("div");
+    row.className = "adr-row";
+    const stLower = adr.status.toLowerCase();
+    row.dataset.status = stLower;
+    row.dataset.search = (adr.number + " " + adr.title + " " + (adr.summary || "") + " " + (adr.date || "")).toLowerCase();
+
+    const pillClass = stLower === "accepted" ? "accepted" : (stLower === "proposed" ? "proposed" : "superseded");
+
+    row.innerHTML = `
+      <div class="adr-num">${adr.number}</div>
+      <div class="adr-info">
+        <div class="adr-row-title">${adr.title}</div>
+        <div class="adr-row-summary">${adr.summary || "No context summary available."}</div>
+      </div>
+      <div class="adr-row-meta">
+        ${adr.date ? `<span class="adr-date">${adr.date}</span>` : ""}
+        <span class="pill ${pillClass}">${adr.status}</span>
+        <span class="doc-action" style="margin-left:0;">view &rsaquo;</span>
+      </div>
+    `;
+
+    row.addEventListener("click", () => {
+      openUniversalDrawer({
+        docType: "adr",
+        title: adr.title,
+        badgeText: `ADR ${adr.number}`,
+        badgeClass: pillClass,
+        contextName: `Architecture Decision Record`,
+        statusLabel: adr.status,
+        statusClass: pillClass,
+        relLink: adr.rel_link,
+        path: adr.path,
+        content: adr.content
+      });
+    });
+
+    adrsList.appendChild(row);
+  });
+}
+renderAdrs();
+
+function applyAdrFilters(){
+  const q = document.getElementById("search-adrs").value.trim().toLowerCase();
+  let any = false;
+  Array.from(adrsList.children).forEach(row => {
+    const matchFilter = activeAdrFilter === "all" || row.dataset.status === activeAdrFilter;
+    const matchSearch = !q || row.dataset.search.includes(q);
+    const show = matchFilter && matchSearch;
+    row.classList.toggle("hidden", !show);
+    if(show) any = true;
+  });
+  adrsEmptyEl.classList.toggle("hidden", any);
+}
+
+document.querySelectorAll(".adr-filt").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".adr-filt").forEach(b => b.setAttribute("aria-pressed", "false"));
+    btn.setAttribute("aria-pressed", "true");
+    activeAdrFilter = btn.dataset.filter;
+    applyAdrFilters();
+  });
+});
+document.getElementById("search-adrs").addEventListener("input", applyAdrFilters);
+
+// ---- Footer Text Update ----
+function updateFooter(){
+  const footerCount = document.getElementById("footerCount");
+  if(currentTab === "roadmap"){
+    footerCount.textContent = `${EPICS.length} epics logged (${EPICS.reduce((acc,p)=>acc+(p.stories?p.stories.length:0),0)} stories)`;
+  } else if(currentTab === "prds"){
+    footerCount.textContent = `${PRDS.length} product requirements documents logged in docs/product/`;
+  } else if(currentTab === "design-specs"){
+    footerCount.textContent = `${DESIGN_SPECS.length} feature design specifications logged in docs/design-specs/`;
+  } else if(currentTab === "adrs"){
+    footerCount.textContent = `${ADRS.length} architectural decision records logged in docs/adr/`;
+  }
+}
+updateFooter();
+
+// Check for deep link in hash
+if(window.location.hash){
+  const h = window.location.hash.replace("#", "");
+  if(["roadmap", "prds", "design-specs", "adrs"].includes(h)){
+    switchTab(h);
+  }
+}
+
+// ---- Universal Slide-over Drawer ----
+let activeDoc = null;
+const drawer = document.getElementById("docDrawer");
 const backdrop = document.getElementById("drawerBackdrop");
 const drawerStatusPill = document.getElementById("drawerStatusPill");
 const drawerIdBadge = document.getElementById("drawerIdBadge");
-const drawerEpicName = document.getElementById("drawerEpicName");
-const drawerStoryTitle = document.getElementById("drawerStoryTitle");
+const drawerContextName = document.getElementById("drawerContextName");
+const drawerDocTitle = document.getElementById("drawerDocTitle");
 const drawerBody = document.getElementById("drawerBody");
 const drawerRawLink = document.getElementById("drawerRawLink");
 const drawerCopyPathBtn = document.getElementById("drawerCopyPathBtn");
 const drawerCloseBtn = document.getElementById("drawerCloseBtn");
 
-function openDrawer(s, p){
-  activeStory = s;
-  const sStatus = s.status || (s.done ? "completed" : "planned");
-  const sClass = sStatus === "completed" ? "done" : (sStatus === "in_progress" ? "progress" : "planned");
-  const statusLabel = sStatus === "completed" ? "Done" : (sStatus === "in_progress" ? "In progress" : "Planned");
+function openUniversalDrawer(doc){
+  activeDoc = doc;
 
-  drawerStatusPill.className = `pill ${sClass}`;
-  drawerStatusPill.textContent = statusLabel;
+  drawerStatusPill.className = `pill ${doc.statusClass || 'planned'}`;
+  drawerStatusPill.textContent = doc.statusLabel || 'PLANNED';
 
-  drawerIdBadge.className = `badge ${sClass}`;
-  drawerIdBadge.textContent = s.id ? `Story ${s.id}` : "Plan";
+  drawerIdBadge.className = `badge ${doc.badgeClass || 'planned'}`;
+  drawerIdBadge.textContent = doc.badgeText || 'Document';
 
-  drawerEpicName.textContent = `Epic ${p.id} — ${p.name}`;
-  drawerStoryTitle.textContent = s.title || (s.id ? '' : 'Plan document');
+  drawerContextName.textContent = doc.contextName || '';
+  drawerDocTitle.textContent = doc.title || '';
 
-  if (s.rel_link) {
-    drawerRawLink.href = s.rel_link;
+  if (doc.relLink) {
+    drawerRawLink.href = doc.relLink;
     drawerRawLink.style.display = "inline-flex";
   } else {
     drawerRawLink.style.display = "none";
   }
 
-  drawerBody.innerHTML = renderMarkdown(s.content || `# Story ${s.id}\n\n${s.title}`);
+  drawerBody.innerHTML = renderMarkdown(doc.content || "*No content provided.*");
 
   drawer.classList.add("open");
   drawer.setAttribute("aria-hidden", "false");
@@ -628,15 +1158,15 @@ document.addEventListener("keydown", (e) => {
 });
 
 drawerCopyPathBtn.addEventListener("click", () => {
-  if (!activeStory || !activeStory.path) return;
-  navigator.clipboard.writeText(activeStory.path).then(() => {
+  if (!activeDoc || !activeDoc.path) return;
+  navigator.clipboard.writeText(activeDoc.path).then(() => {
     const oldText = drawerCopyPathBtn.innerHTML;
     drawerCopyPathBtn.textContent = "✓ Copied!";
     setTimeout(() => { drawerCopyPathBtn.innerHTML = oldText; }, 1600);
   });
 });
 
-// ---- Lightweight Vanilla Markdown Parser ----
+// ---- Lightweight Vanilla Markdown & Table Parser ----
 function formatInline(str){
   if (!str) return '';
   str = str.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
@@ -673,9 +1203,42 @@ function renderMarkdown(md){
   let inList = false;
   let inTaskList = false;
   let inBlockquote = false;
+  let inTable = false;
+  let tableHeaderParsed = false;
 
   for (let line of lines) {
     const trimmed = line.trim();
+
+    // Table parsing
+    if (trimmed.startsWith('|') && trimmed.endsWith('|')) {
+      if (inList) { out.push('</ul>'); inList = false; }
+      if (inTaskList) { out.push('</ul>'); inTaskList = false; }
+      if (inBlockquote) { out.push('</blockquote>'); inBlockquote = false; }
+
+      const cells = trimmed.slice(1, -1).split('|').map(c => c.trim());
+      // Check if it's separator row |---|---|
+      if (cells.every(c => /^:?-+:?$/.test(c))) {
+        tableHeaderParsed = true;
+        continue;
+      }
+
+      if (!inTable) {
+        out.push('<div class="table-wrap"><table class="drawer-table">');
+        inTable = true;
+        tableHeaderParsed = false;
+      }
+
+      if (!tableHeaderParsed) {
+        out.push('<thead><tr>' + cells.map(c => `<th>${formatInline(c)}</th>`).join('') + '</tr></thead><tbody>');
+      } else {
+        out.push('<tr>' + cells.map(c => `<td>${formatInline(c)}</td>`).join('') + '</tr>');
+      }
+      continue;
+    } else if (inTable) {
+      out.push('</tbody></table></div>');
+      inTable = false;
+      tableHeaderParsed = false;
+    }
 
     // Blockquote
     if (trimmed.startsWith('>')) {
@@ -740,6 +1303,7 @@ function renderMarkdown(md){
     }
   }
 
+  if (inTable) out.push('</tbody></table></div>');
   if (inList) out.push('</ul>');
   if (inTaskList) out.push('</ul>');
   if (inBlockquote) out.push('</blockquote>');
