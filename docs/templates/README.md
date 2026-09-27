@@ -19,6 +19,7 @@ This directory contains canonical starter templates for engineering plans, story
 | **Architecture Decision Record** | [`ADR-TEMPLATE.md`](./ADR-TEMPLATE.md) | Documenting a fundamental design trade-off, invariant, or paradigm | `docs/adr/000X-TITLE.md` |
 | **Feature Design Spec** | [`DESIGN-SPEC-TEMPLATE.md`](./DESIGN-SPEC-TEMPLATE.md) | Authoring UI/UX wireframes, protocol payloads, and state transitions | `docs/design-specs/FEATURE-NAME.md` |
 | **Session Handoff** | [`HANDOFF-TEMPLATE.md`](./HANDOFF-TEMPLATE.md) | Documenting multi-commit progress, test evidence, and remaining gates | `docs/history/handoffs/HANDOFF-EPIC-X.md` |
+| **Pull Request Completion** | [`PR-TEMPLATE.md`](./PR-TEMPLATE.md) | Standardizing pull request summaries, test evidence, and checklists | `.github/pull_request_template.md` or PR notes |
 
 ---
 
@@ -43,6 +44,9 @@ make new-design-spec SLUG=multi-window-studio TITLE="Multi-Window Studio"
 
 # 6. Scaffold a new Session Handoff document
 make new-handoff EPIC_ID=37
+
+# 7. Install default GitHub PR template or scaffold PR completion note
+make new-pr
 ```
 
 ### Option B: Manual Copy
@@ -62,6 +66,9 @@ cp docs/templates/DESIGN-SPEC-TEMPLATE.md docs/design-specs/MULTI-WINDOW-STUDIO.
 
 # 5. Create a new Session Handoff
 cp docs/templates/HANDOFF-TEMPLATE.md docs/history/handoffs/HANDOFF-EPIC-37.md
+
+# 6. Install standard GitHub Pull Request template
+mkdir -p .github && cp docs/templates/PR-TEMPLATE.md .github/pull_request_template.md
 ```
 
 ---

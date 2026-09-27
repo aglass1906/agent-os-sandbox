@@ -119,3 +119,15 @@ new-handoff:
 	    -e "s/YYYY-MM-DD/$$TODAY/g" \
 	    docs/templates/HANDOFF-TEMPLATE.md > "docs/history/handoffs/HANDOFF-EPIC-$(EPIC_ID).md"; \
 	echo "Created docs/history/handoffs/HANDOFF-EPIC-$(EPIC_ID).md"
+
+## Install GitHub PR template or scaffold PR completion note: make new-pr [OUT=.github/pull_request_template.md]
+new-pr:
+	@mkdir -p .github
+	@if [ -n "$(OUT)" ]; then \
+		cp docs/templates/PR-TEMPLATE.md "$(OUT)"; \
+		echo "Created $(OUT)"; \
+	else \
+		cp docs/templates/PR-TEMPLATE.md .github/pull_request_template.md; \
+		echo "Installed .github/pull_request_template.md"; \
+	fi
+

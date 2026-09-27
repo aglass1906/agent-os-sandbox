@@ -103,6 +103,7 @@ Always use `make` targets to scaffold new documents:
 * **New ADR**: `make new-adr ID=<num> SLUG=<slug> TITLE="<Title>"`
 * **New Design Spec**: `make new-design-spec SLUG=<slug> TITLE="<Title>"`
 * **New Handoff**: `make new-handoff EPIC_ID=<num>`
+* **New PR / Completion Report**: `make new-pr`
 * **Sync Tracker**: `make sync-status` (keeps `docs/STATUS.md` 100% in sync with disk)
 * **Rebuild Dashboard**: `make dashboard` (rebuilds `docs/status-dashboard.html`)
 
