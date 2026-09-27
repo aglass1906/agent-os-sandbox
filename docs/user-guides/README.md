@@ -12,4 +12,5 @@ This directory contains task-oriented operational guides, workflows, and walkthr
 
 | Guide | Audience / Domain | Summary |
 |---|---|---|
-| *(No user guides yet. Add task-oriented operational guides here)* | | |
+| [`STATUS-DASHBOARD.md`](./STATUS-DASHBOARD.md) | AI Agents, Developers & Operators | Interactive visual roadmap dashboard generator, zero-drift synchronization, and CLI reference |
+

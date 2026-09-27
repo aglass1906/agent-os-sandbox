@@ -475,7 +475,7 @@ This directory contains task-oriented operational guides, workflows, and walkthr
 
 | Guide | Audience / Domain | Summary |
 |---|---|---|
-| *(No user guides yet. Add task-oriented operational guides here)* | | |
+| [`STATUS-DASHBOARD.md`](./STATUS-DASHBOARD.md) | AI Agents, Developers & Operators | Interactive visual roadmap dashboard generator, zero-drift synchronization, and CLI reference |
 """
 
 
@@ -531,6 +531,12 @@ def analyze_project(
     print("   \033[1;32m+\033[0m docs/status-dashboard.template.html (Customized dashboard HTML template)")
     print("   \033[1;32m+\033[0m docs/status-dashboard.html (Zero-dependency visual dashboard compiled from disk)")
     created_count += 3
+
+    dash_guide = target / "docs" / "user-guides" / "STATUS-DASHBOARD.md"
+    if not dash_guide.exists():
+        print("   \033[1;32m+\033[0m docs/user-guides/STATUS-DASHBOARD.md (Status dashboard user guide & CLI reference)")
+        created_count += 1
+
 
     status_md = target / "docs" / "STATUS.md"
     if not status_md.exists():
@@ -738,7 +744,14 @@ def bootstrap_project(
     (target / "docs" / "status-dashboard.template.html").write_text(
         dash_html_content, encoding="utf-8"
     )
-    print_step("Installed status dashboard generator and customized template")
+
+    dash_guide_src = SOURCE_ROOT / "docs" / "user-guides" / "STATUS-DASHBOARD.md"
+    if dash_guide_src.exists():
+        dash_guide_dst = target / "docs" / "user-guides" / "STATUS-DASHBOARD.md"
+        dash_guide_dst.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(dash_guide_src, dash_guide_dst)
+
+    print_step("Installed status dashboard generator, customized template, and user guide")
 
     # 4. Makefile setup
     makefile_path = target / "Makefile"
@@ -836,7 +849,20 @@ CANONICAL_GOVERNANCE_FILES = [
     "docs/templates/HANDOFF-TEMPLATE.md",
     "docs/templates/PR-TEMPLATE.md",
     "docs/templates/README.md",
+    "docs/user-guides/STATUS-DASHBOARD.md",
 ]
+
+
+def extract_canonical_files(content: str) -> list[str]:
+    match = re.search(r"CANONICAL_GOVERNANCE_FILES\s*=\s*\[(.*?)\]", content, re.DOTALL)
+    if not match:
+        return []
+    items: list[str] = []
+    for line in match.group(1).splitlines():
+        line = line.strip().strip(",").strip("\"'")
+        if line and not line.startswith("#"):
+            items.append(line)
+    return items
 
 
 def get_github_auth_token() -> str | None:
@@ -895,10 +921,17 @@ def update_governance(
     target = target.resolve()
     print_step(f"Updating governance tooling in: {target}")
 
+    files_to_sync = list(CANONICAL_GOVERNANCE_FILES)
+
     if source:
         source = source.resolve()
         print_info(f"Source: Local directory ({source})")
-        for rel_str in CANONICAL_GOVERNANCE_FILES:
+        src_bootstrap = source / "scripts" / "bootstrap_governance.py"
+        if src_bootstrap.exists():
+            for rf in extract_canonical_files(src_bootstrap.read_text(encoding="utf-8")):
+                if rf not in files_to_sync:
+                    files_to_sync.append(rf)
+        for rel_str in files_to_sync:
             src_file = source / rel_str
             dst_file = target / rel_str
             if src_file.exists():
@@ -938,7 +971,10 @@ def update_governance(
         base_url = f"https://raw.githubusercontent.com/{remote}/{target_ref}/"
 
         updated_count = 0
-        for rel_str in CANONICAL_GOVERNANCE_FILES:
+        idx = 0
+        while idx < len(files_to_sync):
+            rel_str = files_to_sync[idx]
+            idx += 1
             file_url = base_url + rel_str
             dst_file = target / rel_str
             dst_file.parent.mkdir(parents=True, exist_ok=True)
@@ -953,13 +989,23 @@ def update_governance(
                             dst_file.chmod(st.st_mode | 0o111)
                         print_info(f"✓ Updated {rel_str}")
                         updated_count += 1
+
+                        # Dynamically discover any newly added canonical files from the latest bootstrap script
+                        if rel_str == "scripts/bootstrap_governance.py":
+                            try:
+                                remote_files = extract_canonical_files(content.decode("utf-8"))
+                                for rf in remote_files:
+                                    if rf not in files_to_sync:
+                                        files_to_sync.append(rf)
+                            except Exception:
+                                pass
                     else:
                         print_info(f"⚠ Failed to download {rel_str}: HTTP {resp.status}")
             except Exception as e:
                 print_info(f"⚠ Error downloading {rel_str}: {e}")
 
         # If HTTP download failed (e.g. auth issue on private repo), fallback to git shallow clone
-        if updated_count < len(CANONICAL_GOVERNANCE_FILES):
+        if updated_count < len(files_to_sync):
             print_info("Attempting ephemeral git clone fallback...")
             import tempfile
             with tempfile.TemporaryDirectory(prefix="agentos-gov-sync-") as tmpdir:
@@ -975,7 +1021,12 @@ def update_governance(
                         stderr=subprocess.DEVNULL,
                     )
                     tmp_path = Path(tmpdir)
-                    for rel_str in CANONICAL_GOVERNANCE_FILES:
+                    clone_bootstrap = tmp_path / "scripts" / "bootstrap_governance.py"
+                    if clone_bootstrap.exists():
+                        for rf in extract_canonical_files(clone_bootstrap.read_text(encoding="utf-8")):
+                            if rf not in files_to_sync:
+                                files_to_sync.append(rf)
+                    for rel_str in files_to_sync:
                         src_file = tmp_path / rel_str
                         dst_file = target / rel_str
                         if src_file.exists():
@@ -989,7 +1040,7 @@ def update_governance(
                 except Exception as e:
                     print_info(f"⚠ Git fallback error: {e}")
 
-        print_step(f"Refreshed {updated_count}/{len(CANONICAL_GOVERNANCE_FILES)} canonical files from GitHub.")
+        print_step(f"Refreshed {updated_count}/{len(files_to_sync)} canonical files from GitHub.")
 
     # Ensure target Makefile has update-governance
     makefile_path = target / "Makefile"
