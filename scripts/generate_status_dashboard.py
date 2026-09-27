@@ -676,15 +676,47 @@ def parse_templates() -> dict[str, str]:
     return templates
 
 
+def detect_project_name() -> str:
+    if STATUS_MD.exists():
+        lines = STATUS_MD.read_text(encoding="utf-8").splitlines()
+        if lines and lines[0].startswith("#"):
+            title_part = lines[0].lstrip("#").strip()
+            for sep in ("—", "–", " - ", ":"):
+                if sep in title_part:
+                    candidate = title_part.split(sep, 1)[0].strip()
+                    if candidate:
+                        return candidate
+            if title_part:
+                return title_part
+
+    readme_file = REPO_ROOT / "README.md"
+    if readme_file.exists():
+        for line in readme_file.read_text(encoding="utf-8").splitlines():
+            line = line.strip()
+            if line.startswith("# "):
+                title_part = line[2:].strip()
+                for sep in ("—", "–", " - ", ":"):
+                    if sep in title_part:
+                        candidate = title_part.split(sep, 1)[0].strip()
+                        if candidate:
+                            return candidate
+                if title_part:
+                    return title_part
+
+    return REPO_ROOT.name.replace("-", " ").replace("_", " ").title()
+
+
 def generate(
     epics_data: list[dict],
     prds_data: list[dict],
     design_specs_data: list[dict],
     adrs_data: list[dict],
     templates_data: dict[str, str] | None = None,
+    project_name: str | None = None,
 ) -> str:
     template = TEMPLATE_HTML.read_text(encoding="utf-8")
     as_of_date = status_md_as_of_date()
+    p_name = project_name or detect_project_name()
 
     clean_epics = []
     for ep in epics_data:
@@ -727,8 +759,10 @@ def generate(
     }
 
     data_json = json.dumps(payload, sort_keys=False, ensure_ascii=False)
-    html = template.replace("__AS_OF_DATE__", as_of_date).replace(
-        "__DATA_JSON__", data_json
+    html = (
+        template.replace("__AS_OF_DATE__", as_of_date)
+        .replace("__PROJECT_NAME__", p_name)
+        .replace("__DATA_JSON__", data_json)
     )
     return html
 
@@ -746,6 +780,12 @@ def main() -> int:
         "--check-only",
         action="store_true",
         help="Only check for drift between disk and docs/STATUS.md, returning non-zero if drift exists.",
+    )
+    parser.add_argument(
+        "--name",
+        type=str,
+        default=None,
+        help="Project name for the dashboard header and title (defaults to title in docs/STATUS.md or repository name).",
     )
     args = parser.parse_args()
 
@@ -773,7 +813,14 @@ def main() -> int:
         status_text = STATUS_MD.read_text(encoding="utf-8")
         discrepancies = detect_drift(epics_data, status_text)
 
-    html = generate(epics_data, prds_data, design_specs_data, adrs_data, templates_data)
+    html = generate(
+        epics_data,
+        prds_data,
+        design_specs_data,
+        adrs_data,
+        templates_data,
+        project_name=args.name,
+    )
     OUTPUT_HTML.write_text(html, encoding="utf-8")
 
     total_stories = sum(len(ep["stories"]) for ep in epics_data)

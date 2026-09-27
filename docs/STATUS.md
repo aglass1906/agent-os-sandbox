@@ -1,4 +1,4 @@
-# AgentOS Sandbox — Epic & Story Status Tracker
+# Agent OS Sandbox — Epic & Story Status Tracker
 
 > **Living checklist of what is done vs left.**
 > Master Backlog / exit criteria stay in canonical plans in `docs/backlog/`.
