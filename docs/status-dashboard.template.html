@@ -266,78 +266,52 @@ body{
 }
 .story:hover .story-open-hint{opacity:1;color:var(--accent);}
 
-/* ---- Document Card Grid (PRDs & Design Specs) ---- */
-.doc-grid{
-  display:grid;grid-template-columns:repeat(auto-fill,minmax(285px,1fr));gap:1rem;
-}
-.doc-card{
-  background:var(--paper-raised);border:1px solid var(--line);
-  border-radius:4px;padding:1.15rem 1.15rem;display:flex;flex-direction:column;
-  cursor:pointer;transition:border-color .15s ease,box-shadow .15s ease,transform .15s ease;
-}
-.doc-card:hover{
-  border-color:var(--accent);box-shadow:0 3px 12px rgba(0,0,0,0.06);
-  transform:translateY(-1px);
-}
-.doc-card-top{
-  display:flex;justify-content:space-between;align-items:flex-start;gap:.5rem;
-  margin-bottom:.55rem;
-}
-.doc-id{
-  font-family:var(--mono);font-size:.72rem;color:var(--ink-dim);
-  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
-}
-.doc-title{
-  font-size:1.02rem;font-weight:600;margin:0 0 .5rem;line-height:1.35;
-  color:var(--ink);
-}
-.doc-summary{
-  font-size:.84rem;color:var(--ink-dim);line-height:1.45;
-  flex:1;margin-bottom:1rem;
-}
-.doc-meta{
-  font-family:var(--mono);font-size:.72rem;color:var(--ink-dim);
-  display:flex;flex-wrap:wrap;gap:.4rem;align-items:center;
-  padding-top:.75rem;border-top:1px solid var(--line);
-}
-.doc-tag{
-  background:var(--paper);border:1px solid var(--line);
-  padding:.1rem .35rem;border-radius:3px;font-size:.68rem;
-}
-.doc-action{
-  font-family:var(--mono);font-size:.72rem;color:var(--accent);
-  font-weight:600;margin-left:auto;display:inline-flex;align-items:center;gap:.2rem;
-}
-
-/* ---- ADR List Rows ---- */
-.adr-list{
+/* ---- Unified Document List & Table Rows (PRDs, Design Specs, ADRs) ---- */
+.doc-list{
   display:flex;flex-direction:column;gap:.55rem;
 }
-.adr-row{
+.doc-row{
   background:var(--paper-raised);border:1px solid var(--line);
   border-radius:4px;padding:.85rem 1.1rem;display:flex;align-items:center;
   gap:1rem;cursor:pointer;transition:border-color .15s ease,background .15s ease;
 }
-.adr-row:hover{
+.doc-row:hover{
   border-color:var(--accent);background:var(--paper);
 }
-.adr-num{
-  font-family:var(--mono);font-size:.82rem;font-weight:600;
-  color:var(--ink-dim);min-width:3.2rem;flex-shrink:0;
+.doc-row-id{
+  font-family:var(--mono);font-size:.78rem;font-weight:600;
+  color:var(--ink-dim);min-width:6.8rem;max-width:12rem;flex-shrink:0;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
 }
-.adr-info{flex:1;min-width:0;}
-.adr-row-title{
+.doc-row-info{
+  flex:1;min-width:0;
+}
+.doc-row-title{
   font-size:.92rem;font-weight:600;color:var(--ink);margin:0 0 .2rem;
 }
-.adr-row-summary{
+.doc-row-summary{
   font-size:.8rem;color:var(--ink-dim);white-space:nowrap;
-  overflow:hidden;text-overflow:ellipsis;
+  overflow:hidden;text-overflow:ellipsis;line-height:1.4;
 }
-.adr-row-meta{
+.doc-row-meta{
   display:flex;align-items:center;gap:.6rem;flex-shrink:0;
 }
-.adr-date{
-  font-family:var(--mono);font-size:.72rem;color:var(--ink-dim);
+.doc-tag{
+  background:var(--paper);border:1px solid var(--line);
+  padding:.12rem .4rem;border-radius:3px;font-size:.68rem;
+  font-family:var(--mono);color:var(--ink-dim);white-space:nowrap;
+}
+.doc-action{
+  font-family:var(--mono);font-size:.72rem;color:var(--accent);
+  font-weight:600;display:inline-flex;align-items:center;gap:.2rem;
+}
+.doc-date{
+  font-family:var(--mono);font-size:.72rem;color:var(--ink-dim);white-space:nowrap;
+}
+
+@media (max-width:768px){
+  .doc-row{flex-direction:column;align-items:flex-start;gap:.5rem;}
+  .doc-row-meta{margin-left:0;width:100%;justify-content:space-between;}
 }
 
 .hidden{display:none !important;}
@@ -519,7 +493,7 @@ a{color:var(--accent);}
       <button class="filt prd-filt" data-filter="draft" aria-pressed="false">DRAFT</button>
       <button class="filt prd-filt" data-filter="living" aria-pressed="false">LIVING</button>
     </div>
-    <div class="doc-grid" id="prds-grid"></div>
+    <div class="doc-list" id="prds-list"></div>
     <p class="empty hidden" id="prds-empty">No Product Requirements Documents match.</p>
   </div>
 
@@ -532,7 +506,7 @@ a{color:var(--accent);}
       <button class="filt spec-filt" data-filter="living" aria-pressed="false">LIVING</button>
       <button class="filt spec-filt" data-filter="draft" aria-pressed="false">DRAFT</button>
     </div>
-    <div class="doc-grid" id="specs-grid"></div>
+    <div class="doc-list" id="specs-list"></div>
     <p class="empty hidden" id="specs-empty">No design specifications match.</p>
   </div>
 
@@ -546,7 +520,7 @@ a{color:var(--accent);}
       <button class="filt adr-filt" data-filter="proposed" aria-pressed="false">PROPOSED</button>
       <button class="filt adr-filt" data-filter="superseded" aria-pressed="false">SUPERSEDED</button>
     </div>
-    <div class="adr-list" id="adrs-list"></div>
+    <div class="doc-list" id="adrs-list"></div>
     <p class="empty hidden" id="adrs-empty">No architectural decision records match.</p>
   </div>
 
@@ -808,7 +782,7 @@ document.querySelectorAll(".filt:not(.prd-filt):not(.spec-filt):not(.adr-filt)")
 document.getElementById("search").addEventListener("input", applyRoadmapFilters);
 
 // ---- TAB 2: PRD RENDERING ----
-const prdsGrid = document.getElementById("prds-grid");
+const prdsList = document.getElementById("prds-list");
 const prdsStatsEl = document.getElementById("prds-stats");
 const prdsEmptyEl = document.getElementById("prds-empty");
 let activePrdFilter = "all";
@@ -826,7 +800,7 @@ function renderPrds(){
     <div class="stat planned"><div class="n">${living}</div><div class="l">Living</div></div>
   `;
 
-  prdsGrid.innerHTML = "";
+  prdsList.innerHTML = "";
   if(total === 0){
     prdsEmptyEl.classList.remove("hidden");
     prdsEmptyEl.textContent = "No Product Requirements Documents recorded yet in docs/product/.";
@@ -834,28 +808,28 @@ function renderPrds(){
   }
 
   PRDS.forEach(prd => {
-    const card = document.createElement("div");
-    card.className = "doc-card";
-    card.dataset.status = prd.status;
-    card.dataset.search = (prd.id + " " + prd.title + " " + (prd.summary || "") + " " + (prd.owner || "")).toLowerCase();
+    const row = document.createElement("div");
+    row.className = "doc-row";
+    row.dataset.status = prd.status;
+    row.dataset.search = (prd.id + " " + prd.title + " " + (prd.summary || "") + " " + (prd.owner || "")).toLowerCase();
 
     const pillClass = prd.status === "approved" ? "approved" : (prd.status === "living" ? "living" : "draft");
 
-    card.innerHTML = `
-      <div class="doc-card-top">
-        <span class="doc-id">${prd.id}</span>
-        <span class="pill ${pillClass}">${prd.status}</span>
+    row.innerHTML = `
+      <div class="doc-row-id">${prd.id}</div>
+      <div class="doc-row-info">
+        <div class="doc-row-title">${prd.title}</div>
+        <div class="doc-row-summary">${prd.summary || "No executive summary provided."}</div>
       </div>
-      <div class="doc-title">${prd.title}</div>
-      <div class="doc-summary">${prd.summary || "No executive summary provided."}</div>
-      <div class="doc-meta">
+      <div class="doc-row-meta">
         ${prd.owner ? `<span class="doc-tag">👤 ${prd.owner}</span>` : ""}
         ${prd.target_epic ? `<span class="doc-tag">🎯 Backlog</span>` : ""}
-        <span class="doc-action">Read PRD &rsaquo;</span>
+        <span class="pill ${pillClass}">${prd.status}</span>
+        <span class="doc-action">view &rsaquo;</span>
       </div>
     `;
 
-    card.addEventListener("click", () => {
+    row.addEventListener("click", () => {
       openUniversalDrawer({
         docType: "prd",
         title: prd.title,
@@ -870,7 +844,7 @@ function renderPrds(){
       });
     });
 
-    prdsGrid.appendChild(card);
+    prdsList.appendChild(row);
   });
 }
 renderPrds();
@@ -878,11 +852,11 @@ renderPrds();
 function applyPrdFilters(){
   const q = document.getElementById("search-prds").value.trim().toLowerCase();
   let any = false;
-  Array.from(prdsGrid.children).forEach(card => {
-    const matchFilter = activePrdFilter === "all" || card.dataset.status === activePrdFilter;
-    const matchSearch = !q || card.dataset.search.includes(q);
+  Array.from(prdsList.children).forEach(row => {
+    const matchFilter = activePrdFilter === "all" || row.dataset.status === activePrdFilter;
+    const matchSearch = !q || row.dataset.search.includes(q);
     const show = matchFilter && matchSearch;
-    card.classList.toggle("hidden", !show);
+    row.classList.toggle("hidden", !show);
     if(show) any = true;
   });
   prdsEmptyEl.classList.toggle("hidden", any);
@@ -899,7 +873,7 @@ document.querySelectorAll(".prd-filt").forEach(btn => {
 document.getElementById("search-prds").addEventListener("input", applyPrdFilters);
 
 // ---- TAB 3: DESIGN SPECS RENDERING ----
-const specsGrid = document.getElementById("specs-grid");
+const specsList = document.getElementById("specs-list");
 const specsStatsEl = document.getElementById("specs-stats");
 const specsEmptyEl = document.getElementById("specs-empty");
 let activeSpecFilter = "all";
@@ -916,7 +890,7 @@ function renderDesignSpecs(){
     <div class="stat"><div class="n">docs/design-specs</div><div class="l">Repository Directory</div></div>
   `;
 
-  specsGrid.innerHTML = "";
+  specsList.innerHTML = "";
   if(total === 0){
     specsEmptyEl.classList.remove("hidden");
     specsEmptyEl.textContent = "No design specifications recorded yet in docs/design-specs/.";
@@ -924,28 +898,28 @@ function renderDesignSpecs(){
   }
 
   DESIGN_SPECS.forEach(spec => {
-    const card = document.createElement("div");
-    card.className = "doc-card";
-    card.dataset.status = spec.status;
-    card.dataset.search = (spec.id + " " + spec.title + " " + (spec.summary || "") + " " + (spec.category || "") + " " + (spec.surfaces || "")).toLowerCase();
+    const row = document.createElement("div");
+    row.className = "doc-row";
+    row.dataset.status = spec.status;
+    row.dataset.search = (spec.id + " " + spec.title + " " + (spec.summary || "") + " " + (spec.category || "") + " " + (spec.surfaces || "")).toLowerCase();
 
     const pillClass = spec.status === "living" ? "living" : "draft";
 
-    card.innerHTML = `
-      <div class="doc-card-top">
-        <span class="doc-id">${spec.id}</span>
-        <span class="pill ${pillClass}">${spec.status}</span>
+    row.innerHTML = `
+      <div class="doc-row-id">${spec.id}</div>
+      <div class="doc-row-info">
+        <div class="doc-row-title">${spec.title}</div>
+        <div class="doc-row-summary">${spec.summary || "No executive summary provided."}</div>
       </div>
-      <div class="doc-title">${spec.title}</div>
-      <div class="doc-summary">${spec.summary || "No executive summary provided."}</div>
-      <div class="doc-meta">
+      <div class="doc-row-meta">
         ${spec.category ? `<span class="doc-tag">🎨 ${spec.category}</span>` : ""}
         ${spec.surfaces ? `<span class="doc-tag">${spec.surfaces}</span>` : ""}
-        <span class="doc-action">Read Spec &rsaquo;</span>
+        <span class="pill ${pillClass}">${spec.status}</span>
+        <span class="doc-action">view &rsaquo;</span>
       </div>
     `;
 
-    card.addEventListener("click", () => {
+    row.addEventListener("click", () => {
       openUniversalDrawer({
         docType: "design-spec",
         title: spec.title,
@@ -960,7 +934,7 @@ function renderDesignSpecs(){
       });
     });
 
-    specsGrid.appendChild(card);
+    specsList.appendChild(row);
   });
 }
 renderDesignSpecs();
@@ -968,11 +942,11 @@ renderDesignSpecs();
 function applySpecFilters(){
   const q = document.getElementById("search-specs").value.trim().toLowerCase();
   let any = false;
-  Array.from(specsGrid.children).forEach(card => {
-    const matchFilter = activeSpecFilter === "all" || card.dataset.status === activeSpecFilter;
-    const matchSearch = !q || card.dataset.search.includes(q);
+  Array.from(specsList.children).forEach(row => {
+    const matchFilter = activeSpecFilter === "all" || row.dataset.status === activeSpecFilter;
+    const matchSearch = !q || row.dataset.search.includes(q);
     const show = matchFilter && matchSearch;
-    card.classList.toggle("hidden", !show);
+    row.classList.toggle("hidden", !show);
     if(show) any = true;
   });
   specsEmptyEl.classList.toggle("hidden", any);
@@ -1016,7 +990,7 @@ function renderAdrs(){
 
   ADRS.forEach(adr => {
     const row = document.createElement("div");
-    row.className = "adr-row";
+    row.className = "doc-row";
     const stLower = adr.status.toLowerCase();
     row.dataset.status = stLower;
     row.dataset.search = (adr.number + " " + adr.title + " " + (adr.summary || "") + " " + (adr.date || "")).toLowerCase();
@@ -1024,15 +998,15 @@ function renderAdrs(){
     const pillClass = stLower === "accepted" ? "accepted" : (stLower === "proposed" ? "proposed" : "superseded");
 
     row.innerHTML = `
-      <div class="adr-num">${adr.number}</div>
-      <div class="adr-info">
-        <div class="adr-row-title">${adr.title}</div>
-        <div class="adr-row-summary">${adr.summary || "No context summary available."}</div>
+      <div class="doc-row-id">ADR ${adr.number}</div>
+      <div class="doc-row-info">
+        <div class="doc-row-title">${adr.title}</div>
+        <div class="doc-row-summary">${adr.summary || "No context summary available."}</div>
       </div>
-      <div class="adr-row-meta">
-        ${adr.date ? `<span class="adr-date">${adr.date}</span>` : ""}
+      <div class="doc-row-meta">
+        ${adr.date ? `<span class="doc-date">${adr.date}</span>` : ""}
         <span class="pill ${pillClass}">${adr.status}</span>
-        <span class="doc-action" style="margin-left:0;">view &rsaquo;</span>
+        <span class="doc-action">view &rsaquo;</span>
       </div>
     `;
 
