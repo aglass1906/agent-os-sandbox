@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import argparse
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -476,6 +477,7 @@ This directory contains task-oriented operational guides, workflows, and walkthr
 | Guide | Audience / Domain | Summary |
 |---|---|---|
 | [`STATUS-DASHBOARD.md`](./STATUS-DASHBOARD.md) | AI Agents, Developers & Operators | Interactive visual roadmap dashboard generator, zero-drift synchronization, and CLI reference |
+| [`MAKEFILE-COMMANDS.md`](./MAKEFILE-COMMANDS.md) | AI Agents, Architects & Developers | Complete reference guide for documentation scaffolding, governance, anti-drift, and dashboard Makefile targets |
 """
 
 
@@ -536,6 +538,12 @@ def analyze_project(
     if not dash_guide.exists():
         print("   \033[1;32m+\033[0m docs/user-guides/STATUS-DASHBOARD.md (Status dashboard user guide & CLI reference)")
         created_count += 1
+
+    makefile_guide = target / "docs" / "user-guides" / "MAKEFILE-COMMANDS.md"
+    if not makefile_guide.exists():
+        print("   \033[1;32m+\033[0m docs/user-guides/MAKEFILE-COMMANDS.md (Makefile & scaffolding commands reference guide)")
+        created_count += 1
+
 
 
     status_md = target / "docs" / "STATUS.md"
@@ -751,7 +759,13 @@ def bootstrap_project(
         dash_guide_dst.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(dash_guide_src, dash_guide_dst)
 
-    print_step("Installed status dashboard generator, customized template, and user guide")
+    makefile_guide_src = SOURCE_ROOT / "docs" / "user-guides" / "MAKEFILE-COMMANDS.md"
+    if makefile_guide_src.exists():
+        makefile_guide_dst = target / "docs" / "user-guides" / "MAKEFILE-COMMANDS.md"
+        makefile_guide_dst.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(makefile_guide_src, makefile_guide_dst)
+
+    print_step("Installed status dashboard generator, customized template, and user guides")
 
     # 4. Makefile setup
     makefile_path = target / "Makefile"
@@ -850,6 +864,7 @@ CANONICAL_GOVERNANCE_FILES = [
     "docs/templates/PR-TEMPLATE.md",
     "docs/templates/README.md",
     "docs/user-guides/STATUS-DASHBOARD.md",
+    "docs/user-guides/MAKEFILE-COMMANDS.md",
 ]
 
 

@@ -13,4 +13,6 @@ This directory contains task-oriented operational guides, workflows, and walkthr
 | Guide | Audience / Domain | Summary |
 |---|---|---|
 | [`STATUS-DASHBOARD.md`](./STATUS-DASHBOARD.md) | AI Agents, Developers & Operators | Interactive visual roadmap dashboard generator, zero-drift synchronization, and CLI reference |
+| [`MAKEFILE-COMMANDS.md`](./MAKEFILE-COMMANDS.md) | AI Agents, Architects & Developers | Complete reference guide for documentation scaffolding, governance, anti-drift, and dashboard Makefile targets |
+
 
