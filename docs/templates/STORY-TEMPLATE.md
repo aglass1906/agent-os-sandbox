@@ -40,6 +40,7 @@ adrs:
 - [ ] **Task X.Y.3**: [Concrete technical task 3 — e.g. SwiftUI View & ViewModel integration]
 - [ ] **Task X.Y.4**: [Concrete technical task 4 — e.g. Automated test coverage & live verification]
 - [ ] **Task X.Y.5**: [Documentation reconciliation — update relevant design spec in docs/design-specs/ or architecture spec in docs/architecture/ with shipped behavior, contracts, and flags]
+- [ ] **Task X.Y.6**: [Session handoff — update docs/history/handoffs/HANDOFF-EPIC-X.md with test evidence, git commits, and next steps]
 
 ---
 
@@ -55,6 +56,7 @@ adrs:
 - [ ] **Diff Hygiene**: Inspect `git diff` to verify only intended files/lines were touched. Ensure no leftover debugging statements, temporary prints, or commented-out code.
 - [ ] **Defect & Regression Triage**: Investigate and fix any newly failing tests, compilation errors, or linter warnings immediately. Never bypass or silence failing checks.
 - [ ] **Documentation Reconciliation**: Verify that relevant design specs (`docs/design-specs/`) and architecture docs (`docs/architecture/`) were updated to reflect actual shipped behavior, contracts, and flags.
+- [ ] **Handoff Document Maintenance**: Updated `docs/history/handoffs/HANDOFF-EPIC-X.md` with commit log, test command outputs, and next-story guidance for subsequent agents.
 - [ ] **Edge Cases & Error Handling**: Verify null/nil safety, error boundary captures, network timeouts, and boundary condition inputs.
 - [ ] **State & Resource Teardown**: Confirm scratch databases, temp files, ephemeral worktrees, and test processes have been safely cleaned up.
 
