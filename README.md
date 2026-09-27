@@ -7,6 +7,15 @@ Timbuk2 Games Hub is a collection of casual browser games built with vanilla HTM
 
 ---
 
+## 🚦 Roadmap & Living Status
+
+- 📊 **Interactive Roadmap Dashboard**: [`docs/status-dashboard.html`](docs/status-dashboard.html) *(Open locally in your browser)*
+- 📋 **Living Progress Tracker**: [`docs/STATUS.md`](docs/STATUS.md)
+- 🤖 **AI Coding Assistant Guidelines**: [`AGENTS.md`](AGENTS.md)
+- 📝 **Engineering Starter Templates**: [`docs/templates/`](docs/templates/)
+
+---
+
 ## 🎮 Game Inventory
 
 | Game | Status | Primary Interaction | Location |

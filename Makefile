@@ -1,0 +1,107 @@
+# AgentOS Sandbox — Makefile
+.DEFAULT_GOAL := help
+
+## Show this help menu of available commands.
+help:
+	@echo "AgentOS Sandbox — Makefile Commands:"
+	@echo ""
+	@awk '/^## / { \
+		if (helpMessage == "") { \
+			helpMessage = substr($$0, 4); \
+		} \
+	} \
+	/^[a-zA-Z\-_0-9]+:/ { \
+		if (helpMessage != "") { \
+			helpCommand = substr($$1, 0, index($$1, ":")-1); \
+			printf "  %-16s %s\n", helpCommand, helpMessage; \
+			helpMessage = ""; \
+		} \
+	}' $(MAKEFILE_LIST)
+	@echo ""
+
+
+# ------------------------------------------------------------------------------
+# Documentation & Governance Scaffolding Targets
+# ------------------------------------------------------------------------------
+
+## Regenerate docs/status-dashboard.html directly from canonical roadmap documents.
+dashboard:
+	python3 scripts/generate_status_dashboard.py
+
+## Reconcile docs/STATUS.md with the canonical story documents on disk (zero drift).
+sync-status:
+	python3 scripts/generate_status_dashboard.py --sync
+
+## Scaffold a new Epic directory & plan: make new-epic ID=1 SLUG=user-auth TITLE="User Authentication"
+new-epic:
+	@test -n "$(ID)" || (echo "Usage: make new-epic ID=<num> SLUG=<slug> TITLE=\"<Title>\"" && exit 1)
+	@test -n "$(SLUG)" || (echo "Usage: make new-epic ID=<num> SLUG=<slug> TITLE=\"<Title>\"" && exit 1)
+	@UPPER_SLUG=$$(echo "$(SLUG)" | tr '[:lower:]' '[:upper:]'); \
+	mkdir -p docs/roadmap/epic-$(ID)-$(SLUG)/stories; \
+	sed -e 's/EPIC-X/EPIC-$(ID)/g' \
+	    -e 's/Epic X/Epic $(ID)/g' \
+	    -e 's/\[Initiative \/ Capability Title\]/$(TITLE)/g' \
+	    docs/templates/EPIC-TEMPLATE.md > docs/roadmap/epic-$(ID)-$(SLUG)/EPIC-$(ID)-$$UPPER_SLUG.md; \
+	echo "Created docs/roadmap/epic-$(ID)-$(SLUG)/EPIC-$(ID)-$$UPPER_SLUG.md and stories/ directory."
+
+## Scaffold a new Story specification: make new-story EPIC_ID=1 STORY_NUM=1 SLUG=jwt-login TITLE="JWT Login"
+new-story:
+	@test -n "$(EPIC_ID)" || (echo "Usage: make new-story EPIC_ID=<num> STORY_NUM=<subnum> SLUG=<slug> TITLE=\"<Title>\"" && exit 1)
+	@test -n "$(STORY_NUM)" || (echo "Usage: make new-story EPIC_ID=<num> STORY_NUM=<subnum> SLUG=<slug> TITLE=\"<Title>\"" && exit 1)
+	@test -n "$(SLUG)" || (echo "Usage: make new-story EPIC_ID=<num> STORY_NUM=<subnum> SLUG=<slug> TITLE=\"<Title>\"" && exit 1)
+	@TARGET_DIR=$$(find docs/roadmap -maxdepth 1 -type d -name "epic-$(EPIC_ID)-*" | head -n 1); \
+	if [ -z "$$TARGET_DIR" ]; then echo "Epic directory for Epic $(EPIC_ID) not found in docs/roadmap/"; exit 1; fi; \
+	EPIC_FOLDER=$$(basename "$$TARGET_DIR"); \
+	EPIC_FILE=$$(ls "$$TARGET_DIR" | grep '^EPIC-' | head -n 1); \
+	UPPER_SLUG=$$(echo "$(SLUG)" | tr '[:lower:]' '[:upper:]'); \
+	sed -e 's/STORY-X\.Y/STORY-$(EPIC_ID).$(STORY_NUM)/g' \
+	    -e 's/Story X\.Y/Story $(EPIC_ID).$(STORY_NUM)/g' \
+	    -e 's/EPIC-X/EPIC-$(EPIC_ID)/g' \
+	    -e 's/Epic X/Epic $(EPIC_ID)/g' \
+	    -e 's/\[Story Title\]/$(TITLE)/g' \
+	    -e "s|epic-X-NAME/EPIC-X-NAME\.md|$$EPIC_FOLDER/$$EPIC_FILE|g" \
+	    -e "s|\.\./EPIC-X-NAME\.md|\.\./$$EPIC_FILE|g" \
+	    docs/templates/STORY-TEMPLATE.md > "$$TARGET_DIR/stories/STORY-$(EPIC_ID).$(STORY_NUM)-$$UPPER_SLUG.md"; \
+	echo "Created $$TARGET_DIR/stories/STORY-$(EPIC_ID).$(STORY_NUM)-$$UPPER_SLUG.md"
+
+## Scaffold a new Architecture Decision Record: make new-adr ID=1 SLUG=use-postgres TITLE="Use Postgres"
+new-adr:
+	@test -n "$(ID)" || (echo "Usage: make new-adr ID=<num> SLUG=<slug> TITLE=\"<Title>\"" && exit 1)
+	@test -n "$(SLUG)" || (echo "Usage: make new-adr ID=<num> SLUG=<slug> TITLE=\"<Title>\"" && exit 1)
+	@PADDED_ID=$$(printf "%04d" $(ID)); \
+	LOWER_SLUG=$$(echo "$(SLUG)" | tr '[:upper:]' '[:lower:]'); \
+	TODAY=$$(date +%Y-%m-%d); \
+	sed -e "s/ADR-000X/ADR-$$PADDED_ID/g" \
+	    -e "s/ADR 000X/ADR $$PADDED_ID/g" \
+	    -e 's/\[Short, Descriptive Title of Decision\]/$(TITLE)/g' \
+	    -e "s/YYYY-MM-DD/$$TODAY/g" \
+	    docs/templates/ADR-TEMPLATE.md > docs/adr/$$PADDED_ID-$$LOWER_SLUG.md; \
+	echo "Created docs/adr/$$PADDED_ID-$$LOWER_SLUG.md"
+
+## Scaffold a new Feature Design Spec: make new-design-spec SLUG=checkout-flow TITLE="Checkout Flow"
+new-design-spec:
+	@test -n "$(SLUG)" || (echo "Usage: make new-design-spec SLUG=<slug> TITLE=\"<Title>\"" && exit 1)
+	@UPPER_SLUG=$$(echo "$(SLUG)" | tr '[:lower:]' '[:upper:]'); \
+	TODAY=$$(date +%Y-%m-%d); \
+	sed -e "s/SPEC-\[NAME\]/SPEC-$$UPPER_SLUG/g" \
+	    -e 's/\[Feature \/ Subsystem Design Specification\]/$(TITLE)/g' \
+	    -e 's/\[Feature Name\]/$(TITLE)/g' \
+	    -e "s/YYYY-MM-DD/$$TODAY/g" \
+	    docs/templates/DESIGN-SPEC-TEMPLATE.md > docs/design-specs/$$UPPER_SLUG.md; \
+	echo "Created docs/design-specs/$$UPPER_SLUG.md"
+
+## Scaffold a new Epic Handoff document: make new-handoff EPIC_ID=1
+new-handoff:
+	@test -n "$(EPIC_ID)" || (echo "Usage: make new-handoff EPIC_ID=<num>" && exit 1)
+	@TARGET_DIR=$$(find docs/roadmap -maxdepth 1 -type d -name "epic-$(EPIC_ID)-*" | head -n 1); \
+	if [ -z "$$TARGET_DIR" ]; then echo "Epic directory for Epic $(EPIC_ID) not found in docs/roadmap/"; exit 1; fi; \
+	EPIC_FOLDER=$$(basename "$$TARGET_DIR"); \
+	EPIC_FILE=$$(ls "$$TARGET_DIR" | grep '^EPIC-' | head -n 1); \
+	TODAY=$$(date +%Y-%m-%d); \
+	sed -e "s/HANDOFF-EPIC-X/HANDOFF-EPIC-$(EPIC_ID)/g" \
+	    -e "s/EPIC-X/EPIC-$(EPIC_ID)/g" \
+	    -e "s/Epic X/Epic $(EPIC_ID)/g" \
+	    -e "s|epic-X-NAME/EPIC-X-NAME\.md|$$EPIC_FOLDER/$$EPIC_FILE|g" \
+	    -e "s/YYYY-MM-DD/$$TODAY/g" \
+	    docs/templates/HANDOFF-TEMPLATE.md > "docs/history/handoffs/HANDOFF-EPIC-$(EPIC_ID).md"; \
+	echo "Created docs/history/handoffs/HANDOFF-EPIC-$(EPIC_ID).md"

@@ -79,3 +79,40 @@ Before declaring any feature or game implementation complete:
 
 ### Test Policy
 The canonical project test policy is `bash test_canary_badge.sh`. It must exit `0` before the work is considered complete. The gate verifies the release canary badge marker line (`[Phase 3 Canary: take 3 on the release testing]`) exists exactly once in `README.md`.
+
+# AgentOS Sandbox — AI Coding Assistant & Documentation Governance Guide
+
+Welcome! This document provides core architectural rules and documentation governance guidelines for AI coding assistants working in the **AgentOS Sandbox** repository.
+
+---
+
+## 1. Work Breakdown Taxonomy (Epic → Story → Task)
+All work decomposition strictly follows this hierarchy:
+* **Epic**: Major architectural capability or subsystem initiative (e.g. `Epic 0`, `Epic 1`). Authored at `docs/roadmap/epic-X-NAME/EPIC-X-NAME.md`.
+* **Story**: Cohesive vertical slice delivering an independently testable operator/user benefit (e.g. `Story 1.1`). Scoped under its parent Epic. Each Story is authored as an independent machine-readable specification in `docs/roadmap/epic-X-NAME/stories/STORY-X.Y-NAME.md`.
+* **Task**: Concrete engineering work item (1 commit / 1 PR / 1 test file).
+* 🚫 **PROHIBITION**: Never use "Slice", "Milestone", or ad-hoc sub-phase labels in roadmaps or status trackers. Always decompose Epics into numbered Stories (`Story X.1`, `Story X.2`), and Stories into concrete Tasks.
+
+---
+
+## 2. Document Scaffolding via Make
+Always use `make` targets to scaffold new documents:
+* **New Epic**: `make new-epic ID=<num> SLUG=<slug> TITLE="<Title>"`
+* **New Story**: `make new-story EPIC_ID=<num> STORY_NUM=<num> SLUG=<slug> TITLE="<Title>"`
+* **New ADR**: `make new-adr ID=<num> SLUG=<slug> TITLE="<Title>"`
+* **New Design Spec**: `make new-design-spec SLUG=<slug> TITLE="<Title>"`
+* **New Handoff**: `make new-handoff EPIC_ID=<num>`
+* **Sync Tracker**: `make sync-status` (keeps `docs/STATUS.md` 100% in sync with disk)
+* **Rebuild Dashboard**: `make dashboard` (rebuilds `docs/status-dashboard.html`)
+
+---
+
+## 3. Directory Placement Rules
+* **Roadmap & Stories**: `docs/roadmap/epic-X-NAME/stories/STORY-X.Y-NAME.md`
+* **Architecture Specifications**: `docs/architecture/XX-NAME.md`
+* **Design Specs**: `docs/design-specs/FEATURE-NAME.md`
+* **Architecture Decision Records**: `docs/adr/000X-NAME.md`
+* **Session Handoffs**: `docs/history/handoffs/HANDOFF-EPIC-X.md`
+* 🚫 **PROHIBITIONS**:
+  - NEVER place new `.md` files in the repository root (`/`). Root is reserved for `README.md`, `AGENTS.md`, and build files.
+  - NEVER place new `.md` files directly in `docs/` root (except living updates to `docs/STATUS.md`).
