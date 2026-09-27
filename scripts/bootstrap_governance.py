@@ -918,6 +918,25 @@ def update_governance(
         if token:
             headers["Authorization"] = f"token {token}"
 
+        # Resolve latest commit SHA to bypass 5-minute CDN branch caching on raw.githubusercontent.com
+        target_ref = branch
+        try:
+            sha_url = f"https://api.github.com/repos/{remote}/commits/{branch}"
+            sha_req = urllib.request.Request(
+                sha_url,
+                headers={**headers, "Accept": "application/vnd.github.sha"},
+            )
+            with urllib.request.urlopen(sha_req, timeout=5) as resp:
+                if resp.status == 200:
+                    sha_text = resp.read().decode("utf-8").strip()
+                    if len(sha_text) == 40:
+                        target_ref = sha_text
+                        print_info(f"Latest commit: {target_ref[:7]}")
+        except Exception:
+            pass
+
+        base_url = f"https://raw.githubusercontent.com/{remote}/{target_ref}/"
+
         updated_count = 0
         for rel_str in CANONICAL_GOVERNANCE_FILES:
             file_url = base_url + rel_str

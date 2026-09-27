@@ -562,6 +562,9 @@ a{color:var(--accent);}
     <div>
       <h1>__PROJECT_NAME__</h1>
       <p class="kicker" style="margin:.35rem 0 0;">Project Roadmap &middot; Architecture Dashboard</p>
+      <div class="project-path" title="Click to copy repository path" style="font-family:var(--mono);font-size:.72rem;color:var(--ink-dim);margin-top:.4rem;cursor:pointer;display:inline-flex;align-items:center;gap:.35rem;background:var(--paper);padding:.15rem .45rem;border-radius:3px;border:1px solid var(--line);" onclick="navigator.clipboard.writeText('__REPO_PATH__').then(()=>{const el=this.querySelector('.path-txt');const orig=el.textContent;el.textContent='✓ Copied path!';setTimeout(()=>{el.textContent=orig;},1500);});">
+        <span>📁</span> <span class="path-txt">__REPO_PATH__</span>
+      </div>
     </div>
     <div class="meta">
       source: <strong>docs/</strong><br>

@@ -759,9 +759,11 @@ def generate(
     }
 
     data_json = json.dumps(payload, sort_keys=False, ensure_ascii=False)
+    repo_path = str(REPO_ROOT)
     html = (
         template.replace("__AS_OF_DATE__", as_of_date)
         .replace("__PROJECT_NAME__", p_name)
+        .replace("__REPO_PATH__", repo_path)
         .replace("__DATA_JSON__", data_json)
     )
     return html
