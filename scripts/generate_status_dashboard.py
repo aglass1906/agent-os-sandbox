@@ -30,6 +30,7 @@ PRODUCT_DIR = REPO_ROOT / "docs" / "product"
 DESIGN_SPECS_DIR = REPO_ROOT / "docs" / "design-specs"
 ADR_DIR = REPO_ROOT / "docs" / "adr"
 STATUS_MD = REPO_ROOT / "docs" / "STATUS.md"
+TEMPLATES_DIR = REPO_ROOT / "docs" / "templates"
 TEMPLATE_HTML = REPO_ROOT / "docs" / "status-dashboard.template.html"
 OUTPUT_HTML = REPO_ROOT / "docs" / "status-dashboard.html"
 
@@ -511,11 +512,22 @@ def status_md_as_of_date() -> str:
     return datetime.date.today().isoformat()
 
 
+def parse_templates() -> dict[str, str]:
+    if not TEMPLATES_DIR.exists():
+        return {}
+    templates: dict[str, str] = {}
+    for tf in TEMPLATES_DIR.glob("*.md"):
+        if tf.name != "README.md":
+            templates[tf.name] = tf.read_text(encoding="utf-8")
+    return templates
+
+
 def generate(
     epics_data: list[dict],
     prds_data: list[dict],
     design_specs_data: list[dict],
     adrs_data: list[dict],
+    templates_data: dict[str, str] | None = None,
 ) -> str:
     template = TEMPLATE_HTML.read_text(encoding="utf-8")
     as_of_date = status_md_as_of_date()
@@ -553,6 +565,7 @@ def generate(
         "prds": prds_data,
         "design_specs": design_specs_data,
         "adrs": adrs_data,
+        "templates": templates_data or {},
     }
 
     data_json = json.dumps(payload, sort_keys=False, ensure_ascii=False)
@@ -582,6 +595,7 @@ def main() -> int:
     prds_data = parse_product_documents()
     design_specs_data = parse_design_specs()
     adrs_data = parse_adr_documents()
+    templates_data = parse_templates()
 
     status_text = STATUS_MD.read_text(encoding="utf-8") if STATUS_MD.exists() else ""
     discrepancies = detect_drift(epics_data, status_text) if status_text else []
@@ -601,7 +615,7 @@ def main() -> int:
         status_text = STATUS_MD.read_text(encoding="utf-8")
         discrepancies = detect_drift(epics_data, status_text)
 
-    html = generate(epics_data, prds_data, design_specs_data, adrs_data)
+    html = generate(epics_data, prds_data, design_specs_data, adrs_data, templates_data)
     OUTPUT_HTML.write_text(html, encoding="utf-8")
 
     total_stories = sum(len(ep["stories"]) for ep in epics_data)

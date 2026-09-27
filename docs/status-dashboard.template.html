@@ -173,6 +173,38 @@ body{
 .filt[aria-pressed="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink);}
 .filt:focus-visible{outline:2px solid var(--accent);outline-offset:1px;}
 
+.btn-primary{
+  font-family:var(--mono);font-size:.74rem;font-weight:600;
+  padding:.42rem .75rem;border-radius:3px;
+  background:var(--accent);color:#fff;
+  border:1px solid var(--accent);cursor:pointer;
+  display:inline-flex;align-items:center;gap:.35rem;
+  transition:opacity .15s ease,transform .1s ease;
+  white-space:nowrap;text-decoration:none;
+}
+.btn-primary:hover{opacity:.9;}
+.btn-primary:active{transform:scale(0.98);}
+
+.btn-secondary{
+  font-family:var(--mono);font-size:.74rem;font-weight:500;
+  padding:.42rem .75rem;border-radius:3px;
+  background:var(--paper-raised);color:var(--ink);
+  border:1px solid var(--line-strong);cursor:pointer;
+  display:inline-flex;align-items:center;gap:.35rem;
+  transition:all .15s ease;white-space:nowrap;text-decoration:none;
+}
+.btn-secondary:hover{border-color:var(--accent);color:var(--accent);}
+.btn-secondary:active{transform:scale(0.98);}
+
+.btn-sm-action{
+  font-family:var(--mono);font-size:.68rem;font-weight:600;
+  padding:.18rem .45rem;border-radius:3px;
+  background:var(--paper);color:var(--ink-dim);
+  border:1px solid var(--line-strong);cursor:pointer;
+  flex-shrink:0;transition:all .12s ease;
+}
+.btn-sm-action:hover{color:var(--accent);border-color:var(--accent);background:var(--paper-raised);}
+
 /* ---- Phase / Epic list ---- */
 .phase{
   border:1px solid var(--line);
@@ -431,6 +463,79 @@ a{color:var(--accent);}
   .masthead{flex-direction:column;align-items:flex-start;}
   .masthead .meta{text-align:left;}
   .drawer{width:100vw;}
+  .modal-dialog{width:100vw;max-height:100vh;border-radius:0;}
+  .form-row{flex-direction:column;gap:.75rem;}
+}
+
+/* ---- Scaffolder Modal ---- */
+.modal-backdrop{
+  position:fixed;inset:0;background:rgba(15,20,18,0.58);
+  backdrop-filter:blur(4px);z-index:1100;
+  display:flex;align-items:center;justify-content:center;
+  padding:1.5rem;opacity:0;pointer-events:none;
+  transition:opacity .2s ease;
+}
+.modal-backdrop.active{opacity:1;pointer-events:auto;}
+
+.modal-dialog{
+  background:var(--paper-raised);border:1px solid var(--line-strong);
+  border-radius:8px;width:min(680px, 96vw);max-height:90vh;
+  box-shadow:0 14px 44px rgba(0,0,0,0.32);display:flex;flex-direction:column;
+  transform:translateY(12px) scale(0.98);transition:transform .2s cubic-bezier(0.16,1,0.3,1);
+  overflow:hidden;
+}
+.modal-backdrop.active .modal-dialog{transform:translateY(0) scale(1);}
+
+.modal-header{
+  display:flex;justify-content:space-between;align-items:flex-start;
+  padding:1.15rem 1.4rem;border-bottom:1px solid var(--line);
+  background:var(--paper);flex-shrink:0;gap:1rem;
+}
+.modal-header h3{margin:0;font-size:1.15rem;font-weight:700;color:var(--ink);line-height:1.3;}
+.modal-kicker{font-family:var(--mono);font-size:.72rem;color:var(--ink-dim);margin-top:.2rem;}
+
+.modal-body{
+  padding:1.3rem 1.4rem;overflow-y:auto;display:flex;flex-direction:column;gap:1.1rem;
+}
+.form-group{display:flex;flex-direction:column;gap:.35rem;}
+.form-label{font-family:var(--mono);font-size:.72rem;font-weight:600;color:var(--ink-dim);text-transform:uppercase;letter-spacing:.04em;}
+.form-row{display:flex;gap:.75rem;}
+.form-row > *{flex:1;}
+.form-input, .form-select, .form-textarea{
+  font-family:var(--sans);font-size:.88rem;padding:.5rem .7rem;
+  border:1px solid var(--line-strong);border-radius:4px;
+  background:var(--paper);color:var(--ink);
+}
+.form-input:focus, .form-select:focus, .form-textarea:focus{
+  outline:2px solid var(--accent);outline-offset:1px;
+}
+.form-input.mono, .form-select.mono{font-family:var(--mono);font-size:.82rem;}
+.form-textarea{resize:vertical;min-height:54px;}
+
+.scaffold-type-pills{display:flex;gap:.4rem;flex-wrap:wrap;}
+.scaffold-pill{
+  font-family:var(--mono);font-size:.72rem;padding:.32rem .65rem;
+  border:1px solid var(--line-strong);background:var(--paper);
+  color:var(--ink-dim);border-radius:3px;cursor:pointer;transition:all .12s ease;
+}
+.scaffold-pill.active{
+  background:var(--ink);color:var(--paper);border-color:var(--ink);font-weight:600;
+}
+
+.output-section{
+  border:1px solid var(--line);border-radius:6px;background:var(--paper);
+  padding:.85rem 1rem;display:flex;flex-direction:column;gap:.5rem;
+}
+.output-header{display:flex;justify-content:space-between;align-items:center;gap:.5rem;}
+.output-title{
+  font-family:var(--mono);font-size:.74rem;font-weight:600;color:var(--ink-dim);
+  display:flex;align-items:center;gap:.35rem;
+}
+.output-code{
+  font-family:var(--mono);font-size:.8rem;background:var(--paper-raised);
+  border:1px solid var(--line);padding:.55rem .75rem;border-radius:4px;
+  color:var(--ink);overflow-x:auto;white-space:pre-wrap;word-break:break-word;
+  max-height:120px;margin:0;line-height:1.45;
 }
 </style>
 
@@ -477,6 +582,8 @@ a{color:var(--accent);}
       <button class="filt" data-filter="done" aria-pressed="false">DONE</button>
       <button class="filt" data-filter="progress" aria-pressed="false">IN PROGRESS</button>
       <button class="filt" data-filter="planned" aria-pressed="false">PLANNED</button>
+      <button type="button" class="btn-primary" onclick="openScaffoldModal('epic')">＋ New Epic</button>
+      <button type="button" class="btn-secondary" onclick="openScaffoldModal('story')">＋ New Story</button>
     </div>
 
     <div id="list"></div>
@@ -492,6 +599,7 @@ a{color:var(--accent);}
       <button class="filt prd-filt" data-filter="approved" aria-pressed="false">APPROVED</button>
       <button class="filt prd-filt" data-filter="draft" aria-pressed="false">DRAFT</button>
       <button class="filt prd-filt" data-filter="living" aria-pressed="false">LIVING</button>
+      <button type="button" class="btn-primary" onclick="openScaffoldModal('prd')">＋ New PRD</button>
     </div>
     <div class="doc-list" id="prds-list"></div>
     <p class="empty hidden" id="prds-empty">No Product Requirements Documents match.</p>
@@ -505,6 +613,7 @@ a{color:var(--accent);}
       <button class="filt spec-filt" data-filter="all" aria-pressed="true">ALL</button>
       <button class="filt spec-filt" data-filter="living" aria-pressed="false">LIVING</button>
       <button class="filt spec-filt" data-filter="draft" aria-pressed="false">DRAFT</button>
+      <button type="button" class="btn-primary" onclick="openScaffoldModal('design-spec')">＋ New Spec</button>
     </div>
     <div class="doc-list" id="specs-list"></div>
     <p class="empty hidden" id="specs-empty">No design specifications match.</p>
@@ -519,6 +628,7 @@ a{color:var(--accent);}
       <button class="filt adr-filt" data-filter="accepted" aria-pressed="false">ACCEPTED</button>
       <button class="filt adr-filt" data-filter="proposed" aria-pressed="false">PROPOSED</button>
       <button class="filt adr-filt" data-filter="superseded" aria-pressed="false">SUPERSEDED</button>
+      <button type="button" class="btn-primary" onclick="openScaffoldModal('adr')">＋ New ADR</button>
     </div>
     <div class="doc-list" id="adrs-list"></div>
     <p class="empty hidden" id="adrs-empty">No architectural decision records match.</p>
@@ -555,14 +665,110 @@ a{color:var(--accent);}
   <div class="drawer-body" id="drawerBody"></div>
 </aside>
 
+<!-- Interactive Scaffolder Modal -->
+<div class="modal-backdrop" id="scaffoldModalBackdrop" aria-hidden="true">
+  <div class="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="scaffoldModalTitle">
+    <div class="modal-header">
+      <div>
+        <h3 id="scaffoldModalTitle">Scaffold Work Item</h3>
+        <div class="modal-kicker" id="scaffoldModalKicker">Agent OS Architectural & Governance Scaffolder</div>
+      </div>
+      <button type="button" class="btn-close" id="scaffoldModalCloseBtn" aria-label="Close modal">✕</button>
+    </div>
+    <div class="modal-body">
+      <!-- Type selector pills -->
+      <div class="form-group">
+        <label class="form-label">Item Type</label>
+        <div class="scaffold-type-pills" id="scaffoldTypePills">
+          <button type="button" class="scaffold-pill active" data-type="epic" onclick="setScaffoldType('epic')">🗺️ Epic</button>
+          <button type="button" class="scaffold-pill" data-type="story" onclick="setScaffoldType('story')">📝 Story</button>
+          <button type="button" class="scaffold-pill" data-type="prd" onclick="setScaffoldType('prd')">🎯 PRD</button>
+          <button type="button" class="scaffold-pill" data-type="design-spec" onclick="setScaffoldType('design-spec')">🎨 Design Spec</button>
+          <button type="button" class="scaffold-pill" data-type="adr" onclick="setScaffoldType('adr')">🏛️ ADR</button>
+        </div>
+      </div>
+
+      <!-- Dynamic context fields -->
+      <div class="form-row hidden" id="storyContextRow">
+        <div class="form-group" style="flex:2;">
+          <label class="form-label" for="scaffoldEpicSelect">Parent Epic</label>
+          <select id="scaffoldEpicSelect" class="form-select mono" onchange="onEpicSelectChanged()"></select>
+        </div>
+        <div class="form-group" style="flex:1;">
+          <label class="form-label" for="scaffoldStoryNumInput">Story Sub-No.</label>
+          <input type="number" id="scaffoldStoryNumInput" class="form-input mono" min="1" oninput="updateScaffoldOutputs()">
+        </div>
+      </div>
+
+      <div class="form-row" id="epicContextRow">
+        <div class="form-group">
+          <label class="form-label" for="scaffoldEpicIdInput">Next Epic ID</label>
+          <input type="number" id="scaffoldEpicIdInput" class="form-input mono" min="1" oninput="updateScaffoldOutputs()">
+        </div>
+      </div>
+
+      <div class="form-row hidden" id="adrContextRow">
+        <div class="form-group">
+          <label class="form-label" for="scaffoldAdrNumInput">Next ADR Number</label>
+          <input type="number" id="scaffoldAdrNumInput" class="form-input mono" min="1" oninput="updateScaffoldOutputs()">
+        </div>
+      </div>
+
+      <!-- Common fields -->
+      <div class="form-group">
+        <label class="form-label" for="scaffoldTitleInput">Title</label>
+        <input type="text" id="scaffoldTitleInput" class="form-input" placeholder="e.g. Workspace Context Compaction" oninput="onTitleChanged()">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="scaffoldSlugInput">Slug</label>
+        <input type="text" id="scaffoldSlugInput" class="form-input mono" placeholder="e.g. workspace-context-compaction" oninput="updateScaffoldOutputs()">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="scaffoldDescInput">Goal / Brief Description (Optional)</label>
+        <textarea id="scaffoldDescInput" class="form-textarea" rows="2" placeholder="Brief 1-sentence operator/user benefit or technical objective..." oninput="updateScaffoldOutputs()"></textarea>
+      </div>
+
+      <!-- Reactive Output 1: Terminal Command -->
+      <div class="output-section">
+        <div class="output-header">
+          <span class="output-title">⚡ 1. Run Terminal Scaffolding Command</span>
+          <button type="button" class="btn-action" id="copyScaffoldCmdBtn" onclick="copyScaffoldCommand()">📋 Copy Command</button>
+        </div>
+        <pre class="output-code" id="scaffoldCmdOutput"></pre>
+      </div>
+
+      <!-- Reactive Output 2: AI Coding Assistant Prompt -->
+      <div class="output-section">
+        <div class="output-header">
+          <span class="output-title">🤖 2. Pre-Formatted AI Prompt (Antigravity / Claude / Codex)</span>
+          <button type="button" class="btn-action" id="copyScaffoldPromptBtn" onclick="copyScaffoldPrompt()">🤖 Copy Prompt</button>
+        </div>
+        <pre class="output-code" id="scaffoldPromptOutput"></pre>
+      </div>
+
+      <!-- Reactive Output 3: Direct Download -->
+      <div class="output-section">
+        <div class="output-header">
+          <span class="output-title">💾 3. Direct Markdown Download</span>
+          <button type="button" class="btn-primary" id="downloadScaffoldBtn" onclick="downloadScaffoldedFile()">💾 Download .md File</button>
+        </div>
+        <div style="font-family:var(--mono);font-size:.72rem;color:var(--ink-dim);" id="scaffoldFilePathOutput"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
 // ---- Data, generated directly from repository documents — DO NOT HAND-EDIT ----
 const RAW_DATA = __DATA_JSON__;
-const DATA = Array.isArray(RAW_DATA) ? { epics: RAW_DATA, prds: [], design_specs: [], adrs: [] } : RAW_DATA;
+const DATA = Array.isArray(RAW_DATA) ? { epics: RAW_DATA, prds: [], design_specs: [], adrs: [], templates: {} } : RAW_DATA;
 const EPICS = DATA.epics || [];
 const PRDS = DATA.prds || [];
 const DESIGN_SPECS = DATA.design_specs || [];
 const ADRS = DATA.adrs || [];
+const TEMPLATES = DATA.templates || {};
 
 // Update tab pill counts
 document.getElementById("count-roadmap").textContent = EPICS.length;
@@ -632,10 +838,12 @@ function buildEpicRow(p, isChild){
   head.type = "button";
   head.setAttribute("aria-expanded","false");
   const planLinkHtml = p.plan_content ? `<span class="plan-link" title="View plan document">plan &rsaquo;</span>` : "";
+  const addStoryBtnHtml = `<span role="button" tabindex="0" class="btn-sm-action add-story-btn" title="Scaffold new story under this epic">＋ Story</span>`;
   head.innerHTML = `
     <span class="phase-id">${p.id}</span>
     <span class="phase-name">${p.name}${p.note ? `<span class="phase-note">${p.note}</span>` : ""}</span>
     ${planLinkHtml}
+    ${addStoryBtnHtml}
     ${fracHtml}
     <span class="pill ${p.status}">${statusLabel}</span>
     ${chevHtml}
@@ -658,6 +866,21 @@ function buildEpicRow(p, isChild){
         path: p.plan_path,
         content: p.plan_content
       });
+    });
+  }
+
+  const addStoryBtnEl = head.querySelector(".add-story-btn");
+  if (addStoryBtnEl) {
+    addStoryBtnEl.addEventListener("click", (e) => {
+      e.stopPropagation();
+      openScaffoldModal('story', p.id);
+    });
+    addStoryBtnEl.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        e.stopPropagation();
+        openScaffoldModal('story', p.id);
+      }
     });
   }
 
@@ -1287,6 +1510,415 @@ function renderMarkdown(md){
   html = html.replace(/%%CODEBLOCK_(\d+)%%/g, (match, idx) => codeBlocks[idx]);
   return html;
 }
+
+// ---- Interactive Scaffolder Modal Implementation ----
+const scaffoldModalBackdrop = document.getElementById("scaffoldModalBackdrop");
+const scaffoldModalCloseBtn = document.getElementById("scaffoldModalCloseBtn");
+const scaffoldTypePills = document.querySelectorAll(".scaffold-pill");
+const storyContextRow = document.getElementById("storyContextRow");
+const epicContextRow = document.getElementById("epicContextRow");
+const adrContextRow = document.getElementById("adrContextRow");
+const scaffoldEpicSelect = document.getElementById("scaffoldEpicSelect");
+const scaffoldStoryNumInput = document.getElementById("scaffoldStoryNumInput");
+const scaffoldEpicIdInput = document.getElementById("scaffoldEpicIdInput");
+const scaffoldAdrNumInput = document.getElementById("scaffoldAdrNumInput");
+const scaffoldTitleInput = document.getElementById("scaffoldTitleInput");
+const scaffoldSlugInput = document.getElementById("scaffoldSlugInput");
+const scaffoldDescInput = document.getElementById("scaffoldDescInput");
+const scaffoldCmdOutput = document.getElementById("scaffoldCmdOutput");
+const scaffoldPromptOutput = document.getElementById("scaffoldPromptOutput");
+const scaffoldFilePathOutput = document.getElementById("scaffoldFilePathOutput");
+const copyScaffoldCmdBtn = document.getElementById("copyScaffoldCmdBtn");
+const copyScaffoldPromptBtn = document.getElementById("copyScaffoldPromptBtn");
+
+let activeScaffoldType = "epic";
+let slugManuallyEdited = false;
+
+function slugify(text) {
+  return (text || "")
+    .toLowerCase()
+    .trim()
+    .replace(/[^\w\s-]/g, "")
+    .replace(/[\s_-]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+function calculateNextEpicId() {
+  const max = EPICS.reduce((m, e) => {
+    const n = parseInt(e.id, 10);
+    return (!isNaN(n) && n > m) ? n : m;
+  }, 0);
+  return max + 1;
+}
+
+function calculateNextStoryNum(epicId) {
+  const ep = EPICS.find(e => String(e.id) === String(epicId));
+  if (!ep || !ep.stories || !ep.stories.length) return 1;
+  const subNums = ep.stories.map(s => {
+    const m = String(s.id).match(/\.(\d+)$/);
+    return m ? parseInt(m[1], 10) : 0;
+  });
+  return Math.max(0, ...subNums) + 1;
+}
+
+function calculateNextAdrNum() {
+  const max = ADRS.reduce((m, a) => {
+    const n = parseInt(a.number, 10);
+    return (!isNaN(n) && n > m) ? n : m;
+  }, 0);
+  return max + 1;
+}
+
+function populateEpicSelect(selectedId) {
+  scaffoldEpicSelect.innerHTML = "";
+  const sortedEpics = [...EPICS].sort((a, b) => {
+    const na = parseInt(a.id, 10), nb = parseInt(b.id, 10);
+    if (!isNaN(na) && !isNaN(nb)) return na - nb;
+    return String(a.id).localeCompare(String(b.id));
+  });
+
+  sortedEpics.forEach(ep => {
+    const opt = document.createElement("option");
+    opt.value = ep.id;
+    opt.textContent = `Epic ${ep.id}: ${ep.name}`;
+    if (String(ep.id) === String(selectedId)) {
+      opt.selected = true;
+    }
+    scaffoldEpicSelect.appendChild(opt);
+  });
+
+  if (!selectedId && sortedEpics.length > 0) {
+    scaffoldEpicSelect.value = sortedEpics[sortedEpics.length - 1].id;
+  }
+}
+
+function openScaffoldModal(type, targetEpicId) {
+  activeScaffoldType = type || "epic";
+  slugManuallyEdited = false;
+  scaffoldTitleInput.value = "";
+  scaffoldSlugInput.value = "";
+  scaffoldDescInput.value = "";
+
+  populateEpicSelect(targetEpicId);
+  setScaffoldType(activeScaffoldType, targetEpicId);
+
+  scaffoldModalBackdrop.classList.add("active");
+  scaffoldModalBackdrop.setAttribute("aria-hidden", "false");
+  document.body.style.overflow = "hidden";
+  setTimeout(() => scaffoldTitleInput.focus(), 60);
+}
+
+function closeScaffoldModal() {
+  scaffoldModalBackdrop.classList.remove("active");
+  scaffoldModalBackdrop.setAttribute("aria-hidden", "true");
+  document.body.style.overflow = "";
+}
+
+function setScaffoldType(type, targetEpicId) {
+  activeScaffoldType = type;
+  scaffoldTypePills.forEach(btn => {
+    btn.classList.toggle("active", btn.dataset.type === type);
+  });
+
+  storyContextRow.classList.toggle("hidden", type !== "story");
+  epicContextRow.classList.toggle("hidden", type !== "epic");
+  adrContextRow.classList.toggle("hidden", type !== "adr");
+
+  const titles = {
+    epic: "Scaffold New Epic",
+    story: "Scaffold New Story",
+    prd: "Scaffold New Product PRD",
+    "design-spec": "Scaffold New Design Spec",
+    adr: "Scaffold New Architecture Decision (ADR)"
+  };
+  const kickers = {
+    epic: "Creates a new architectural capability initiative in docs/backlog/ (or docs/roadmap/)",
+    story: "Creates a cohesive vertical slice under an existing parent Epic",
+    prd: "Creates a product requirements document in docs/product/",
+    "design-spec": "Creates a technical walkthrough & UX spec in docs/design-specs/",
+    adr: "Creates an architectural decision record in docs/adr/"
+  };
+  document.getElementById("scaffoldModalTitle").textContent = titles[type] || "Scaffold Work Item";
+  document.getElementById("scaffoldModalKicker").textContent = kickers[type] || "Agent OS Architectural & Governance Scaffolder";
+
+  if (type === "epic") {
+    scaffoldEpicIdInput.value = calculateNextEpicId();
+  } else if (type === "story") {
+    if (targetEpicId) scaffoldEpicSelect.value = targetEpicId;
+    const selectedEpic = scaffoldEpicSelect.value;
+    scaffoldStoryNumInput.value = calculateNextStoryNum(selectedEpic);
+  } else if (type === "adr") {
+    scaffoldAdrNumInput.value = calculateNextAdrNum();
+  }
+
+  updateScaffoldOutputs();
+}
+
+function onEpicSelectChanged() {
+  const selectedEpic = scaffoldEpicSelect.value;
+  scaffoldStoryNumInput.value = calculateNextStoryNum(selectedEpic);
+  updateScaffoldOutputs();
+}
+
+function onTitleChanged() {
+  if (!slugManuallyEdited) {
+    scaffoldSlugInput.value = slugify(scaffoldTitleInput.value);
+  }
+  updateScaffoldOutputs();
+}
+
+scaffoldSlugInput.addEventListener("input", () => {
+  slugManuallyEdited = true;
+  updateScaffoldOutputs();
+});
+
+function getScaffoldData() {
+  const title = (scaffoldTitleInput.value || "").trim() || "Untitled";
+  const slug = (scaffoldSlugInput.value || slugify(title)).trim() || "item";
+  const upperSlug = slug.toUpperCase();
+  const desc = (scaffoldDescInput.value || "").trim();
+  const today = new Date().toISOString().slice(0, 10);
+
+  let makeCmd = "";
+  let promptText = "";
+  let relPath = "";
+  let fileName = "";
+  let markdownContent = "";
+
+  if (activeScaffoldType === "epic") {
+    const epicId = parseInt(scaffoldEpicIdInput.value, 10) || calculateNextEpicId();
+    fileName = `EPIC-${epicId}-${upperSlug}.md`;
+    relPath = `docs/backlog/epic-${epicId}-${slug}/${fileName}`;
+    makeCmd = `make new-epic ID=${epicId} SLUG=${slug} TITLE="${title}"`;
+    promptText = `Please scaffold and plan Epic ${epicId} (${title}) following Agent OS governance (AGENTS.md).
+
+1. Run the terminal scaffolding command:
+   ${makeCmd}
+
+2. Register the new epic in:
+   - docs/backlog/BACKLOG.md
+   - docs/backlog/README.md
+   - docs/STATUS.md
+
+3. Detail the executive summary, invariants, story breakdown, and acceptance gates.
+${desc ? `\nContext/Objective:\n${desc}\n` : ''}`;
+
+    let template = (TEMPLATES && TEMPLATES["EPIC-TEMPLATE.md"]) || "";
+    if (template) {
+      markdownContent = template
+        .replace(/EPIC-X/g, `EPIC-${epicId}`)
+        .replace(/Epic X/g, `Epic ${epicId}`)
+        .replace(/\[Initiative \/ Capability Title\]/g, title)
+        .replace(/\[Initiative Name\]/g, title)
+        .replace(/YYYY-MM-DD/g, today);
+      if (desc) {
+        markdownContent = markdownContent.replace(
+          /## 1\. Executive Summary & Goal[\s\S]*?(?=\n## 2)/,
+          `## 1. Executive Summary & Goal\n\n${desc}\n\n`
+        );
+      }
+    } else {
+      markdownContent = `# EPIC-${epicId}: ${title}\n\n> **Status**: Planned\n\n## 1. Executive Summary & Goal\n${desc || 'Goal statement...'}\n`;
+    }
+
+  } else if (activeScaffoldType === "story") {
+    const epicId = scaffoldEpicSelect.value;
+    const storyNum = parseInt(scaffoldStoryNumInput.value, 10) || 1;
+    fileName = `STORY-${epicId}.${storyNum}-${upperSlug}.md`;
+
+    const ep = EPICS.find(e => String(e.id) === String(epicId));
+    let epicFolder = `epic-${epicId}`;
+    let epicFile = `EPIC-${epicId}.md`;
+    if (ep && ep.plan_path) {
+      const parts = ep.plan_path.split("/");
+      if (parts.length >= 2) {
+        epicFolder = parts[parts.length - 2];
+        epicFile = parts[parts.length - 1];
+      }
+    }
+
+    relPath = `docs/backlog/${epicFolder}/stories/${fileName}`;
+    makeCmd = `make new-story EPIC_ID=${epicId} STORY_NUM=${storyNum} SLUG=${slug} TITLE="${title}"`;
+    promptText = `Please scaffold and implement Story ${epicId}.${storyNum} (${title}) under Epic ${epicId} following Agent OS governance (AGENTS.md).
+
+1. Run the terminal scaffolding command:
+   ${makeCmd}
+
+2. Register Story ${epicId}.${storyNum} in:
+   - docs/backlog/${epicFolder}/${epicFile}
+   - docs/STATUS.md
+   - Update handoff record (docs/history/handoffs/) if applicable
+
+3. Fill in atomic tasks, technical requirements, and acceptance gates.
+${desc ? `\nContext/Objective:\n${desc}\n` : ''}`;
+
+    let template = (TEMPLATES && TEMPLATES["STORY-TEMPLATE.md"]) || "";
+    if (template) {
+      markdownContent = template
+        .replace(/STORY-X\.Y/g, `STORY-${epicId}.${storyNum}`)
+        .replace(/Story X\.Y/g, `Story ${epicId}.${storyNum}`)
+        .replace(/EPIC-X/g, `EPIC-${epicId}`)
+        .replace(/Epic X/g, `Epic ${epicId}`)
+        .replace(/\[Story Title\]/g, title)
+        .replace(/epic-X-NAME\/EPIC-X-NAME\.md/g, `${epicFolder}/${epicFile}`)
+        .replace(/\.\.\/EPIC-X-NAME\.md/g, `../${epicFile}`)
+        .replace(/YYYY-MM-DD/g, today);
+      if (desc) {
+        markdownContent = markdownContent.replace(
+          /## 1\. Executive Summary & User\/Operator Benefit[\s\S]*?(?=\n## 2)/,
+          `## 1. Executive Summary & User/Operator Benefit\n\n${desc}\n\n`
+        );
+      }
+    } else {
+      markdownContent = `# STORY-${epicId}.${storyNum}: ${title}\n\n> **Parent Epic**: Epic ${epicId}\n\n## 1. Executive Summary\n${desc || 'Story goal...'}\n`;
+    }
+
+  } else if (activeScaffoldType === "prd") {
+    fileName = `PRD-${upperSlug}.md`;
+    relPath = `docs/product/${fileName}`;
+    makeCmd = `make new-prd SLUG=${slug} TITLE="${title}"`;
+    promptText = `Please scaffold a new Product Requirements Document for "${title}" following Agent OS governance.
+
+1. Run the terminal scaffolding command:
+   ${makeCmd}
+
+2. Register the PRD in docs/product/README.md.
+
+3. Detail user personas, problem statement, user journeys, functional requirements, and success metrics.
+${desc ? `\nContext/Objective:\n${desc}\n` : ''}`;
+
+    let template = (TEMPLATES && TEMPLATES["PRD-TEMPLATE.md"]) || "";
+    if (template) {
+      markdownContent = template
+        .replace(/PRD-\[NAME\]/g, `PRD-${upperSlug}`)
+        .replace(/\[Product Initiative \/ Feature Requirements\]/g, title)
+        .replace(/\[Initiative Name\]/g, title)
+        .replace(/YYYY-MM-DD/g, today);
+      if (desc) {
+        markdownContent = markdownContent.replace(
+          /## 1\. Executive Summary & Problem Statement[\s\S]*?(?=\n## 2)/,
+          `## 1. Executive Summary & Problem Statement\n\n${desc}\n\n`
+        );
+      }
+    } else {
+      markdownContent = `# PRD: ${title}\n\n## 1. Executive Summary & Problem Statement\n${desc || 'Problem statement...'}\n`;
+    }
+
+  } else if (activeScaffoldType === "design-spec") {
+    fileName = `${upperSlug}.md`;
+    relPath = `docs/design-specs/${fileName}`;
+    makeCmd = `make new-design-spec SLUG=${slug} TITLE="${title}"`;
+    promptText = `Please scaffold a new Feature Design Specification for "${title}" following Agent OS governance.
+
+1. Run the terminal scaffolding command:
+   ${makeCmd}
+
+2. Register the spec in docs/design-specs/README.md.
+
+3. Detail UX walkthroughs, component architecture, data flow, error handling, and visual invariants.
+${desc ? `\nContext/Objective:\n${desc}\n` : ''}`;
+
+    let template = (TEMPLATES && TEMPLATES["DESIGN-SPEC-TEMPLATE.md"]) || "";
+    if (template) {
+      markdownContent = template
+        .replace(/SPEC-\[NAME\]/g, `SPEC-${upperSlug}`)
+        .replace(/\[Feature \/ Subsystem Design Specification\]/g, title)
+        .replace(/\[Feature Name\]/g, title)
+        .replace(/YYYY-MM-DD/g, today);
+      if (desc) {
+        markdownContent = markdownContent.replace(
+          /## 1\. Executive Summary & Background[\s\S]*?(?=\n## 2)/,
+          `## 1. Executive Summary & Background\n\n${desc}\n\n`
+        );
+      }
+    } else {
+      markdownContent = `# Design Spec: ${title}\n\n## 1. Overview\n${desc || 'Overview...'}\n`;
+    }
+
+  } else if (activeScaffoldType === "adr") {
+    const adrNum = parseInt(scaffoldAdrNumInput.value, 10) || calculateNextAdrNum();
+    const paddedId = String(adrNum).padStart(4, "0");
+    fileName = `${paddedId}-${slug.toLowerCase()}.md`;
+    relPath = `docs/adr/${fileName}`;
+    makeCmd = `make new-adr ID=${adrNum} SLUG=${slug} TITLE="${title}"`;
+    promptText = `Please scaffold a new Architecture Decision Record (ADR ${paddedId}: ${title}) following Agent OS governance.
+
+1. Run the terminal scaffolding command:
+   ${makeCmd}
+
+2. Register the ADR in docs/adr/README.md.
+
+3. Detail context, decision drivers, considered options, decision outcome, and positive/negative consequences.
+${desc ? `\nContext/Objective:\n${desc}\n` : ''}`;
+
+    let template = (TEMPLATES && TEMPLATES["ADR-TEMPLATE.md"]) || "";
+    if (template) {
+      markdownContent = template
+        .replace(/ADR-000X/g, `ADR-${paddedId}`)
+        .replace(/ADR 000X/g, `ADR ${paddedId}`)
+        .replace(/\[Short, Descriptive Title of Decision\]/g, title)
+        .replace(/YYYY-MM-DD/g, today);
+      if (desc) {
+        markdownContent = markdownContent.replace(
+          /## Context[\s\S]*?(?=\n## Decision Drivers|\n## Considered Options)/,
+          `## Context\n\n${desc}\n\n`
+        );
+      }
+    } else {
+      markdownContent = `# ADR ${paddedId}: ${title}\n\n> **Status**: Proposed\n\n## Context\n${desc || 'Context...'}\n`;
+    }
+  }
+
+  return { title, slug, upperSlug, desc, makeCmd, promptText, relPath, fileName, markdownContent };
+}
+
+function updateScaffoldOutputs() {
+  const data = getScaffoldData();
+  scaffoldCmdOutput.textContent = data.makeCmd;
+  scaffoldPromptOutput.textContent = data.promptText;
+  scaffoldFilePathOutput.innerHTML = `Target repository path: <code>${data.relPath}</code>`;
+}
+
+function copyScaffoldCommand() {
+  const data = getScaffoldData();
+  navigator.clipboard.writeText(data.makeCmd).then(() => {
+    const orig = copyScaffoldCmdBtn.innerHTML;
+    copyScaffoldCmdBtn.textContent = "✓ Copied Command!";
+    setTimeout(() => { copyScaffoldCmdBtn.innerHTML = orig; }, 1600);
+  });
+}
+
+function copyScaffoldPrompt() {
+  const data = getScaffoldData();
+  navigator.clipboard.writeText(data.promptText).then(() => {
+    const orig = copyScaffoldPromptBtn.innerHTML;
+    copyScaffoldPromptBtn.textContent = "✓ Copied AI Prompt!";
+    setTimeout(() => { copyScaffoldPromptBtn.innerHTML = orig; }, 1600);
+  });
+}
+
+function downloadScaffoldedFile() {
+  const data = getScaffoldData();
+  const blob = new Blob([data.markdownContent], { type: "text/markdown;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = data.fileName;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+scaffoldModalBackdrop.addEventListener("click", (e) => {
+  if (e.target === scaffoldModalBackdrop) closeScaffoldModal();
+});
+scaffoldModalCloseBtn.addEventListener("click", closeScaffoldModal);
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && scaffoldModalBackdrop.classList.contains("active")) {
+    closeScaffoldModal();
+  }
+});
 </script>
 
 </body></html>

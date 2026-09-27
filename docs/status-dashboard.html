@@ -173,6 +173,38 @@ body{
 .filt[aria-pressed="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink);}
 .filt:focus-visible{outline:2px solid var(--accent);outline-offset:1px;}
 
+.btn-primary{
+  font-family:var(--mono);font-size:.74rem;font-weight:600;
+  padding:.42rem .75rem;border-radius:3px;
+  background:var(--accent);color:#fff;
+  border:1px solid var(--accent);cursor:pointer;
+  display:inline-flex;align-items:center;gap:.35rem;
+  transition:opacity .15s ease,transform .1s ease;
+  white-space:nowrap;text-decoration:none;
+}
+.btn-primary:hover{opacity:.9;}
+.btn-primary:active{transform:scale(0.98);}
+
+.btn-secondary{
+  font-family:var(--mono);font-size:.74rem;font-weight:500;
+  padding:.42rem .75rem;border-radius:3px;
+  background:var(--paper-raised);color:var(--ink);
+  border:1px solid var(--line-strong);cursor:pointer;
+  display:inline-flex;align-items:center;gap:.35rem;
+  transition:all .15s ease;white-space:nowrap;text-decoration:none;
+}
+.btn-secondary:hover{border-color:var(--accent);color:var(--accent);}
+.btn-secondary:active{transform:scale(0.98);}
+
+.btn-sm-action{
+  font-family:var(--mono);font-size:.68rem;font-weight:600;
+  padding:.18rem .45rem;border-radius:3px;
+  background:var(--paper);color:var(--ink-dim);
+  border:1px solid var(--line-strong);cursor:pointer;
+  flex-shrink:0;transition:all .12s ease;
+}
+.btn-sm-action:hover{color:var(--accent);border-color:var(--accent);background:var(--paper-raised);}
+
 /* ---- Phase / Epic list ---- */
 .phase{
   border:1px solid var(--line);
@@ -431,6 +463,79 @@ a{color:var(--accent);}
   .masthead{flex-direction:column;align-items:flex-start;}
   .masthead .meta{text-align:left;}
   .drawer{width:100vw;}
+  .modal-dialog{width:100vw;max-height:100vh;border-radius:0;}
+  .form-row{flex-direction:column;gap:.75rem;}
+}
+
+/* ---- Scaffolder Modal ---- */
+.modal-backdrop{
+  position:fixed;inset:0;background:rgba(15,20,18,0.58);
+  backdrop-filter:blur(4px);z-index:1100;
+  display:flex;align-items:center;justify-content:center;
+  padding:1.5rem;opacity:0;pointer-events:none;
+  transition:opacity .2s ease;
+}
+.modal-backdrop.active{opacity:1;pointer-events:auto;}
+
+.modal-dialog{
+  background:var(--paper-raised);border:1px solid var(--line-strong);
+  border-radius:8px;width:min(680px, 96vw);max-height:90vh;
+  box-shadow:0 14px 44px rgba(0,0,0,0.32);display:flex;flex-direction:column;
+  transform:translateY(12px) scale(0.98);transition:transform .2s cubic-bezier(0.16,1,0.3,1);
+  overflow:hidden;
+}
+.modal-backdrop.active .modal-dialog{transform:translateY(0) scale(1);}
+
+.modal-header{
+  display:flex;justify-content:space-between;align-items:flex-start;
+  padding:1.15rem 1.4rem;border-bottom:1px solid var(--line);
+  background:var(--paper);flex-shrink:0;gap:1rem;
+}
+.modal-header h3{margin:0;font-size:1.15rem;font-weight:700;color:var(--ink);line-height:1.3;}
+.modal-kicker{font-family:var(--mono);font-size:.72rem;color:var(--ink-dim);margin-top:.2rem;}
+
+.modal-body{
+  padding:1.3rem 1.4rem;overflow-y:auto;display:flex;flex-direction:column;gap:1.1rem;
+}
+.form-group{display:flex;flex-direction:column;gap:.35rem;}
+.form-label{font-family:var(--mono);font-size:.72rem;font-weight:600;color:var(--ink-dim);text-transform:uppercase;letter-spacing:.04em;}
+.form-row{display:flex;gap:.75rem;}
+.form-row > *{flex:1;}
+.form-input, .form-select, .form-textarea{
+  font-family:var(--sans);font-size:.88rem;padding:.5rem .7rem;
+  border:1px solid var(--line-strong);border-radius:4px;
+  background:var(--paper);color:var(--ink);
+}
+.form-input:focus, .form-select:focus, .form-textarea:focus{
+  outline:2px solid var(--accent);outline-offset:1px;
+}
+.form-input.mono, .form-select.mono{font-family:var(--mono);font-size:.82rem;}
+.form-textarea{resize:vertical;min-height:54px;}
+
+.scaffold-type-pills{display:flex;gap:.4rem;flex-wrap:wrap;}
+.scaffold-pill{
+  font-family:var(--mono);font-size:.72rem;padding:.32rem .65rem;
+  border:1px solid var(--line-strong);background:var(--paper);
+  color:var(--ink-dim);border-radius:3px;cursor:pointer;transition:all .12s ease;
+}
+.scaffold-pill.active{
+  background:var(--ink);color:var(--paper);border-color:var(--ink);font-weight:600;
+}
+
+.output-section{
+  border:1px solid var(--line);border-radius:6px;background:var(--paper);
+  padding:.85rem 1rem;display:flex;flex-direction:column;gap:.5rem;
+}
+.output-header{display:flex;justify-content:space-between;align-items:center;gap:.5rem;}
+.output-title{
+  font-family:var(--mono);font-size:.74rem;font-weight:600;color:var(--ink-dim);
+  display:flex;align-items:center;gap:.35rem;
+}
+.output-code{
+  font-family:var(--mono);font-size:.8rem;background:var(--paper-raised);
+  border:1px solid var(--line);padding:.55rem .75rem;border-radius:4px;
+  color:var(--ink);overflow-x:auto;white-space:pre-wrap;word-break:break-word;
+  max-height:120px;margin:0;line-height:1.45;
 }
 </style>
 
@@ -477,6 +582,8 @@ a{color:var(--accent);}
       <button class="filt" data-filter="done" aria-pressed="false">DONE</button>
       <button class="filt" data-filter="progress" aria-pressed="false">IN PROGRESS</button>
       <button class="filt" data-filter="planned" aria-pressed="false">PLANNED</button>
+      <button type="button" class="btn-primary" onclick="openScaffoldModal('epic')">＋ New Epic</button>
+      <button type="button" class="btn-secondary" onclick="openScaffoldModal('story')">＋ New Story</button>
     </div>
 
     <div id="list"></div>
@@ -492,6 +599,7 @@ a{color:var(--accent);}
       <button class="filt prd-filt" data-filter="approved" aria-pressed="false">APPROVED</button>
       <button class="filt prd-filt" data-filter="draft" aria-pressed="false">DRAFT</button>
       <button class="filt prd-filt" data-filter="living" aria-pressed="false">LIVING</button>
+      <button type="button" class="btn-primary" onclick="openScaffoldModal('prd')">＋ New PRD</button>
     </div>
     <div class="doc-list" id="prds-list"></div>
     <p class="empty hidden" id="prds-empty">No Product Requirements Documents match.</p>
@@ -505,6 +613,7 @@ a{color:var(--accent);}
       <button class="filt spec-filt" data-filter="all" aria-pressed="true">ALL</button>
       <button class="filt spec-filt" data-filter="living" aria-pressed="false">LIVING</button>
       <button class="filt spec-filt" data-filter="draft" aria-pressed="false">DRAFT</button>
+      <button type="button" class="btn-primary" onclick="openScaffoldModal('design-spec')">＋ New Spec</button>
     </div>
     <div class="doc-list" id="specs-list"></div>
     <p class="empty hidden" id="specs-empty">No design specifications match.</p>
@@ -519,6 +628,7 @@ a{color:var(--accent);}
       <button class="filt adr-filt" data-filter="accepted" aria-pressed="false">ACCEPTED</button>
       <button class="filt adr-filt" data-filter="proposed" aria-pressed="false">PROPOSED</button>
       <button class="filt adr-filt" data-filter="superseded" aria-pressed="false">SUPERSEDED</button>
+      <button type="button" class="btn-primary" onclick="openScaffoldModal('adr')">＋ New ADR</button>
     </div>
     <div class="doc-list" id="adrs-list"></div>
     <p class="empty hidden" id="adrs-empty">No architectural decision records match.</p>
@@ -555,14 +665,110 @@ a{color:var(--accent);}
   <div class="drawer-body" id="drawerBody"></div>
 </aside>
 
+<!-- Interactive Scaffolder Modal -->
+<div class="modal-backdrop" id="scaffoldModalBackdrop" aria-hidden="true">
+  <div class="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="scaffoldModalTitle">
+    <div class="modal-header">
+      <div>
+        <h3 id="scaffoldModalTitle">Scaffold Work Item</h3>
+        <div class="modal-kicker" id="scaffoldModalKicker">Agent OS Architectural & Governance Scaffolder</div>
+      </div>
+      <button type="button" class="btn-close" id="scaffoldModalCloseBtn" aria-label="Close modal">✕</button>
+    </div>
+    <div class="modal-body">
+      <!-- Type selector pills -->
+      <div class="form-group">
+        <label class="form-label">Item Type</label>
+        <div class="scaffold-type-pills" id="scaffoldTypePills">
+          <button type="button" class="scaffold-pill active" data-type="epic" onclick="setScaffoldType('epic')">🗺️ Epic</button>
+          <button type="button" class="scaffold-pill" data-type="story" onclick="setScaffoldType('story')">📝 Story</button>
+          <button type="button" class="scaffold-pill" data-type="prd" onclick="setScaffoldType('prd')">🎯 PRD</button>
+          <button type="button" class="scaffold-pill" data-type="design-spec" onclick="setScaffoldType('design-spec')">🎨 Design Spec</button>
+          <button type="button" class="scaffold-pill" data-type="adr" onclick="setScaffoldType('adr')">🏛️ ADR</button>
+        </div>
+      </div>
+
+      <!-- Dynamic context fields -->
+      <div class="form-row hidden" id="storyContextRow">
+        <div class="form-group" style="flex:2;">
+          <label class="form-label" for="scaffoldEpicSelect">Parent Epic</label>
+          <select id="scaffoldEpicSelect" class="form-select mono" onchange="onEpicSelectChanged()"></select>
+        </div>
+        <div class="form-group" style="flex:1;">
+          <label class="form-label" for="scaffoldStoryNumInput">Story Sub-No.</label>
+          <input type="number" id="scaffoldStoryNumInput" class="form-input mono" min="1" oninput="updateScaffoldOutputs()">
+        </div>
+      </div>
+
+      <div class="form-row" id="epicContextRow">
+        <div class="form-group">
+          <label class="form-label" for="scaffoldEpicIdInput">Next Epic ID</label>
+          <input type="number" id="scaffoldEpicIdInput" class="form-input mono" min="1" oninput="updateScaffoldOutputs()">
+        </div>
+      </div>
+
+      <div class="form-row hidden" id="adrContextRow">
+        <div class="form-group">
+          <label class="form-label" for="scaffoldAdrNumInput">Next ADR Number</label>
+          <input type="number" id="scaffoldAdrNumInput" class="form-input mono" min="1" oninput="updateScaffoldOutputs()">
+        </div>
+      </div>
+
+      <!-- Common fields -->
+      <div class="form-group">
+        <label class="form-label" for="scaffoldTitleInput">Title</label>
+        <input type="text" id="scaffoldTitleInput" class="form-input" placeholder="e.g. Workspace Context Compaction" oninput="onTitleChanged()">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="scaffoldSlugInput">Slug</label>
+        <input type="text" id="scaffoldSlugInput" class="form-input mono" placeholder="e.g. workspace-context-compaction" oninput="updateScaffoldOutputs()">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="scaffoldDescInput">Goal / Brief Description (Optional)</label>
+        <textarea id="scaffoldDescInput" class="form-textarea" rows="2" placeholder="Brief 1-sentence operator/user benefit or technical objective..." oninput="updateScaffoldOutputs()"></textarea>
+      </div>
+
+      <!-- Reactive Output 1: Terminal Command -->
+      <div class="output-section">
+        <div class="output-header">
+          <span class="output-title">⚡ 1. Run Terminal Scaffolding Command</span>
+          <button type="button" class="btn-action" id="copyScaffoldCmdBtn" onclick="copyScaffoldCommand()">📋 Copy Command</button>
+        </div>
+        <pre class="output-code" id="scaffoldCmdOutput"></pre>
+      </div>
+
+      <!-- Reactive Output 2: AI Coding Assistant Prompt -->
+      <div class="output-section">
+        <div class="output-header">
+          <span class="output-title">🤖 2. Pre-Formatted AI Prompt (Antigravity / Claude / Codex)</span>
+          <button type="button" class="btn-action" id="copyScaffoldPromptBtn" onclick="copyScaffoldPrompt()">🤖 Copy Prompt</button>
+        </div>
+        <pre class="output-code" id="scaffoldPromptOutput"></pre>
+      </div>
+
+      <!-- Reactive Output 3: Direct Download -->
+      <div class="output-section">
+        <div class="output-header">
+          <span class="output-title">💾 3. Direct Markdown Download</span>
+          <button type="button" class="btn-primary" id="downloadScaffoldBtn" onclick="downloadScaffoldedFile()">💾 Download .md File</button>
+        </div>
+        <div style="font-family:var(--mono);font-size:.72rem;color:var(--ink-dim);" id="scaffoldFilePathOutput"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
 // ---- Data, generated directly from repository documents — DO NOT HAND-EDIT ----
-const RAW_DATA = {"epics": [{"id": "0", "name": "Walking Skeleton", "status": "done", "plan_rel_link": "backlog/epic-0-walking-skeleton/EPIC-0-WALKING-SKELETON.md", "plan_path": "docs/backlog/epic-0-walking-skeleton/EPIC-0-WALKING-SKELETON.md", "plan_content": "---\nid: EPIC-0\ntitle: Walking Skeleton\ntype: epic-plan\nstatus: completed\ncreated: 2026-09-27\nupdated: 2026-09-27\nsurfaces:\n  - core\nstories_total: 1\nstories_done: 1\n---\n\n# Epic 0 — Walking Skeleton\n\n> **Status:** ✅ Completed\n> **Canonical Plan:** this file\n> **Master Backlog:** [`docs/STATUS.md`](../../STATUS.md)\n\n## 1. Executive Summary & Goal\nEstablish the initial walking skeleton, project repository structure, build automation, and documentation governance.\n\n## 2. Architecture Lineage & Invariants\n- Minimal zero-dependency baseline.\n- Automated verification via Makefile.\n\n## 3. Story Breakdown & Acceptance Gates\n\n| Story | Title | Status | Specification |\n|---|---|---|---|\n| [`Story 0.1`](./stories/STORY-0.1-REPOSITORY-INITIALIZATION.md) | Repository initialization | ✅ Completed | [`STORY-0.1`](./stories/STORY-0.1-REPOSITORY-INITIALIZATION.md) |\n\n## 4. Verification & Testing Strategy\n- Clean make build and status generation.\n", "note": "Establish the initial walking skeleton, project repository structure, build automation, and documentation governance.", "stories": [{"id": "0.1", "title": "Repository initialization", "status": "completed", "done": true, "t": "<code>Story 0.1</code> <a href=\"backlog/epic-0-walking-skeleton/stories/STORY-0.1-REPOSITORY-INITIALIZATION.md\" target=\"_blank\" style=\"color:inherit;text-decoration:none;\">Repository initialization</a>", "rel_link": "backlog/epic-0-walking-skeleton/stories/STORY-0.1-REPOSITORY-INITIALIZATION.md", "path": "docs/backlog/epic-0-walking-skeleton/stories/STORY-0.1-REPOSITORY-INITIALIZATION.md", "content": "---\nid: STORY-0.1\nepic_id: EPIC-0\ntitle: \"Repository initialization\"\ntype: story-spec\nstatus: completed\nsurfaces:\n  - core\nparent_epic: docs/backlog/epic-0-walking-skeleton/EPIC-0-WALKING-SKELETON.md\n---\n\n# Story 0.1 — Repository initialization\n\n> **Parent Epic:** [Walking Skeleton](../EPIC-0-WALKING-SKELETON.md)  \n> **Status:** ✅ Completed  \n> **Living Tracker:** [`docs/STATUS.md`](../../../STATUS.md)\n\n---\n\n## 1. Executive Summary & User/Operator Benefit\nInitialize the AgentOS Sandbox codebase with documentation governance, scaffolding tools, and an interactive status dashboard.\n\n---\n\n## 2. Scope & Technical Requirements\n- Standard documentation hierarchy established.\n- Makefile automation with new-epic, new-story, and dashboard targets.\n\n---\n\n## 3. Atomic Tasks\n- [x] Task 0.1.1: Initialize project directory and git repository.\n- [x] Task 0.1.2: Install documentation templates and dashboard generator.\n- [x] Task 0.1.3: Generate initial status dashboard.\n\n---\n\n## 4. Acceptance Gates & Verification Evidence\n- [x] `make dashboard` produces `docs/status-dashboard.html`.\n- [x] Zero drift detected between documents and `docs/STATUS.md`.\n"}]}], "prds": [], "design_specs": [{"id": "SPEC-ADVENTURE-GAME", "title": "Adventure Game Technical Design Specification", "status": "living", "category": "Design Spec", "surfaces": "", "epic_id": "", "summary": "Adventure is a browser-native adaptation of the classic Atari 2600 action-adventure game for the Timbuk2 Games Hub (Source: PROJECT_OVERVIEW_DRAFT.md). Built using vanilla HTML5 Canvas, strict-mode ES6+ JavaScript, CSS3,…", "rel_link": "design-specs/ADVENTURE-GAME.md", "path": "docs/design-specs/ADVENTURE-GAME.md", "content": "---\nid: SPEC-ADVENTURE-GAME\ntitle: \"Adventure Game Technical Design Specification\"\ntype: design-spec\nstatus: living\ncreated: 2026-09-02\nupdated: 2026-09-27\nsurfaces:\n  - web-client\n---\n\n# Adventure — Technical Design Document\n\n> **Document Type:** Design Specification  \n> **Source Documents:** Grounded in `PROJECT_OVERVIEW_DRAFT.md`, `Coding Conventions and Style Guide`, and `docs/README.md`.\n\n---\n\n## 1. Executive Summary & Architecture\n\n**Adventure** is a browser-native adaptation of the classic Atari 2600 action-adventure game for the Timbuk2 Games Hub (*Source: `PROJECT_OVERVIEW_DRAFT.md`*). Built using vanilla HTML5 Canvas, strict-mode ES6+ JavaScript, CSS3, and the Web Audio API, it requires no external libraries or build steps (*Source: `Coding Conventions and Style Guide`*).\n\n### File Structure & Hub Integration\n```text\nsrc/games/adventure/\n├── index.html          # Game canvas, status HUD, and accessible controls\n├── style.css           # Retro theme, responsive layout, and mobile touch controls\n├── game.js             # Strict-mode state engine, room graph, entity logic, and audio\n└── adventure_design.md # Technical design document source of truth\n```\nWhen playable, a game card will be linked in `src/games/index.html` with back-navigation to the central hub (*Source: `docs/README.md`*).\n\n---\n\n## 2. Core Game Mechanics & System Design\n\n### 2.1 Spatial Structure & Room Graph\n- **Room Grid:** Multi-room interconnected screens (Yellow Castle, White Castle, Black Castle, Catacombs/Mazes, Kingdom fields).\n- **Boundary Navigation:** Touching screen edge transitions player avatar smoothly to adjacent room node.\n\n### 2.2 Entity Systems & Inventory\n- **Player Avatar:** Movable square controllable via Keyboard (Arrow keys / `WASD`) or Virtual D-Pad on touch screens ($<768\\text{px}$).\n- **Items:**\n  - **Keys:** Open corresponding Castle Gate barriers.\n  - **Sword:** Slays dragons on collision contact.\n  - **Enchanted Chalice:** Goal item; returning it to Yellow Castle triggers victory.\n  - **Magnet:** Attracts nearest item through walls.\n- **Dragon AI:** State machine (Roaming, Hunting, Bitten, Dead) pursuing the player square.\n\n---\n\n## 3. Audiovisual & Technical Architecture\n\n### 3.1 Visual System & UI\n- **Canvas Rendering:** Fixed aspect ratio $4:3$ canvas scaled dynamically to screen size.\n- **Color Palette:** High-contrast retro 8-bit aesthetic with distinct room background hues.\n- **Accessibility HUD:** Text-based status updates rendered in DOM with `aria-live=\"polite\"` region (*Source: `Coding Conventions and Style Guide`*).\n\n### 3.2 Web Audio API Procedural Sound\nSynthesizes retro audio without asset files:\n- **Item Pick/Drop:** Frequency blip ($440\\text{Hz} \\to 880\\text{Hz}$).\n- **Gate Unlock:** Low resonant pulse ($150\\text{Hz}$).\n- **Dragon Roar/Bite:** Filtered noise buffer sweep.\n- **Victory Fanfare:** Arpeggiated multi-tone sine wave sequence.\n\n---\n\n## 4. Quality & Terminal State Rules\n\nGrounded in `PROJECT_OVERVIEW_DRAFT.md`:\n1. **Terminal States:** Victory or player death locks input mutations until clean reset.\n2. **Reset Execution:** Restart button completely re-initializes room graph, player position, item locations, and dragon states via `createInitialState()`.\n3. **Hub Navigation:** Back link returns to `src/games/index.html`.\n"}, {"id": "SPEC-ASTEROIDS-REDUX", "title": "Asteroids Redux Technical Design Specification", "status": "living", "category": "Design Spec", "surfaces": "", "epic_id": "", "summary": "Asteroids Redux is a browser-native adaptation of the classic arcade space shooter for the Timbuk2 Games Hub. Following the conventions defined in PROJECT_OVERVIEW_DRAFT.md, the game is self-contained with no build steps…", "rel_link": "design-specs/ASTEROIDS-REDUX.md", "path": "docs/design-specs/ASTEROIDS-REDUX.md", "content": "---\nid: SPEC-ASTEROIDS-REDUX\ntitle: \"Asteroids Redux Technical Design Specification\"\ntype: design-spec\nstatus: living\ncreated: 2026-09-02\nupdated: 2026-09-27\nsurfaces:\n  - web-client\n---\n\n# Asteroids Redux — Technical Design Document\n\n> **Document Type:** Design Specification  \n> **Source Documents:** Grounded in `PROJECT_OVERVIEW_DRAFT.md` (Project overview document) and repository file `src/games/asteroids/asteroids_design.md`.\n\n---\n\n## 1. Executive Summary & Architecture\n\n**Asteroids Redux** is a browser-native adaptation of the classic arcade space shooter for the Timbuk2 Games Hub. Following the conventions defined in `PROJECT_OVERVIEW_DRAFT.md`, the game is self-contained with no build steps, external libraries, or package managers, built entirely with vanilla HTML5 Canvas, strict-mode ES6+ JavaScript, CSS3, and the Web Audio API.\n\n### File Structure & Hub Integration\n```text\nsrc/games/asteroids/\n├── index.html          # Game canvas container, HUD, and instructions\n├── style.css           # Neon theme, responsive layout, and mobile touch controls\n├── game.js             # Game loop, entity components, state machine, and audio engine\n└── asteroids_design.md # Full design document source of truth\n```\nWhen playable, a game card will be linked in `src/games/index.html`.\n\n---\n\n## 2. Core Game Mechanics & Physics\n\n### 2.1 Spatial Topology & Physics (Torus World)\n- **Screen Wrapping:** Entities (`Ship`, `Asteroid`, `Laser`) wrapping seamlessly across canvas boundaries:\n  - $X < 0 \\implies X = \\text{Width}$, $X > \\text{Width} \\implies X = 0$\n  - $Y < 0 \\implies Y = \\text{Height}$, $Y > \\text{Height} \\implies Y = 0$\n- **Player Dynamics:**\n  - **Rotation:** $360^\\circ/\\text{sec}$ ($2\\pi\\text{ rad/sec}$) via Left/Right arrows or `A`/`D`.\n  - **Thrust:** $400\\text{ px/sec}^2$ forward acceleration via Up arrow or `W`.\n  - **Damping:** $0.985$ drag factor/frame for authentic momentum drift.\n  - **Max Speed:** $600\\text{ px/sec}$ velocity cap.\n  - **Invulnerability:** 3.0s blink state on wave start or respawn.\n  - **Hyperspace Warp:** `Shift` / `H` teleports to random location (15% risk of near-asteroid spawn).\n\n### 2.2 Projectiles & Asteroid Hierarchy\n- **Laser Cannons:** Max 4 shots/sec, 8 active lasers max, 1.2s lifetime, velocity = ship velocity + $800\\text{ px/sec}$.\n- **Asteroid Splitting & Scoring:**\n  - **Large Asteroid:** Radius 40px | Speed 40–80 px/s | Score: 20 pts | Splits into 2 Medium Asteroids ($\\pm 45^\\circ$).\n  - **Medium Asteroid:** Radius 20px | Speed 80–160 px/s | Score: 50 pts | Splits into 2 Small Asteroids ($\\pm 60^\\circ$).\n  - **Small Asteroid:** Radius 10px | Speed 160–260 px/s | Score: 100 pts | Destroyed into particle debris.\n\n---\n\n## 3. Audiovisual & Technical Architecture\n\n### 3.1 Vector Visual System & HUD\n- **Color Palette:** Neon glow aesthetic using Canvas `shadowBlur`:\n  - Background: Deep Space (`#070712`)\n  - Primary Vector: Cyan (`#00F3FF`) — Ship, Thrust, HUD\n  - Hazard Vector: Yellow (`#FFB703`) — Asteroids\n  - Danger Vector: Pink/Red (`#FF2A6D`) — Laser Projectiles\n- **Particle System:** Procedural particle emission for engine thrust, asteroid explosions, and ship destruction shockwaves.\n- **HUD & Touch Overlay:** Real-time Score, Session High Score, Wave counter, and Lives. On screens $<768\\text{px}$, virtual D-pad and dual action buttons (`THRUST` and `FIRE`) render.\n\n### 3.2 Procedural Web Audio API\nSynthesizes procedural audio without asset loads:\n- **Thrust Hum:** Filtered low-frequency sawtooth oscillator.\n- **Laser Blast:** Frequency sweep ($880\\text{Hz} \\to 110\\text{Hz}$ over 120ms).\n- **Explosion:** Filtered noise buffer with exponential decay scaled to asteroid size.\n- **Background Heartbeat:** Dual-tone sine pulse ($110\\text{Hz} / 98\\text{Hz}$) accelerating as asteroid count decreases.\n\n---\n\n## 4. Scope Boundaries & Constraints\n\nAs established in `src/games/asteroids/asteroids_design.md` and `PROJECT_OVERVIEW_DRAFT.md`:\n1. **No Alien UFOs:** Scope limited strictly to wave-based asteroid field survival.\n2. **No Power-Ups:** Skill-based gameplay using standard directional laser cannon.\n3. **Session-Only High Score:** High score tracked in-memory per session (resets on page reload; no `localStorage` or external storage).\n"}, {"id": "SPEC-MEMORY-MATCH", "title": "Memory Match Technical Design Specification", "status": "living", "category": "Design Spec", "surfaces": "", "epic_id": "", "summary": "Memory Match is a browser-native card-matching game for the Timbuk2 Games Hub that follows the same conventions as existing games. Built using vanilla HTML5 Canvas, strict-mode ES6+ JavaScript, CSS3, and the Web Audio AP…", "rel_link": "design-specs/MEMORY-MATCH.md", "path": "docs/design-specs/MEMORY-MATCH.md", "content": "---\nid: SPEC-MEMORY-MATCH\ntitle: \"Memory Match Technical Design Specification\"\ntype: design-spec\nstatus: living\ncreated: 2026-09-01\nupdated: 2026-09-27\nsurfaces:\n  - web-client\n---\n\n# Memory Match — Technical Design Document\n\n> **Document Type:** Design Specification  \n> **Source Documents:** Grounded in `PROJECT_OVERVIEW_DRAFT.md`, `Coding Conventions and Style Guide`, and `docs/README.md`.\n\n---\n\n## 1. Executive Summary & Architecture\n\n**Memory Match** is a browser-native card-matching game for the Timbuk2 Games Hub that follows the same conventions as existing games. Built using vanilla HTML5 Canvas, strict-mode ES6+ JavaScript, CSS3, and the Web Audio API, it requires no external libraries or build steps (*Source: `Coding Conventions and Style Guide`*).\n\n### File Structure & Hub Integration\n```text\nsrc/games/memory-match/\n├── index.html             # Game canvas, status HUD, and accessible controls\n├── style.css              # Retro theme, responsive layout, and mobile touch controls\n├── game.js                # Strict-mode state engine, card matching logic, and audio\n└── memory_match_design.md # Technical design document source of truth\n```\nWhen playable, a game card will be linked in `src/games/index.html` with back-navigation to the central hub (*Source: `docs/README.md`*).\n\n---\n\n## 2. Core Game Mechanics & System Design\n\n### 2.1 Game Board & Card System\n- **Game Board:** 4x4 grid of 16 cards (8 matching pairs)\n- **Card States:** \n  - Hidden (face down)\n  - Revealed (face up, not matched)\n  - Matched (face up, permanently revealed)\n- **Card Matching:** Players flip two cards at a time to find matching pairs\n\n### 2.2 Game Flow & Scoring\n- **Objective:** Find all matching pairs with the fewest moves and in the shortest time\n- **Scoring:** \n  - Moves counter (lower is better)\n  - Timer (shorter is better)\n  - Bonus points for completing quickly\n- **Win Condition:** All 8 pairs matched successfully\n- **Lose Condition:** None — game only has win state\n\n### 2.3 User Interface & Controls\n- **Controls:** \n  - Mouse clicks for card selection\n  - Touch support for mobile devices\n  - Keyboard support (optional)\n- **Visual Feedback:**\n  - Card flip animations\n  - Match confirmation\n  - Mismatch animation\n  - Win celebration\n\n---\n\n## 3. Audiovisual & Technical Architecture\n\n### 3.1 Visual System & UI\n- **Canvas Rendering:** Fixed aspect ratio $4:3$ canvas scaled dynamically to screen size\n- **Color Palette:** Clean, high-contrast design with distinct card colors\n- **Card Design:** \n  - Cards have a clean, modern look\n  - Back of cards have a consistent pattern\n  - Matched cards have a distinct visual indicator\n- **Accessibility HUD:** Text-based status updates rendered in DOM with `aria-live=\"polite\"` region (*Source: `Coding Conventions and Style Guide`*).\n\n### 3.2 Web Audio API Procedural Sound\nSynthesizes retro audio without asset files:\n- **Card Flip:** Short blip sound ($440\\text{Hz}$)\n- **Match Success:** Harmonic chime ($523\\text{Hz} \\to 659\\text{Hz}$)\n- **Match Mismatch:** Dissonant tone ($220\\text{Hz}$)\n- **Win Celebration:** Multi-tone arpeggio sequence\n\n---\n\n## 4. Quality & Terminal State Rules\n\nGrounded in `PROJECT_OVERVIEW_DRAFT.md`:\n1. **Terminal States:** Victory state locks input mutations until clean reset.\n2. **Reset Execution:** Restart button completely re-initializes card positions, matching state, and game timers via `createInitialState()`.\n3. **Hub Navigation:** Back link returns to `src/games/index.html`.\n4. **Game State Management:** \n   - Game state is managed in a single object\n   - State transitions are predictable and well-documented\n   - Invalid actions do not corrupt game state\n"}, {"id": "SPEC-SIMON-GAME", "title": "Simon Game Technical Design Specification", "status": "living", "category": "Design Spec", "surfaces": "", "epic_id": "", "summary": "Simon is a browser-native audio-visual sequence memory game for the Timbuk2 Games Hub (Source: PROJECT_OVERVIEW_DRAFT.md). The player watches and hears an ever-growing pattern of four colored pads, then repeats it. Built…", "rel_link": "design-specs/SIMON-GAME.md", "path": "docs/design-specs/SIMON-GAME.md", "content": "---\nid: SPEC-SIMON-GAME\ntitle: \"Simon Game Technical Design Specification\"\ntype: design-spec\nstatus: living\ncreated: 2026-09-05\nupdated: 2026-09-27\nsurfaces:\n  - web-client\n---\n\n# Simon — Technical Design Document\n\n> **Document Type:** Design Specification  \n> **Source Documents:** Grounded in `PROJECT_OVERVIEW_DRAFT.md`, `Coding Conventions and Style Guide`, and `docs/README.md`.\n\n---\n\n## 1. Executive Summary & Architecture\n\n**Simon** is a browser-native audio-visual sequence memory game for the Timbuk2 Games Hub (*Source: `PROJECT_OVERVIEW_DRAFT.md`*). The player watches and hears an ever-growing pattern of four colored pads, then repeats it. Built with vanilla HTML5, strict-mode ES6+ JavaScript, CSS3, and the Web Audio API — no external libraries, package managers, or build steps (*Source: `Coding Conventions and Style Guide`*).\n\nUnlike canvas shooters (Asteroids) or grid puzzles (Sudoku), Simon is **DOM-first**: four semantic `<button>` pads, a status HUD, and procedural tones. That keeps it in the same lightweight family as Tic Tac Toe, Wordle, and Memory Match.\n\n### File Structure & Hub Integration\n\n```text\nsrc/games/simon/\n├── index.html       # Semantic layout: pads, HUD, Start/Restart, How to Play\n├── style.css        # High-contrast pad theme, responsive layout, focus styles\n├── game.js          # Strict-mode state machine, sequence engine, input, audio\n└── simon_design.md  # Technical design document source of truth\n```\n\nWhen playable, a game card is linked from `src/games/index.html` with back-navigation to the hub (*Source: `docs/README.md`*).\n\n---\n\n## 2. Core Game Mechanics & System Design\n\n### 2.1 Pads & Palette\n\nExactly **four** pads, each with a fixed identity:\n\n| Id | Color name | Suggested CSS hue | Tone (Hz) | Keyboard |\n| --- | --- | --- | --- | --- |\n| `0` | Green | `#2ECC71` | 329.63 (E4) | `1` / `Q` |\n| `1` | Red | `#E74C3C` | 261.63 (C4) | `2` / `W` |\n| `2` | Yellow | `#F1C40F` | 220.00 (A3) | `3` / `A` |\n| `3` | Blue | `#3498DB` | 164.81 (E3) | `4` / `S` |\n\nPads are rendered as labeled buttons (not color-only). Visible text or `aria-label` includes the color name so status and controls remain understandable without relying only on color or sound (*Source: `PROJECT_OVERVIEW_DRAFT.md` §5*).\n\n### 2.2 Sequence Model\n\n- **Sequence:** `number[]` of pad ids in `[0, 3]`.\n- **Round `n`:** sequence length equals `n` (round 1 → length 1).\n- **Growth rule:** After a successful player repeat, append one uniformly random pad id and advance to the next round.\n- **Playback:** Game illuminates/sounds each step in order with a fixed step duration and inter-step gap.\n- **Player input:** Player must press the exact pad for each index; any mismatch ends the game in loss.\n\n### 2.3 Phase / State Machine\n\nCentral state via `createInitialState()` (*Source: `Coding Conventions and Style Guide`*):\n\n```text\nSTATUS_IDLE      → waiting for Start (no sequence yet)\nSTATUS_WATCHING  → playing back the current sequence; input locked\nSTATUS_INPUT     → accepting player presses for the current sequence\nSTATUS_WON       → reached MAX_ROUNDS successfully (terminal)\nSTATUS_LOST      → wrong pad pressed (terminal)\n```\n\nSuggested state object fields:\n\n| Field | Type | Purpose |\n| --- | --- | --- |\n| `status` | string constant | Current phase |\n| `sequence` | `number[]` | Full pattern to date |\n| `playerIndex` | number | Next expected sequence index during `STATUS_INPUT` |\n| `round` | number | Current round (1-based); equals `sequence.length` while playing |\n| `score` | number | Highest completed round this session |\n\n**Default product rule (v1):** On mismatch → `STATUS_LOST`. Restart via New Game only.\n\n### 2.4 Input Rules\n\n- **Accepted while `STATUS_INPUT` only.** Presses during `STATUS_WATCHING`, `STATUS_IDLE`, `STATUS_WON`, or `STATUS_LOST` do not mutate sequence or score.\n- **Mouse / touch:** click or tap on a pad button.\n- **Keyboard:** map keys to pads (`1`/`2`/`3`/`4`), documented in How to Play. Focusable buttons with visible focus rings.\n- **Invalid / out-of-order:** mismatch → terminal loss; announce via `aria-live`.\n- **Start / Restart:** `createInitialState()` then begin round 1.\n"}], "adrs": []};
-const DATA = Array.isArray(RAW_DATA) ? { epics: RAW_DATA, prds: [], design_specs: [], adrs: [] } : RAW_DATA;
+const RAW_DATA = {"epics": [{"id": "0", "name": "Walking Skeleton", "status": "done", "plan_rel_link": "backlog/epic-0-walking-skeleton/EPIC-0-WALKING-SKELETON.md", "plan_path": "docs/backlog/epic-0-walking-skeleton/EPIC-0-WALKING-SKELETON.md", "plan_content": "---\nid: EPIC-0\ntitle: Walking Skeleton\ntype: epic-plan\nstatus: completed\ncreated: 2026-09-27\nupdated: 2026-09-27\nsurfaces:\n  - core\nstories_total: 1\nstories_done: 1\n---\n\n# Epic 0 — Walking Skeleton\n\n> **Status:** ✅ Completed\n> **Canonical Plan:** this file\n> **Master Backlog:** [`docs/STATUS.md`](../../STATUS.md)\n\n## 1. Executive Summary & Goal\nEstablish the initial walking skeleton, project repository structure, build automation, and documentation governance.\n\n## 2. Architecture Lineage & Invariants\n- Minimal zero-dependency baseline.\n- Automated verification via Makefile.\n\n## 3. Story Breakdown & Acceptance Gates\n\n| Story | Title | Status | Specification |\n|---|---|---|---|\n| [`Story 0.1`](./stories/STORY-0.1-REPOSITORY-INITIALIZATION.md) | Repository initialization | ✅ Completed | [`STORY-0.1`](./stories/STORY-0.1-REPOSITORY-INITIALIZATION.md) |\n\n## 4. Verification & Testing Strategy\n- Clean make build and status generation.\n", "note": "Establish the initial walking skeleton, project repository structure, build automation, and documentation governance.", "stories": [{"id": "0.1", "title": "Repository initialization", "status": "completed", "done": true, "t": "<code>Story 0.1</code> <a href=\"backlog/epic-0-walking-skeleton/stories/STORY-0.1-REPOSITORY-INITIALIZATION.md\" target=\"_blank\" style=\"color:inherit;text-decoration:none;\">Repository initialization</a>", "rel_link": "backlog/epic-0-walking-skeleton/stories/STORY-0.1-REPOSITORY-INITIALIZATION.md", "path": "docs/backlog/epic-0-walking-skeleton/stories/STORY-0.1-REPOSITORY-INITIALIZATION.md", "content": "---\nid: STORY-0.1\nepic_id: EPIC-0\ntitle: \"Repository initialization\"\ntype: story-spec\nstatus: completed\nsurfaces:\n  - core\nparent_epic: docs/backlog/epic-0-walking-skeleton/EPIC-0-WALKING-SKELETON.md\n---\n\n# Story 0.1 — Repository initialization\n\n> **Parent Epic:** [Walking Skeleton](../EPIC-0-WALKING-SKELETON.md)  \n> **Status:** ✅ Completed  \n> **Living Tracker:** [`docs/STATUS.md`](../../../STATUS.md)\n\n---\n\n## 1. Executive Summary & User/Operator Benefit\nInitialize the AgentOS Sandbox codebase with documentation governance, scaffolding tools, and an interactive status dashboard.\n\n---\n\n## 2. Scope & Technical Requirements\n- Standard documentation hierarchy established.\n- Makefile automation with new-epic, new-story, and dashboard targets.\n\n---\n\n## 3. Atomic Tasks\n- [x] Task 0.1.1: Initialize project directory and git repository.\n- [x] Task 0.1.2: Install documentation templates and dashboard generator.\n- [x] Task 0.1.3: Generate initial status dashboard.\n\n---\n\n## 4. Acceptance Gates & Verification Evidence\n- [x] `make dashboard` produces `docs/status-dashboard.html`.\n- [x] Zero drift detected between documents and `docs/STATUS.md`.\n"}]}], "prds": [], "design_specs": [{"id": "SPEC-ADVENTURE-GAME", "title": "Adventure Game Technical Design Specification", "status": "living", "category": "Design Spec", "surfaces": "", "epic_id": "", "summary": "Adventure is a browser-native adaptation of the classic Atari 2600 action-adventure game for the Timbuk2 Games Hub (Source: PROJECT_OVERVIEW_DRAFT.md). Built using vanilla HTML5 Canvas, strict-mode ES6+ JavaScript, CSS3,…", "rel_link": "design-specs/ADVENTURE-GAME.md", "path": "docs/design-specs/ADVENTURE-GAME.md", "content": "---\nid: SPEC-ADVENTURE-GAME\ntitle: \"Adventure Game Technical Design Specification\"\ntype: design-spec\nstatus: living\ncreated: 2026-09-02\nupdated: 2026-09-27\nsurfaces:\n  - web-client\n---\n\n# Adventure — Technical Design Document\n\n> **Document Type:** Design Specification  \n> **Source Documents:** Grounded in `PROJECT_OVERVIEW_DRAFT.md`, `Coding Conventions and Style Guide`, and `docs/README.md`.\n\n---\n\n## 1. Executive Summary & Architecture\n\n**Adventure** is a browser-native adaptation of the classic Atari 2600 action-adventure game for the Timbuk2 Games Hub (*Source: `PROJECT_OVERVIEW_DRAFT.md`*). Built using vanilla HTML5 Canvas, strict-mode ES6+ JavaScript, CSS3, and the Web Audio API, it requires no external libraries or build steps (*Source: `Coding Conventions and Style Guide`*).\n\n### File Structure & Hub Integration\n```text\nsrc/games/adventure/\n├── index.html          # Game canvas, status HUD, and accessible controls\n├── style.css           # Retro theme, responsive layout, and mobile touch controls\n├── game.js             # Strict-mode state engine, room graph, entity logic, and audio\n└── adventure_design.md # Technical design document source of truth\n```\nWhen playable, a game card will be linked in `src/games/index.html` with back-navigation to the central hub (*Source: `docs/README.md`*).\n\n---\n\n## 2. Core Game Mechanics & System Design\n\n### 2.1 Spatial Structure & Room Graph\n- **Room Grid:** Multi-room interconnected screens (Yellow Castle, White Castle, Black Castle, Catacombs/Mazes, Kingdom fields).\n- **Boundary Navigation:** Touching screen edge transitions player avatar smoothly to adjacent room node.\n\n### 2.2 Entity Systems & Inventory\n- **Player Avatar:** Movable square controllable via Keyboard (Arrow keys / `WASD`) or Virtual D-Pad on touch screens ($<768\\text{px}$).\n- **Items:**\n  - **Keys:** Open corresponding Castle Gate barriers.\n  - **Sword:** Slays dragons on collision contact.\n  - **Enchanted Chalice:** Goal item; returning it to Yellow Castle triggers victory.\n  - **Magnet:** Attracts nearest item through walls.\n- **Dragon AI:** State machine (Roaming, Hunting, Bitten, Dead) pursuing the player square.\n\n---\n\n## 3. Audiovisual & Technical Architecture\n\n### 3.1 Visual System & UI\n- **Canvas Rendering:** Fixed aspect ratio $4:3$ canvas scaled dynamically to screen size.\n- **Color Palette:** High-contrast retro 8-bit aesthetic with distinct room background hues.\n- **Accessibility HUD:** Text-based status updates rendered in DOM with `aria-live=\"polite\"` region (*Source: `Coding Conventions and Style Guide`*).\n\n### 3.2 Web Audio API Procedural Sound\nSynthesizes retro audio without asset files:\n- **Item Pick/Drop:** Frequency blip ($440\\text{Hz} \\to 880\\text{Hz}$).\n- **Gate Unlock:** Low resonant pulse ($150\\text{Hz}$).\n- **Dragon Roar/Bite:** Filtered noise buffer sweep.\n- **Victory Fanfare:** Arpeggiated multi-tone sine wave sequence.\n\n---\n\n## 4. Quality & Terminal State Rules\n\nGrounded in `PROJECT_OVERVIEW_DRAFT.md`:\n1. **Terminal States:** Victory or player death locks input mutations until clean reset.\n2. **Reset Execution:** Restart button completely re-initializes room graph, player position, item locations, and dragon states via `createInitialState()`.\n3. **Hub Navigation:** Back link returns to `src/games/index.html`.\n"}, {"id": "SPEC-ASTEROIDS-REDUX", "title": "Asteroids Redux Technical Design Specification", "status": "living", "category": "Design Spec", "surfaces": "", "epic_id": "", "summary": "Asteroids Redux is a browser-native adaptation of the classic arcade space shooter for the Timbuk2 Games Hub. Following the conventions defined in PROJECT_OVERVIEW_DRAFT.md, the game is self-contained with no build steps…", "rel_link": "design-specs/ASTEROIDS-REDUX.md", "path": "docs/design-specs/ASTEROIDS-REDUX.md", "content": "---\nid: SPEC-ASTEROIDS-REDUX\ntitle: \"Asteroids Redux Technical Design Specification\"\ntype: design-spec\nstatus: living\ncreated: 2026-09-02\nupdated: 2026-09-27\nsurfaces:\n  - web-client\n---\n\n# Asteroids Redux — Technical Design Document\n\n> **Document Type:** Design Specification  \n> **Source Documents:** Grounded in `PROJECT_OVERVIEW_DRAFT.md` (Project overview document) and repository file `src/games/asteroids/asteroids_design.md`.\n\n---\n\n## 1. Executive Summary & Architecture\n\n**Asteroids Redux** is a browser-native adaptation of the classic arcade space shooter for the Timbuk2 Games Hub. Following the conventions defined in `PROJECT_OVERVIEW_DRAFT.md`, the game is self-contained with no build steps, external libraries, or package managers, built entirely with vanilla HTML5 Canvas, strict-mode ES6+ JavaScript, CSS3, and the Web Audio API.\n\n### File Structure & Hub Integration\n```text\nsrc/games/asteroids/\n├── index.html          # Game canvas container, HUD, and instructions\n├── style.css           # Neon theme, responsive layout, and mobile touch controls\n├── game.js             # Game loop, entity components, state machine, and audio engine\n└── asteroids_design.md # Full design document source of truth\n```\nWhen playable, a game card will be linked in `src/games/index.html`.\n\n---\n\n## 2. Core Game Mechanics & Physics\n\n### 2.1 Spatial Topology & Physics (Torus World)\n- **Screen Wrapping:** Entities (`Ship`, `Asteroid`, `Laser`) wrapping seamlessly across canvas boundaries:\n  - $X < 0 \\implies X = \\text{Width}$, $X > \\text{Width} \\implies X = 0$\n  - $Y < 0 \\implies Y = \\text{Height}$, $Y > \\text{Height} \\implies Y = 0$\n- **Player Dynamics:**\n  - **Rotation:** $360^\\circ/\\text{sec}$ ($2\\pi\\text{ rad/sec}$) via Left/Right arrows or `A`/`D`.\n  - **Thrust:** $400\\text{ px/sec}^2$ forward acceleration via Up arrow or `W`.\n  - **Damping:** $0.985$ drag factor/frame for authentic momentum drift.\n  - **Max Speed:** $600\\text{ px/sec}$ velocity cap.\n  - **Invulnerability:** 3.0s blink state on wave start or respawn.\n  - **Hyperspace Warp:** `Shift` / `H` teleports to random location (15% risk of near-asteroid spawn).\n\n### 2.2 Projectiles & Asteroid Hierarchy\n- **Laser Cannons:** Max 4 shots/sec, 8 active lasers max, 1.2s lifetime, velocity = ship velocity + $800\\text{ px/sec}$.\n- **Asteroid Splitting & Scoring:**\n  - **Large Asteroid:** Radius 40px | Speed 40–80 px/s | Score: 20 pts | Splits into 2 Medium Asteroids ($\\pm 45^\\circ$).\n  - **Medium Asteroid:** Radius 20px | Speed 80–160 px/s | Score: 50 pts | Splits into 2 Small Asteroids ($\\pm 60^\\circ$).\n  - **Small Asteroid:** Radius 10px | Speed 160–260 px/s | Score: 100 pts | Destroyed into particle debris.\n\n---\n\n## 3. Audiovisual & Technical Architecture\n\n### 3.1 Vector Visual System & HUD\n- **Color Palette:** Neon glow aesthetic using Canvas `shadowBlur`:\n  - Background: Deep Space (`#070712`)\n  - Primary Vector: Cyan (`#00F3FF`) — Ship, Thrust, HUD\n  - Hazard Vector: Yellow (`#FFB703`) — Asteroids\n  - Danger Vector: Pink/Red (`#FF2A6D`) — Laser Projectiles\n- **Particle System:** Procedural particle emission for engine thrust, asteroid explosions, and ship destruction shockwaves.\n- **HUD & Touch Overlay:** Real-time Score, Session High Score, Wave counter, and Lives. On screens $<768\\text{px}$, virtual D-pad and dual action buttons (`THRUST` and `FIRE`) render.\n\n### 3.2 Procedural Web Audio API\nSynthesizes procedural audio without asset loads:\n- **Thrust Hum:** Filtered low-frequency sawtooth oscillator.\n- **Laser Blast:** Frequency sweep ($880\\text{Hz} \\to 110\\text{Hz}$ over 120ms).\n- **Explosion:** Filtered noise buffer with exponential decay scaled to asteroid size.\n- **Background Heartbeat:** Dual-tone sine pulse ($110\\text{Hz} / 98\\text{Hz}$) accelerating as asteroid count decreases.\n\n---\n\n## 4. Scope Boundaries & Constraints\n\nAs established in `src/games/asteroids/asteroids_design.md` and `PROJECT_OVERVIEW_DRAFT.md`:\n1. **No Alien UFOs:** Scope limited strictly to wave-based asteroid field survival.\n2. **No Power-Ups:** Skill-based gameplay using standard directional laser cannon.\n3. **Session-Only High Score:** High score tracked in-memory per session (resets on page reload; no `localStorage` or external storage).\n"}, {"id": "SPEC-MEMORY-MATCH", "title": "Memory Match Technical Design Specification", "status": "living", "category": "Design Spec", "surfaces": "", "epic_id": "", "summary": "Memory Match is a browser-native card-matching game for the Timbuk2 Games Hub that follows the same conventions as existing games. Built using vanilla HTML5 Canvas, strict-mode ES6+ JavaScript, CSS3, and the Web Audio AP…", "rel_link": "design-specs/MEMORY-MATCH.md", "path": "docs/design-specs/MEMORY-MATCH.md", "content": "---\nid: SPEC-MEMORY-MATCH\ntitle: \"Memory Match Technical Design Specification\"\ntype: design-spec\nstatus: living\ncreated: 2026-09-01\nupdated: 2026-09-27\nsurfaces:\n  - web-client\n---\n\n# Memory Match — Technical Design Document\n\n> **Document Type:** Design Specification  \n> **Source Documents:** Grounded in `PROJECT_OVERVIEW_DRAFT.md`, `Coding Conventions and Style Guide`, and `docs/README.md`.\n\n---\n\n## 1. Executive Summary & Architecture\n\n**Memory Match** is a browser-native card-matching game for the Timbuk2 Games Hub that follows the same conventions as existing games. Built using vanilla HTML5 Canvas, strict-mode ES6+ JavaScript, CSS3, and the Web Audio API, it requires no external libraries or build steps (*Source: `Coding Conventions and Style Guide`*).\n\n### File Structure & Hub Integration\n```text\nsrc/games/memory-match/\n├── index.html             # Game canvas, status HUD, and accessible controls\n├── style.css              # Retro theme, responsive layout, and mobile touch controls\n├── game.js                # Strict-mode state engine, card matching logic, and audio\n└── memory_match_design.md # Technical design document source of truth\n```\nWhen playable, a game card will be linked in `src/games/index.html` with back-navigation to the central hub (*Source: `docs/README.md`*).\n\n---\n\n## 2. Core Game Mechanics & System Design\n\n### 2.1 Game Board & Card System\n- **Game Board:** 4x4 grid of 16 cards (8 matching pairs)\n- **Card States:** \n  - Hidden (face down)\n  - Revealed (face up, not matched)\n  - Matched (face up, permanently revealed)\n- **Card Matching:** Players flip two cards at a time to find matching pairs\n\n### 2.2 Game Flow & Scoring\n- **Objective:** Find all matching pairs with the fewest moves and in the shortest time\n- **Scoring:** \n  - Moves counter (lower is better)\n  - Timer (shorter is better)\n  - Bonus points for completing quickly\n- **Win Condition:** All 8 pairs matched successfully\n- **Lose Condition:** None — game only has win state\n\n### 2.3 User Interface & Controls\n- **Controls:** \n  - Mouse clicks for card selection\n  - Touch support for mobile devices\n  - Keyboard support (optional)\n- **Visual Feedback:**\n  - Card flip animations\n  - Match confirmation\n  - Mismatch animation\n  - Win celebration\n\n---\n\n## 3. Audiovisual & Technical Architecture\n\n### 3.1 Visual System & UI\n- **Canvas Rendering:** Fixed aspect ratio $4:3$ canvas scaled dynamically to screen size\n- **Color Palette:** Clean, high-contrast design with distinct card colors\n- **Card Design:** \n  - Cards have a clean, modern look\n  - Back of cards have a consistent pattern\n  - Matched cards have a distinct visual indicator\n- **Accessibility HUD:** Text-based status updates rendered in DOM with `aria-live=\"polite\"` region (*Source: `Coding Conventions and Style Guide`*).\n\n### 3.2 Web Audio API Procedural Sound\nSynthesizes retro audio without asset files:\n- **Card Flip:** Short blip sound ($440\\text{Hz}$)\n- **Match Success:** Harmonic chime ($523\\text{Hz} \\to 659\\text{Hz}$)\n- **Match Mismatch:** Dissonant tone ($220\\text{Hz}$)\n- **Win Celebration:** Multi-tone arpeggio sequence\n\n---\n\n## 4. Quality & Terminal State Rules\n\nGrounded in `PROJECT_OVERVIEW_DRAFT.md`:\n1. **Terminal States:** Victory state locks input mutations until clean reset.\n2. **Reset Execution:** Restart button completely re-initializes card positions, matching state, and game timers via `createInitialState()`.\n3. **Hub Navigation:** Back link returns to `src/games/index.html`.\n4. **Game State Management:** \n   - Game state is managed in a single object\n   - State transitions are predictable and well-documented\n   - Invalid actions do not corrupt game state\n"}, {"id": "SPEC-SIMON-GAME", "title": "Simon Game Technical Design Specification", "status": "living", "category": "Design Spec", "surfaces": "", "epic_id": "", "summary": "Simon is a browser-native audio-visual sequence memory game for the Timbuk2 Games Hub (Source: PROJECT_OVERVIEW_DRAFT.md). The player watches and hears an ever-growing pattern of four colored pads, then repeats it. Built…", "rel_link": "design-specs/SIMON-GAME.md", "path": "docs/design-specs/SIMON-GAME.md", "content": "---\nid: SPEC-SIMON-GAME\ntitle: \"Simon Game Technical Design Specification\"\ntype: design-spec\nstatus: living\ncreated: 2026-09-05\nupdated: 2026-09-27\nsurfaces:\n  - web-client\n---\n\n# Simon — Technical Design Document\n\n> **Document Type:** Design Specification  \n> **Source Documents:** Grounded in `PROJECT_OVERVIEW_DRAFT.md`, `Coding Conventions and Style Guide`, and `docs/README.md`.\n\n---\n\n## 1. Executive Summary & Architecture\n\n**Simon** is a browser-native audio-visual sequence memory game for the Timbuk2 Games Hub (*Source: `PROJECT_OVERVIEW_DRAFT.md`*). The player watches and hears an ever-growing pattern of four colored pads, then repeats it. Built with vanilla HTML5, strict-mode ES6+ JavaScript, CSS3, and the Web Audio API — no external libraries, package managers, or build steps (*Source: `Coding Conventions and Style Guide`*).\n\nUnlike canvas shooters (Asteroids) or grid puzzles (Sudoku), Simon is **DOM-first**: four semantic `<button>` pads, a status HUD, and procedural tones. That keeps it in the same lightweight family as Tic Tac Toe, Wordle, and Memory Match.\n\n### File Structure & Hub Integration\n\n```text\nsrc/games/simon/\n├── index.html       # Semantic layout: pads, HUD, Start/Restart, How to Play\n├── style.css        # High-contrast pad theme, responsive layout, focus styles\n├── game.js          # Strict-mode state machine, sequence engine, input, audio\n└── simon_design.md  # Technical design document source of truth\n```\n\nWhen playable, a game card is linked from `src/games/index.html` with back-navigation to the hub (*Source: `docs/README.md`*).\n\n---\n\n## 2. Core Game Mechanics & System Design\n\n### 2.1 Pads & Palette\n\nExactly **four** pads, each with a fixed identity:\n\n| Id | Color name | Suggested CSS hue | Tone (Hz) | Keyboard |\n| --- | --- | --- | --- | --- |\n| `0` | Green | `#2ECC71` | 329.63 (E4) | `1` / `Q` |\n| `1` | Red | `#E74C3C` | 261.63 (C4) | `2` / `W` |\n| `2` | Yellow | `#F1C40F` | 220.00 (A3) | `3` / `A` |\n| `3` | Blue | `#3498DB` | 164.81 (E3) | `4` / `S` |\n\nPads are rendered as labeled buttons (not color-only). Visible text or `aria-label` includes the color name so status and controls remain understandable without relying only on color or sound (*Source: `PROJECT_OVERVIEW_DRAFT.md` §5*).\n\n### 2.2 Sequence Model\n\n- **Sequence:** `number[]` of pad ids in `[0, 3]`.\n- **Round `n`:** sequence length equals `n` (round 1 → length 1).\n- **Growth rule:** After a successful player repeat, append one uniformly random pad id and advance to the next round.\n- **Playback:** Game illuminates/sounds each step in order with a fixed step duration and inter-step gap.\n- **Player input:** Player must press the exact pad for each index; any mismatch ends the game in loss.\n\n### 2.3 Phase / State Machine\n\nCentral state via `createInitialState()` (*Source: `Coding Conventions and Style Guide`*):\n\n```text\nSTATUS_IDLE      → waiting for Start (no sequence yet)\nSTATUS_WATCHING  → playing back the current sequence; input locked\nSTATUS_INPUT     → accepting player presses for the current sequence\nSTATUS_WON       → reached MAX_ROUNDS successfully (terminal)\nSTATUS_LOST      → wrong pad pressed (terminal)\n```\n\nSuggested state object fields:\n\n| Field | Type | Purpose |\n| --- | --- | --- |\n| `status` | string constant | Current phase |\n| `sequence` | `number[]` | Full pattern to date |\n| `playerIndex` | number | Next expected sequence index during `STATUS_INPUT` |\n| `round` | number | Current round (1-based); equals `sequence.length` while playing |\n| `score` | number | Highest completed round this session |\n\n**Default product rule (v1):** On mismatch → `STATUS_LOST`. Restart via New Game only.\n\n### 2.4 Input Rules\n\n- **Accepted while `STATUS_INPUT` only.** Presses during `STATUS_WATCHING`, `STATUS_IDLE`, `STATUS_WON`, or `STATUS_LOST` do not mutate sequence or score.\n- **Mouse / touch:** click or tap on a pad button.\n- **Keyboard:** map keys to pads (`1`/`2`/`3`/`4`), documented in How to Play. Focusable buttons with visible focus rings.\n- **Invalid / out-of-order:** mismatch → terminal loss; announce via `aria-live`.\n- **Start / Restart:** `createInitialState()` then begin round 1.\n"}], "adrs": [], "templates": {"HANDOFF-TEMPLATE.md": "---\nid: HANDOFF-EPIC-X\nepic_id: EPIC-X\ntitle: \"Epic X Implementation Handoff\"\ntype: handoff\nstatus: in_progress # in_progress | completed\ncreated: YYYY-MM-DD\nupdated: YYYY-MM-DD\n---\n\n# Epic X Implementation Handoff\n\n> **Status:** 🟨 In Progress <!-- or ✅ Completed -->  \n> **Canonical Plan:** [`docs/backlog/epic-X-NAME/EPIC-X-NAME.md`](../../backlog/epic-X-NAME/EPIC-X-NAME.md)  \n> **Living Tracker:** [`docs/STATUS.md`](../../STATUS.md)\n\n---\n\n## 1. Executive Summary of Session\n[High-level summary of work accomplished during this session, PRs merged, and commits pushed.]\n\n---\n\n## 2. What Shipped (Delivered Work)\n* **Story X.1 ([`STORY-X.1-SLUG.md`](../../backlog/epic-X-NAME/stories/STORY-X.1-SLUG.md))**:\n  - `git commit` / PR details\n  - Files modified across `mac-app/`, `orchestrator/`, `supabase/`\n  - Features and contracts verified\n\n---\n\n## 3. What Remains (Immediate Next Steps)\n* [ ] **Story X.2 ([`STORY-X.2-SLUG.md`](../../backlog/epic-X-NAME/stories/STORY-X.2-SLUG.md))**: Next story in flight.\n* [ ] **Story X.3**: Pending implementation.\n\n---\n\n## 4. Verification Evidence & Test Commands Run\n```bash\n# Test execution log and command output proving zero regression:\npytest -q tests/test_example.py\n# Output: 15 passed in 1.2s\n```\n\n---\n\n## 5. Known Risks, Deferred Items & Caveats\n* [List any non-obvious failure modes, environment dependencies, or future work.]\n", "STORY-TEMPLATE.md": "---\nid: STORY-X.Y\nepic_id: EPIC-X\ntitle: \"[Story Title]\"\ntype: story-spec\nstatus: planned # planned | in_progress | completed\nsurfaces:\n  - mac-app\n  - orchestrator\nparent_epic: docs/backlog/epic-X-NAME/EPIC-X-NAME.md\ndesign_spec: docs/design-specs/FEATURE-NAME.md # Optional\nadrs:\n  - docs/adr/000X-TITLE.md # Optional\n---\n\n# Story X.Y — [Story Title]\n\n> **Parent Epic:** [Epic X — [Epic Title]](../EPIC-X-NAME.md)  \n> **Status:** 🟦 Planned  \n> **Living Tracker:** [`docs/STATUS.md`](../../../STATUS.md)\n\n---\n\n## 1. Executive Summary & User/Operator Benefit\n[As a [role], I want [capability] so that [benefit]. Concrete 1-2 sentence description.]\n\n---\n\n## 2. Scope & Technical Requirements\n- [ ] **Surface 1 (e.g. Mac Client)**: [UI components, ViewModels, navigation, event subscriptions]\n- [ ] **Surface 2 (e.g. Orchestrator API)**: [Endpoints, state transitions, JobDriver actions]\n- [ ] **Surface 3 (e.g. Supabase DB)**: [Migrations, tables, RLS policies, indexes]\n- [ ] **Invariants**: [Boundary rules, performance constraints, error handling]\n\n---\n\n## 3. Atomic Tasks\n- [ ] **Task X.Y.1**: [Concrete technical task 1 — e.g. schema migration and DAL repository]\n- [ ] **Task X.Y.2**: [Concrete technical task 2 — e.g. protocol message handler]\n- [ ] **Task X.Y.3**: [Concrete technical task 3 — e.g. SwiftUI View & ViewModel integration]\n- [ ] **Task X.Y.4**: [Concrete technical task 4 — e.g. Automated test coverage & live verification]\n\n---\n\n## 4. Acceptance Gates & Verification Evidence\n- **Automated Verification**:\n  - `pytest -q tests/test_feature.py`\n  - `xcodebuild -workspace mac-app/AgentOS.xcworkspace -scheme AgentOS build`\n- **Manual Verification**:\n  - [Step-by-step verification steps in running Mac app / CLI]\n- **Evidence Record**:\n  - [Test output log, pass counts, or link to handoff document]\n", "EPIC-TEMPLATE.md": "---\nid: EPIC-X\ntitle: \"[Initiative / Capability Title]\"\ntype: epic-plan\nstatus: planned # planned | in_progress | completed | archived\ncreated: YYYY-MM-DD\nupdated: YYYY-MM-DD\ndesign_spec: docs/design-specs/FEATURE-SPEC.md # Optional / if applicable\nadrs:\n  - docs/adr/000X-TITLE.md # Optional / if applicable\nsurfaces:\n  - mac-app\n  - orchestrator\n  - supabase\nstories_total: 0\nstories_done: 0\n---\n\n# Epic X — [Initiative / Capability Title]\n\n> **Category:** Master Backlog & Epic Execution Plan  \n> **Status:** 🟦 Planned  \n> **Master Epic Backlog:** [`docs/backlog/BACKLOG.md`](../BACKLOG.md)  \n> **Living Execution Tracker:** [`docs/STATUS.md`](../../STATUS.md)  \n> **Stories Directory:** [`./stories/`](./stories/)\n\n---\n\n## 1. Executive Summary & Goal\n[Concise 1-2 paragraph description of the business/user goal, the architectural capability being unlocked, and why it matters.]\n\n---\n\n## 2. Architecture Lineage & Invariants\n- **Design Lineage**: Links to ADRs (`docs/adr/`) and Feature Design Specs (`docs/design-specs/`).\n- **Core Invariants**:\n  1. [Invariant 1: e.g. Data boundary, offline safety, RLS isolation]\n  2. [Invariant 2: e.g. Transport compatibility, no silent errors]\n  3. [Invariant 3: e.g. Domain model parity]\n\n---\n\n## 3. Story Breakdown & Acceptance Gates\n\n| Story | Title | Status | Specification |\n|---|---|---|---|\n| [`Story X.1`](./stories/STORY-X.1-SLUG.md) | [Story 1 Title] | 🟦 Planned | [`STORY-X.1`](./stories/STORY-X.1-SLUG.md) |\n| [`Story X.2`](./stories/STORY-X.2-SLUG.md) | [Story 2 Title] | 🟦 Planned | [`STORY-X.2`](./stories/STORY-X.2-SLUG.md) |\n\n### Mandatory Acceptance Gate for Every Story\nBefore marking any story complete, the implementing agent must:\n1. Self-audit code, schema, and protocol contracts.\n2. Execute automated tests (`pytest`, `xcodebuild`, `make test-mac-ui`).\n3. Record commands, outputs, and verification evidence in the story handoff.\n\n---\n\n## 4. Verification & Testing Strategy\n\n### Mandatory 3-Phase Testing Protocol\n```bash\n# Phase 1: Setup\nmake test-db\n\n# Phase 2: Test Execution\ncd orchestrator && pytest -q\nxcodebuild -workspace mac-app/AgentOS.xcworkspace -scheme AgentOS build\nmake test-mac-ui\n\n# Phase 3: Teardown & Cleanup\nmake reset-test-db\ngit worktree prune\nrm -rf /tmp/agentos-test* \"$TMPDIR/agentos-ui-tests\"\ngit status --short\n```\n", "PRD-TEMPLATE.md": "---\nid: PRD-[NAME]\ntitle: \"[Product Initiative / Feature Requirements]\"\ntype: prd\nstatus: draft # draft | review | approved | implemented | deprecated\ncreated: YYYY-MM-DD\nupdated: YYYY-MM-DD\nowner: \"[Product Lead / Owner]\"\ntarget_epic: docs/backlog/epic-X-NAME/EPIC-X-NAME.md # Optional\npersonas:\n  - user\n  - operator\n---\n\n# Product Requirements Document (PRD) — [Initiative Name]\n\n> **Category:** Product Requirements & Scope Specification  \n> **Status:** 🟦 Draft <!-- 🟨 Review | 🟢 Approved | 🟣 Implemented -->  \n> **Index:** [`docs/product/README.md`](./README.md)  \n> **Target Epic:** [`docs/backlog/epic-X-NAME/EPIC-X-NAME.md`](../backlog/epic-X-NAME/EPIC-X-NAME.md)  \n> **Owner:** [Product Owner / Lead]\n\n---\n\n## 1. Executive Summary & Problem Statement\n\n### 1.1 The Problem\n[Describe the customer pain point or market opportunity. What happens today without this feature?]\n\n### 1.2 The Proposed Solution\n[Concise summary of what we are building and how it addresses the core pain point.]\n\n---\n\n## 2. Target Personas & User Journeys\n\n### 2.1 Target Personas\n- **Primary Persona:** [Name / Role — e.g. Community Organizer, Platform Engineer]\n- **Secondary Persona:** [Name / Role — e.g. End User, Compliance Officer]\n\n### 2.2 Core User Journey\n```mermaid\njourney\n    title Core User Journey\n    section Discovery\n      Discovers need: 5: Primary Persona\n      Views entry point: 4: Primary Persona\n    section Engagement\n      Configures settings: 3: Primary Persona\n      Executes action: 5: Primary Persona\n    section Outcome\n      Receives confirmation: 5: Primary Persona\n      Shares result: 4: Primary Persona\n```\n\n---\n\n## 3. Product Goals & Success Metrics (KPIs)\n\n| Metric | Baseline | Target Goal | Measurement Method |\n|---|---|---|---|\n| **Conversion Rate** | 0% | 15% | Analytics event tracking |\n| **Task Completion Time** | 4.5 min | < 1 min | Session telemetry |\n| **Error Rate** | N/A | < 1% | Error logging / APM |\n\n---\n\n## 4. Feature Scope & Requirements\n\n### 4.1 Must-Have (P0 / MVP)\n- [ ] **FR-01**: [Essential capability required for initial viable release]\n- [ ] **FR-02**: [Essential capability required for initial viable release]\n\n### 4.2 Should-Have (P1)\n- [ ] **FR-03**: [High-value capability to be delivered immediately following MVP]\n\n### 4.3 Nice-to-Have (P2)\n- [ ] **FR-04**: [Delighter or optional optimization for future consideration]\n\n### 4.4 Explicit Non-Goals (Out of Scope)\n- 🚫 [Explicit boundary — what this initiative will NOT do]\n- 🚫 [Explicit boundary — what is deferred to future milestones]\n\n---\n\n## 5. Non-Functional Requirements (NFRs)\n\n- **Performance & Latency:** [e.g. Page loads under 200ms; background jobs complete in < 5s]\n- **Security & Privacy:** [e.g. RLS multi-tenant isolation, encrypted secrets, GDPR compliance]\n- **Accessibility (a11y):** [e.g. WCAG 2.1 AA compliance, keyboard navigation, aria-live announcements]\n- **Scalability:** [e.g. Supports 10,000 concurrent active users]\n\n---\n\n## 6. Dependencies, Risks & Mitigations\n\n| Risk / Dependency | Impact | Likelihood | Mitigation Strategy |\n|---|---|---|---|\n| [External API rate limits] | High | Medium | Implement caching & backoff retries |\n| [Third-party vendor approval] | Medium | Low | Engage compliance team early |\n\n---\n\n## 7. Release & Rollout Strategy\n\n1. **Internal Dogfooding:** Target Date: YYYY-MM-DD\n2. **Private Beta / Canary:** Feature flag rollout to 5% of organizations.\n3. **General Availability (GA):** Full rollout once error rates remain < 0.1% for 72 hours.\n", "DESIGN-SPEC-TEMPLATE.md": "---\nid: SPEC-[NAME]\ntitle: \"[Feature / Subsystem Design Specification]\"\ntype: design-spec\nstatus: draft # draft | living | accepted | superseded\ncreated: YYYY-MM-DD\nupdated: YYYY-MM-DD\nepic_id: EPIC-X # Optional\nadrs:\n  - docs/adr/000X-TITLE.md # Optional\nsurfaces:\n  - mac-app\n  - orchestrator\n---\n\n# Feature Design Spec — [Feature Name]\n\n> **Category:** Technical & UX Design Specification  \n> **Status:** 🟦 Draft <!-- or 🟢 Living -->  \n> **Index:** [`docs/design-specs/README.md`](./README.md)  \n> **Associated Epic:** [`docs/backlog/epic-X-NAME/EPIC-X-NAME.md`](../backlog/epic-X-NAME/EPIC-X-NAME.md)\n\n---\n\n## 1. Executive Summary & Problem Framing\n[High-level overview of the feature, target operator workflow, and architectural role.]\n\n---\n\n## 2. User Experience & UI Component Hierarchy\n[Visual layout, interaction flows, keyboard shortcuts, and state progression.]\n\n```text\n┌─────────────────────────────────────────────────────────────┐\n│ Visual Wireframe / Component Hierarchy                      │\n└─────────────────────────────────────────────────────────────┘\n```\n\n---\n\n## 3. Data Contracts & State Machine\n\n### Protocol Payload (Client ↔ Orchestrator)\n```json\n{\n  \"op\": \"feature_operation\",\n  \"payload\": {\n    \"key\": \"value\"\n  }\n}\n```\n\n### State Transitions\n```mermaid\nstateDiagram-v2\n    [*] --> Idle\n    Idle --> InProgress: user_action\n    InProgress --> Completed: success\n    InProgress --> Failed: error\n```\n\n---\n\n## 4. Surface-by-Surface Technical Requirements\n* **Mac Client (`mac-app/`)**: Views, ViewModels, stores, and coordinator hooks.\n* **Orchestrator (`orchestrator/app/`)**: Routes, background tasks, database queries.\n* **Database (`supabase/migrations/`)**: Tables, constraints, RLS policies.\n\n---\n\n## 5. Verification Strategy & Acceptance Criteria\n* [ ] Unit test assertions\n* [ ] Integration regression checks\n* [ ] Visual/manual operator verification steps\n", "ADR-TEMPLATE.md": "---\nid: ADR-000X\ntitle: \"[Short, Descriptive Title of Decision]\"\ntype: adr\nstatus: proposed # proposed | accepted | rejected | superseded\ndate: YYYY-MM-DD\ndeciders:\n  - System Architects / Lead Engineers\nepic_id: EPIC-X # Optional\nconsulted:\n  - Claude Code / Antigravity / Team\n---\n\n# ADR 000X — [Short, Descriptive Title of Decision]\n\n> **Category:** Architecture Decision Record  \n> **Status:** 🟦 Proposed <!-- or ✅ Accepted -->  \n> **Index:** [`docs/adr/README.md`](./README.md)  \n> **Applies to:** [`docs/backlog/epic-X-NAME/EPIC-X-NAME.md`](../backlog/epic-X-NAME/EPIC-X-NAME.md)\n\n---\n\n## 1. Context & Problem Statement\n[Describe the context, problem statement, and forces at play. What changed? What architectural conflict or performance/isolation limit did we encounter?]\n\n---\n\n## 2. Decision Drivers & Invariants\n* **Driver 1**: [e.g., Strict multi-tenant isolation via PostgreSQL RLS]\n* **Driver 2**: [e.g., Deterministic offline-first Mac client behavior]\n* **Driver 3**: [e.g., Token and cost efficiency for multi-turn agent execution]\n\n---\n\n## 3. Considered Options\n1. **Option 1**: [Description of Option 1]\n   - *Pros*: ...\n   - *Cons*: ...\n2. **Option 2**: [Description of Option 2]\n   - *Pros*: ...\n   - *Cons*: ...\n3. **Option 3 (Chosen)**: [Description of Option 3]\n   - *Pros*: ...\n   - *Cons*: ...\n\n---\n\n## 4. Decision Outcome\n**Chosen Option**: Option 3 because [clear, concise rationale explaining non-obvious trade-offs].\n\n### Key Architectural Invariants Established\n1. [Invariant 1]\n2. [Invariant 2]\n\n---\n\n## 5. Consequences & Trade-offs\n* **Positive Consequences**:\n  - [What becomes easier, safer, or faster?]\n* **Negative Consequences / Mitigations**:\n  - [What becomes harder? How do we mitigate it?]\n\n---\n\n## 6. Implementation & Compliance Lineage\n* **Parent Epic**: [`docs/backlog/epic-X-NAME/EPIC-X-NAME.md`](../backlog/epic-X-NAME/EPIC-X-NAME.md)\n* **Stories Enforcing this ADR**:\n  - [`Story X.1`](../backlog/epic-X-NAME/stories/STORY-X.1-SLUG.md)\n", "PR-TEMPLATE.md": "---\nid: PR-TEMPLATE\ntitle: Pull Request & Delivery Completion Template\ntype: pr-completion-template\nstatus: template\n---\n\n# Pull Request Completion Report\n\n> **Usage**: Use this structure for Pull Request descriptions, implementation review notes, and delivery completion audits. Keep the report concise and link to durable repository documents rather than copying massive raw logs.\n\n---\n\n## 1. What Changed\n\n- **Outcome**: Describe the user-visible, operational, or architectural outcome delivered.\n- **Key Changes**: Summarize the principal implementation modifications across directories.\n- **Traceability**:\n  - Closes #`[issue_number]`\n  - Parent Story: [`STORY-X.Y-NAME.md`](../backlog/epic-X-NAME/stories/STORY-X.Y-NAME.md)\n  - Parent Epic: [`EPIC-X-NAME.md`](../backlog/epic-X-NAME/EPIC-X-NAME.md)\n\n---\n\n## 2. Architecture & Security Decisions\n\n- **Material Boundaries**: Identify interfaces, database schemas/migrations, RLS policies, tenant boundaries, or production-safety controls changed.\n- **Test Infrastructure**: State whether test-only infrastructure, mocks, or fixtures were introduced or altered.\n- **Architectural Linkage**: Link relevant decision or design documents ([`ADR-000X`](../adr/) or [`DESIGN-SPEC`](../design-specs/)). Write `None` if no material design decision was required.\n\n---\n\n## 3. Verification & Evidence\n\n> [!IMPORTANT]\n> **Zero-Tolerance Quality Gate**: Local verification must be executed and recorded before submitting or merging. Do not claim tests or checks that were not executed.\n\n* **Agent / Human Author**: `[Name / Model / Subagent]`\n* **Date**: `YYYY-MM-DD`\n* **Environment**: `[Local Mac / Docker / Linux VPS / CI]`\n* **Commands Executed**:\n  ```bash\n  # List all verification commands run locally:\n  <command 1>\n  <command 2>\n  ```\n* **Results**: `[Pass / Fail / Blocked]`\n* **Commands Not Run & Rationale**:\n  - `<command>` — `<reason for omission>`\n* **Known Gaps / Deferred Coverage**:\n  - `<gap description or follow-up issue>`\n\n---\n\n## 4. Known Limitations & Residual Risks\n\n- List residual risks, accepted limitations, deferred work, compatibility concerns, or operational assumptions.\n- Link follow-up issues or backlog stories where available.\n- Write `None known` only after reviewing the complete diff (`git diff HEAD~1`).\n\n---\n\n## 5. Manual Acceptance Steps\n\n1. **Environment & Setup**: State the environment and required baseline data/configuration.\n2. **End-to-End Verification Path**: Describe the shortest end-to-end path demonstrating the approved outcome:\n   1. `Step 1...`\n   2. `Step 2...`\n   3. **Expected Result**: `[What should happen]`\n3. **Negative / Edge Verification**: Describe behavior under invalid inputs, authorization rejections, or error conditions.\n\n---\n\n## 6. Pre-Merge Completion Checklist\n\n- [ ] The change stays strictly within approved issue/story scope and non-goals.\n- [ ] No extraneous refactoring, debug artifacts, or temporary scratch files introduced.\n- [ ] Tests and documentation were updated where required.\n- [ ] Required local verification passed without failures or unhandled warnings.\n- [ ] No secrets, credentials, or private keys were committed.\n- [ ] Known limitations and residual risks are disclosed.\n- [ ] Manual acceptance steps are verified and complete.\n- [ ] Living status tracker (`docs/STATUS.md`) and category README indices updated.\n- [ ] Ready for independent peer/architect review.\n"}};
+const DATA = Array.isArray(RAW_DATA) ? { epics: RAW_DATA, prds: [], design_specs: [], adrs: [], templates: {} } : RAW_DATA;
 const EPICS = DATA.epics || [];
 const PRDS = DATA.prds || [];
 const DESIGN_SPECS = DATA.design_specs || [];
 const ADRS = DATA.adrs || [];
+const TEMPLATES = DATA.templates || {};
 
 // Update tab pill counts
 document.getElementById("count-roadmap").textContent = EPICS.length;
@@ -632,10 +838,12 @@ function buildEpicRow(p, isChild){
   head.type = "button";
   head.setAttribute("aria-expanded","false");
   const planLinkHtml = p.plan_content ? `<span class="plan-link" title="View plan document">plan &rsaquo;</span>` : "";
+  const addStoryBtnHtml = `<span role="button" tabindex="0" class="btn-sm-action add-story-btn" title="Scaffold new story under this epic">＋ Story</span>`;
   head.innerHTML = `
     <span class="phase-id">${p.id}</span>
     <span class="phase-name">${p.name}${p.note ? `<span class="phase-note">${p.note}</span>` : ""}</span>
     ${planLinkHtml}
+    ${addStoryBtnHtml}
     ${fracHtml}
     <span class="pill ${p.status}">${statusLabel}</span>
     ${chevHtml}
@@ -658,6 +866,21 @@ function buildEpicRow(p, isChild){
         path: p.plan_path,
         content: p.plan_content
       });
+    });
+  }
+
+  const addStoryBtnEl = head.querySelector(".add-story-btn");
+  if (addStoryBtnEl) {
+    addStoryBtnEl.addEventListener("click", (e) => {
+      e.stopPropagation();
+      openScaffoldModal('story', p.id);
+    });
+    addStoryBtnEl.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        e.stopPropagation();
+        openScaffoldModal('story', p.id);
+      }
     });
   }
 
@@ -1287,6 +1510,415 @@ function renderMarkdown(md){
   html = html.replace(/%%CODEBLOCK_(\d+)%%/g, (match, idx) => codeBlocks[idx]);
   return html;
 }
+
+// ---- Interactive Scaffolder Modal Implementation ----
+const scaffoldModalBackdrop = document.getElementById("scaffoldModalBackdrop");
+const scaffoldModalCloseBtn = document.getElementById("scaffoldModalCloseBtn");
+const scaffoldTypePills = document.querySelectorAll(".scaffold-pill");
+const storyContextRow = document.getElementById("storyContextRow");
+const epicContextRow = document.getElementById("epicContextRow");
+const adrContextRow = document.getElementById("adrContextRow");
+const scaffoldEpicSelect = document.getElementById("scaffoldEpicSelect");
+const scaffoldStoryNumInput = document.getElementById("scaffoldStoryNumInput");
+const scaffoldEpicIdInput = document.getElementById("scaffoldEpicIdInput");
+const scaffoldAdrNumInput = document.getElementById("scaffoldAdrNumInput");
+const scaffoldTitleInput = document.getElementById("scaffoldTitleInput");
+const scaffoldSlugInput = document.getElementById("scaffoldSlugInput");
+const scaffoldDescInput = document.getElementById("scaffoldDescInput");
+const scaffoldCmdOutput = document.getElementById("scaffoldCmdOutput");
+const scaffoldPromptOutput = document.getElementById("scaffoldPromptOutput");
+const scaffoldFilePathOutput = document.getElementById("scaffoldFilePathOutput");
+const copyScaffoldCmdBtn = document.getElementById("copyScaffoldCmdBtn");
+const copyScaffoldPromptBtn = document.getElementById("copyScaffoldPromptBtn");
+
+let activeScaffoldType = "epic";
+let slugManuallyEdited = false;
+
+function slugify(text) {
+  return (text || "")
+    .toLowerCase()
+    .trim()
+    .replace(/[^\w\s-]/g, "")
+    .replace(/[\s_-]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+function calculateNextEpicId() {
+  const max = EPICS.reduce((m, e) => {
+    const n = parseInt(e.id, 10);
+    return (!isNaN(n) && n > m) ? n : m;
+  }, 0);
+  return max + 1;
+}
+
+function calculateNextStoryNum(epicId) {
+  const ep = EPICS.find(e => String(e.id) === String(epicId));
+  if (!ep || !ep.stories || !ep.stories.length) return 1;
+  const subNums = ep.stories.map(s => {
+    const m = String(s.id).match(/\.(\d+)$/);
+    return m ? parseInt(m[1], 10) : 0;
+  });
+  return Math.max(0, ...subNums) + 1;
+}
+
+function calculateNextAdrNum() {
+  const max = ADRS.reduce((m, a) => {
+    const n = parseInt(a.number, 10);
+    return (!isNaN(n) && n > m) ? n : m;
+  }, 0);
+  return max + 1;
+}
+
+function populateEpicSelect(selectedId) {
+  scaffoldEpicSelect.innerHTML = "";
+  const sortedEpics = [...EPICS].sort((a, b) => {
+    const na = parseInt(a.id, 10), nb = parseInt(b.id, 10);
+    if (!isNaN(na) && !isNaN(nb)) return na - nb;
+    return String(a.id).localeCompare(String(b.id));
+  });
+
+  sortedEpics.forEach(ep => {
+    const opt = document.createElement("option");
+    opt.value = ep.id;
+    opt.textContent = `Epic ${ep.id}: ${ep.name}`;
+    if (String(ep.id) === String(selectedId)) {
+      opt.selected = true;
+    }
+    scaffoldEpicSelect.appendChild(opt);
+  });
+
+  if (!selectedId && sortedEpics.length > 0) {
+    scaffoldEpicSelect.value = sortedEpics[sortedEpics.length - 1].id;
+  }
+}
+
+function openScaffoldModal(type, targetEpicId) {
+  activeScaffoldType = type || "epic";
+  slugManuallyEdited = false;
+  scaffoldTitleInput.value = "";
+  scaffoldSlugInput.value = "";
+  scaffoldDescInput.value = "";
+
+  populateEpicSelect(targetEpicId);
+  setScaffoldType(activeScaffoldType, targetEpicId);
+
+  scaffoldModalBackdrop.classList.add("active");
+  scaffoldModalBackdrop.setAttribute("aria-hidden", "false");
+  document.body.style.overflow = "hidden";
+  setTimeout(() => scaffoldTitleInput.focus(), 60);
+}
+
+function closeScaffoldModal() {
+  scaffoldModalBackdrop.classList.remove("active");
+  scaffoldModalBackdrop.setAttribute("aria-hidden", "true");
+  document.body.style.overflow = "";
+}
+
+function setScaffoldType(type, targetEpicId) {
+  activeScaffoldType = type;
+  scaffoldTypePills.forEach(btn => {
+    btn.classList.toggle("active", btn.dataset.type === type);
+  });
+
+  storyContextRow.classList.toggle("hidden", type !== "story");
+  epicContextRow.classList.toggle("hidden", type !== "epic");
+  adrContextRow.classList.toggle("hidden", type !== "adr");
+
+  const titles = {
+    epic: "Scaffold New Epic",
+    story: "Scaffold New Story",
+    prd: "Scaffold New Product PRD",
+    "design-spec": "Scaffold New Design Spec",
+    adr: "Scaffold New Architecture Decision (ADR)"
+  };
+  const kickers = {
+    epic: "Creates a new architectural capability initiative in docs/backlog/ (or docs/roadmap/)",
+    story: "Creates a cohesive vertical slice under an existing parent Epic",
+    prd: "Creates a product requirements document in docs/product/",
+    "design-spec": "Creates a technical walkthrough & UX spec in docs/design-specs/",
+    adr: "Creates an architectural decision record in docs/adr/"
+  };
+  document.getElementById("scaffoldModalTitle").textContent = titles[type] || "Scaffold Work Item";
+  document.getElementById("scaffoldModalKicker").textContent = kickers[type] || "Agent OS Architectural & Governance Scaffolder";
+
+  if (type === "epic") {
+    scaffoldEpicIdInput.value = calculateNextEpicId();
+  } else if (type === "story") {
+    if (targetEpicId) scaffoldEpicSelect.value = targetEpicId;
+    const selectedEpic = scaffoldEpicSelect.value;
+    scaffoldStoryNumInput.value = calculateNextStoryNum(selectedEpic);
+  } else if (type === "adr") {
+    scaffoldAdrNumInput.value = calculateNextAdrNum();
+  }
+
+  updateScaffoldOutputs();
+}
+
+function onEpicSelectChanged() {
+  const selectedEpic = scaffoldEpicSelect.value;
+  scaffoldStoryNumInput.value = calculateNextStoryNum(selectedEpic);
+  updateScaffoldOutputs();
+}
+
+function onTitleChanged() {
+  if (!slugManuallyEdited) {
+    scaffoldSlugInput.value = slugify(scaffoldTitleInput.value);
+  }
+  updateScaffoldOutputs();
+}
+
+scaffoldSlugInput.addEventListener("input", () => {
+  slugManuallyEdited = true;
+  updateScaffoldOutputs();
+});
+
+function getScaffoldData() {
+  const title = (scaffoldTitleInput.value || "").trim() || "Untitled";
+  const slug = (scaffoldSlugInput.value || slugify(title)).trim() || "item";
+  const upperSlug = slug.toUpperCase();
+  const desc = (scaffoldDescInput.value || "").trim();
+  const today = new Date().toISOString().slice(0, 10);
+
+  let makeCmd = "";
+  let promptText = "";
+  let relPath = "";
+  let fileName = "";
+  let markdownContent = "";
+
+  if (activeScaffoldType === "epic") {
+    const epicId = parseInt(scaffoldEpicIdInput.value, 10) || calculateNextEpicId();
+    fileName = `EPIC-${epicId}-${upperSlug}.md`;
+    relPath = `docs/backlog/epic-${epicId}-${slug}/${fileName}`;
+    makeCmd = `make new-epic ID=${epicId} SLUG=${slug} TITLE="${title}"`;
+    promptText = `Please scaffold and plan Epic ${epicId} (${title}) following Agent OS governance (AGENTS.md).
+
+1. Run the terminal scaffolding command:
+   ${makeCmd}
+
+2. Register the new epic in:
+   - docs/backlog/BACKLOG.md
+   - docs/backlog/README.md
+   - docs/STATUS.md
+
+3. Detail the executive summary, invariants, story breakdown, and acceptance gates.
+${desc ? `\nContext/Objective:\n${desc}\n` : ''}`;
+
+    let template = (TEMPLATES && TEMPLATES["EPIC-TEMPLATE.md"]) || "";
+    if (template) {
+      markdownContent = template
+        .replace(/EPIC-X/g, `EPIC-${epicId}`)
+        .replace(/Epic X/g, `Epic ${epicId}`)
+        .replace(/\[Initiative \/ Capability Title\]/g, title)
+        .replace(/\[Initiative Name\]/g, title)
+        .replace(/YYYY-MM-DD/g, today);
+      if (desc) {
+        markdownContent = markdownContent.replace(
+          /## 1\. Executive Summary & Goal[\s\S]*?(?=\n## 2)/,
+          `## 1. Executive Summary & Goal\n\n${desc}\n\n`
+        );
+      }
+    } else {
+      markdownContent = `# EPIC-${epicId}: ${title}\n\n> **Status**: Planned\n\n## 1. Executive Summary & Goal\n${desc || 'Goal statement...'}\n`;
+    }
+
+  } else if (activeScaffoldType === "story") {
+    const epicId = scaffoldEpicSelect.value;
+    const storyNum = parseInt(scaffoldStoryNumInput.value, 10) || 1;
+    fileName = `STORY-${epicId}.${storyNum}-${upperSlug}.md`;
+
+    const ep = EPICS.find(e => String(e.id) === String(epicId));
+    let epicFolder = `epic-${epicId}`;
+    let epicFile = `EPIC-${epicId}.md`;
+    if (ep && ep.plan_path) {
+      const parts = ep.plan_path.split("/");
+      if (parts.length >= 2) {
+        epicFolder = parts[parts.length - 2];
+        epicFile = parts[parts.length - 1];
+      }
+    }
+
+    relPath = `docs/backlog/${epicFolder}/stories/${fileName}`;
+    makeCmd = `make new-story EPIC_ID=${epicId} STORY_NUM=${storyNum} SLUG=${slug} TITLE="${title}"`;
+    promptText = `Please scaffold and implement Story ${epicId}.${storyNum} (${title}) under Epic ${epicId} following Agent OS governance (AGENTS.md).
+
+1. Run the terminal scaffolding command:
+   ${makeCmd}
+
+2. Register Story ${epicId}.${storyNum} in:
+   - docs/backlog/${epicFolder}/${epicFile}
+   - docs/STATUS.md
+   - Update handoff record (docs/history/handoffs/) if applicable
+
+3. Fill in atomic tasks, technical requirements, and acceptance gates.
+${desc ? `\nContext/Objective:\n${desc}\n` : ''}`;
+
+    let template = (TEMPLATES && TEMPLATES["STORY-TEMPLATE.md"]) || "";
+    if (template) {
+      markdownContent = template
+        .replace(/STORY-X\.Y/g, `STORY-${epicId}.${storyNum}`)
+        .replace(/Story X\.Y/g, `Story ${epicId}.${storyNum}`)
+        .replace(/EPIC-X/g, `EPIC-${epicId}`)
+        .replace(/Epic X/g, `Epic ${epicId}`)
+        .replace(/\[Story Title\]/g, title)
+        .replace(/epic-X-NAME\/EPIC-X-NAME\.md/g, `${epicFolder}/${epicFile}`)
+        .replace(/\.\.\/EPIC-X-NAME\.md/g, `../${epicFile}`)
+        .replace(/YYYY-MM-DD/g, today);
+      if (desc) {
+        markdownContent = markdownContent.replace(
+          /## 1\. Executive Summary & User\/Operator Benefit[\s\S]*?(?=\n## 2)/,
+          `## 1. Executive Summary & User/Operator Benefit\n\n${desc}\n\n`
+        );
+      }
+    } else {
+      markdownContent = `# STORY-${epicId}.${storyNum}: ${title}\n\n> **Parent Epic**: Epic ${epicId}\n\n## 1. Executive Summary\n${desc || 'Story goal...'}\n`;
+    }
+
+  } else if (activeScaffoldType === "prd") {
+    fileName = `PRD-${upperSlug}.md`;
+    relPath = `docs/product/${fileName}`;
+    makeCmd = `make new-prd SLUG=${slug} TITLE="${title}"`;
+    promptText = `Please scaffold a new Product Requirements Document for "${title}" following Agent OS governance.
+
+1. Run the terminal scaffolding command:
+   ${makeCmd}
+
+2. Register the PRD in docs/product/README.md.
+
+3. Detail user personas, problem statement, user journeys, functional requirements, and success metrics.
+${desc ? `\nContext/Objective:\n${desc}\n` : ''}`;
+
+    let template = (TEMPLATES && TEMPLATES["PRD-TEMPLATE.md"]) || "";
+    if (template) {
+      markdownContent = template
+        .replace(/PRD-\[NAME\]/g, `PRD-${upperSlug}`)
+        .replace(/\[Product Initiative \/ Feature Requirements\]/g, title)
+        .replace(/\[Initiative Name\]/g, title)
+        .replace(/YYYY-MM-DD/g, today);
+      if (desc) {
+        markdownContent = markdownContent.replace(
+          /## 1\. Executive Summary & Problem Statement[\s\S]*?(?=\n## 2)/,
+          `## 1. Executive Summary & Problem Statement\n\n${desc}\n\n`
+        );
+      }
+    } else {
+      markdownContent = `# PRD: ${title}\n\n## 1. Executive Summary & Problem Statement\n${desc || 'Problem statement...'}\n`;
+    }
+
+  } else if (activeScaffoldType === "design-spec") {
+    fileName = `${upperSlug}.md`;
+    relPath = `docs/design-specs/${fileName}`;
+    makeCmd = `make new-design-spec SLUG=${slug} TITLE="${title}"`;
+    promptText = `Please scaffold a new Feature Design Specification for "${title}" following Agent OS governance.
+
+1. Run the terminal scaffolding command:
+   ${makeCmd}
+
+2. Register the spec in docs/design-specs/README.md.
+
+3. Detail UX walkthroughs, component architecture, data flow, error handling, and visual invariants.
+${desc ? `\nContext/Objective:\n${desc}\n` : ''}`;
+
+    let template = (TEMPLATES && TEMPLATES["DESIGN-SPEC-TEMPLATE.md"]) || "";
+    if (template) {
+      markdownContent = template
+        .replace(/SPEC-\[NAME\]/g, `SPEC-${upperSlug}`)
+        .replace(/\[Feature \/ Subsystem Design Specification\]/g, title)
+        .replace(/\[Feature Name\]/g, title)
+        .replace(/YYYY-MM-DD/g, today);
+      if (desc) {
+        markdownContent = markdownContent.replace(
+          /## 1\. Executive Summary & Background[\s\S]*?(?=\n## 2)/,
+          `## 1. Executive Summary & Background\n\n${desc}\n\n`
+        );
+      }
+    } else {
+      markdownContent = `# Design Spec: ${title}\n\n## 1. Overview\n${desc || 'Overview...'}\n`;
+    }
+
+  } else if (activeScaffoldType === "adr") {
+    const adrNum = parseInt(scaffoldAdrNumInput.value, 10) || calculateNextAdrNum();
+    const paddedId = String(adrNum).padStart(4, "0");
+    fileName = `${paddedId}-${slug.toLowerCase()}.md`;
+    relPath = `docs/adr/${fileName}`;
+    makeCmd = `make new-adr ID=${adrNum} SLUG=${slug} TITLE="${title}"`;
+    promptText = `Please scaffold a new Architecture Decision Record (ADR ${paddedId}: ${title}) following Agent OS governance.
+
+1. Run the terminal scaffolding command:
+   ${makeCmd}
+
+2. Register the ADR in docs/adr/README.md.
+
+3. Detail context, decision drivers, considered options, decision outcome, and positive/negative consequences.
+${desc ? `\nContext/Objective:\n${desc}\n` : ''}`;
+
+    let template = (TEMPLATES && TEMPLATES["ADR-TEMPLATE.md"]) || "";
+    if (template) {
+      markdownContent = template
+        .replace(/ADR-000X/g, `ADR-${paddedId}`)
+        .replace(/ADR 000X/g, `ADR ${paddedId}`)
+        .replace(/\[Short, Descriptive Title of Decision\]/g, title)
+        .replace(/YYYY-MM-DD/g, today);
+      if (desc) {
+        markdownContent = markdownContent.replace(
+          /## Context[\s\S]*?(?=\n## Decision Drivers|\n## Considered Options)/,
+          `## Context\n\n${desc}\n\n`
+        );
+      }
+    } else {
+      markdownContent = `# ADR ${paddedId}: ${title}\n\n> **Status**: Proposed\n\n## Context\n${desc || 'Context...'}\n`;
+    }
+  }
+
+  return { title, slug, upperSlug, desc, makeCmd, promptText, relPath, fileName, markdownContent };
+}
+
+function updateScaffoldOutputs() {
+  const data = getScaffoldData();
+  scaffoldCmdOutput.textContent = data.makeCmd;
+  scaffoldPromptOutput.textContent = data.promptText;
+  scaffoldFilePathOutput.innerHTML = `Target repository path: <code>${data.relPath}</code>`;
+}
+
+function copyScaffoldCommand() {
+  const data = getScaffoldData();
+  navigator.clipboard.writeText(data.makeCmd).then(() => {
+    const orig = copyScaffoldCmdBtn.innerHTML;
+    copyScaffoldCmdBtn.textContent = "✓ Copied Command!";
+    setTimeout(() => { copyScaffoldCmdBtn.innerHTML = orig; }, 1600);
+  });
+}
+
+function copyScaffoldPrompt() {
+  const data = getScaffoldData();
+  navigator.clipboard.writeText(data.promptText).then(() => {
+    const orig = copyScaffoldPromptBtn.innerHTML;
+    copyScaffoldPromptBtn.textContent = "✓ Copied AI Prompt!";
+    setTimeout(() => { copyScaffoldPromptBtn.innerHTML = orig; }, 1600);
+  });
+}
+
+function downloadScaffoldedFile() {
+  const data = getScaffoldData();
+  const blob = new Blob([data.markdownContent], { type: "text/markdown;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = data.fileName;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+scaffoldModalBackdrop.addEventListener("click", (e) => {
+  if (e.target === scaffoldModalBackdrop) closeScaffoldModal();
+});
+scaffoldModalCloseBtn.addEventListener("click", closeScaffoldModal);
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && scaffoldModalBackdrop.classList.contains("active")) {
+    closeScaffoldModal();
+  }
+});
 </script>
 
 </body></html>

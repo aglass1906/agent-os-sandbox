@@ -131,3 +131,10 @@ new-pr:
 		echo "Installed .github/pull_request_template.md"; \
 	fi
 
+## Package the portable governance toolkit into dist/agent-os-governance-kit.zip: make package-kit [DEST=~/Desktop]
+package-kit:
+	@mkdir -p dist
+	@python3 -c "import zipfile; from pathlib import Path; root = Path('$(CURDIR)'); z = zipfile.ZipFile(root / 'dist/agent-os-governance-kit.zip', 'w', zipfile.ZIP_DEFLATED); [z.write(root / f, f) for f in ['scripts/bootstrap_governance.py', 'scripts/generate_status_dashboard.py', 'docs/status-dashboard.template.html', 'docs/templates/PRD-TEMPLATE.md', 'docs/templates/EPIC-TEMPLATE.md', 'docs/templates/STORY-TEMPLATE.md', 'docs/templates/ADR-TEMPLATE.md', 'docs/templates/DESIGN-SPEC-TEMPLATE.md', 'docs/templates/HANDOFF-TEMPLATE.md', 'docs/templates/PR-TEMPLATE.md', 'docs/templates/README.md'] if (root / f).exists()]"
+	@if [ -n "$(DEST)" ]; then python3 -c "import shutil, os, sys; dest = os.path.expanduser(sys.argv[1]); shutil.copy2('dist/agent-os-governance-kit.zip', dest); print(f'Copied to {dest}/agent-os-governance-kit.zip' if os.path.isdir(dest) else f'Copied to {dest}')" "$(DEST)"; fi
+	@echo "Packaged dist/agent-os-governance-kit.zip ($$(du -h dist/agent-os-governance-kit.zip | cut -f1))"
+
