@@ -12,4 +12,8 @@ This directory contains feature specifications, UX interaction designs, technica
 
 | Document | Category | Summary | Related Epic |
 |---|---|---|---|
-| *(No design specs yet. Scaffold your first with `make new-design-spec SLUG=name TITLE="Feature Name"`)* | | | |
+| [`ADVENTURE-GAME.md`](./ADVENTURE-GAME.md) | Game Design | Atari 2600 Adventure browser-native adaptation & room graph | `Epic 0` |
+| [`ASTEROIDS-REDUX.md`](./ASTEROIDS-REDUX.md) | Game Design | Arcade space shooter vector system & Web Audio procedural engine | `Epic 0` |
+| [`MEMORY-MATCH.md`](./MEMORY-MATCH.md) | Game Design | Card-matching 4x4 grid mechanics, states, and audio feedback | `Epic 0` |
+| [`SIMON-GAME.md`](./SIMON-GAME.md) | Game Design | Audio-visual sequence memory game state machine and pad rules | `Epic 0` |
+
