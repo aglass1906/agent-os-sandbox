@@ -19,7 +19,8 @@ import sys
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-ROADMAP_DIR = REPO_ROOT / "docs" / "roadmap"
+BACKLOG_DIR = REPO_ROOT / "docs" / "backlog"
+ROADMAP_DIR = BACKLOG_DIR if BACKLOG_DIR.exists() else (REPO_ROOT / "docs" / "roadmap")
 STATUS_MD = REPO_ROOT / "docs" / "STATUS.md"
 TEMPLATE_HTML = REPO_ROOT / "docs" / "status-dashboard.template.html"
 OUTPUT_HTML = REPO_ROOT / "docs" / "status-dashboard.html"

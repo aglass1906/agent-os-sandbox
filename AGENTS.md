@@ -88,8 +88,8 @@ Welcome! This document provides core architectural rules and documentation gover
 
 ## 1. Work Breakdown Taxonomy (Epic → Story → Task)
 All work decomposition strictly follows this hierarchy:
-* **Epic**: Major architectural capability or subsystem initiative (e.g. `Epic 0`, `Epic 1`). Authored at `docs/roadmap/epic-X-NAME/EPIC-X-NAME.md`.
-* **Story**: Cohesive vertical slice delivering an independently testable operator/user benefit (e.g. `Story 1.1`). Scoped under its parent Epic. Each Story is authored as an independent machine-readable specification in `docs/roadmap/epic-X-NAME/stories/STORY-X.Y-NAME.md`.
+* **Epic**: Major architectural capability or subsystem initiative (e.g. `Epic 0`, `Epic 1`). Authored at `docs/backlog/epic-X-NAME/EPIC-X-NAME.md`.
+* **Story**: Cohesive vertical slice delivering an independently testable operator/user benefit (e.g. `Story 1.1`). Scoped under its parent Epic. Each Story is authored as an independent machine-readable specification in `docs/backlog/epic-X-NAME/stories/STORY-X.Y-NAME.md`.
 * **Task**: Concrete engineering work item (1 commit / 1 PR / 1 test file).
 * 🚫 **PROHIBITION**: Never use "Slice", "Milestone", or ad-hoc sub-phase labels in roadmaps or status trackers. Always decompose Epics into numbered Stories (`Story X.1`, `Story X.2`), and Stories into concrete Tasks.
 
@@ -97,6 +97,7 @@ All work decomposition strictly follows this hierarchy:
 
 ## 2. Document Scaffolding via Make
 Always use `make` targets to scaffold new documents:
+* **New PRD**: `make new-prd SLUG=<slug> TITLE="<Title>"`
 * **New Epic**: `make new-epic ID=<num> SLUG=<slug> TITLE="<Title>"`
 * **New Story**: `make new-story EPIC_ID=<num> STORY_NUM=<num> SLUG=<slug> TITLE="<Title>"`
 * **New ADR**: `make new-adr ID=<num> SLUG=<slug> TITLE="<Title>"`
@@ -108,7 +109,8 @@ Always use `make` targets to scaffold new documents:
 ---
 
 ## 3. Directory Placement Rules
-* **Roadmap & Stories**: `docs/roadmap/epic-X-NAME/stories/STORY-X.Y-NAME.md`
+* **Product Requirements (PRDs)**: `docs/product/PRD-NAME.md`
+* **Backlog & Stories**: `docs/backlog/epic-X-NAME/stories/STORY-X.Y-NAME.md`
 * **Architecture Specifications**: `docs/architecture/XX-NAME.md`
 * **Design Specs**: `docs/design-specs/FEATURE-NAME.md`
 * **Architecture Decision Records**: `docs/adr/000X-NAME.md`

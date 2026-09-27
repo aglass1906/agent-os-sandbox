@@ -1,9 +1,9 @@
-# Roadmap & Epic Execution Plans (`docs/roadmap/`)
+# Master Backlog & Epic Execution Plans (`docs/backlog/`)
 
 > **Index Level:** Subdirectory Index  
 > **Master Hub:** [`../README.md`](../README.md)  
 > **Living Status Dashboard:** [`../STATUS.md`](../STATUS.md)  
-> **Status Policy:** **Roadmap** (Structured Epic blueprints and standalone Story specifications)
+> **Status Policy:** **Backlog** (Structured Epic blueprints and standalone Story specifications)
 
 This directory organizes all project initiatives into dedicated Epic directories. Each Epic contains its primary execution plan (`EPIC-X-NAME.md`) and a `stories/` directory containing machine-readable, testable Story specifications (`STORY-X.Y-NAME.md`).
 

@@ -6,7 +6,7 @@ type: story-spec
 status: completed
 surfaces:
   - core
-parent_epic: docs/roadmap/epic-0-walking-skeleton/EPIC-0-WALKING-SKELETON.md
+parent_epic: docs/backlog/epic-0-walking-skeleton/EPIC-0-WALKING-SKELETON.md
 ---
 
 # Story 0.1 — Repository initialization

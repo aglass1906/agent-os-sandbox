@@ -1,7 +1,7 @@
 # AgentOS Sandbox — Epic & Story Status Tracker
 
 > **Living checklist of what is done vs left.**
-> Master Backlog / exit criteria stay in canonical plans in `docs/roadmap/`.
+> Master Backlog / exit criteria stay in canonical plans in `docs/backlog/`.
 > Work is strictly organized by Epic → Story → Task.
 
 ---
@@ -17,5 +17,5 @@
 ## Epic 0 — Walking Skeleton ✅
 > Establish the initial repository structure, build automation, and documentation governance.
 
-- [x] [**Story 0.1**](./roadmap/epic-0-walking-skeleton/stories/STORY-0.1-REPOSITORY-INITIALIZATION.md): Repository initialization
+- [x] [**Story 0.1**](./backlog/epic-0-walking-skeleton/stories/STORY-0.1-REPOSITORY-INITIALIZATION.md): Repository initialization
 

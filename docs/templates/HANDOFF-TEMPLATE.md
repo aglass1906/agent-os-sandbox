@@ -11,7 +11,7 @@ updated: YYYY-MM-DD
 # Epic X Implementation Handoff
 
 > **Status:** 🟨 In Progress <!-- or ✅ Completed -->  
-> **Canonical Plan:** [`docs/roadmap/epic-X-NAME/EPIC-X-NAME.md`](../../roadmap/epic-X-NAME/EPIC-X-NAME.md)  
+> **Canonical Plan:** [`docs/backlog/epic-X-NAME/EPIC-X-NAME.md`](../../backlog/epic-X-NAME/EPIC-X-NAME.md)  
 > **Living Tracker:** [`docs/STATUS.md`](../../STATUS.md)
 
 ---
@@ -22,7 +22,7 @@ updated: YYYY-MM-DD
 ---
 
 ## 2. What Shipped (Delivered Work)
-* **Story X.1 ([`STORY-X.1-SLUG.md`](../../roadmap/epic-X-NAME/stories/STORY-X.1-SLUG.md))**:
+* **Story X.1 ([`STORY-X.1-SLUG.md`](../../backlog/epic-X-NAME/stories/STORY-X.1-SLUG.md))**:
   - `git commit` / PR details
   - Files modified across `mac-app/`, `orchestrator/`, `supabase/`
   - Features and contracts verified
@@ -30,7 +30,7 @@ updated: YYYY-MM-DD
 ---
 
 ## 3. What Remains (Immediate Next Steps)
-* [ ] **Story X.2 ([`STORY-X.2-SLUG.md`](../../roadmap/epic-X-NAME/stories/STORY-X.2-SLUG.md))**: Next story in flight.
+* [ ] **Story X.2 ([`STORY-X.2-SLUG.md`](../../backlog/epic-X-NAME/stories/STORY-X.2-SLUG.md))**: Next story in flight.
 * [ ] **Story X.3**: Pending implementation.
 
 ---

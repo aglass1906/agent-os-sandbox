@@ -7,7 +7,7 @@ status: planned # planned | in_progress | completed
 surfaces:
   - mac-app
   - orchestrator
-parent_epic: docs/roadmap/epic-X-NAME/EPIC-X-NAME.md
+parent_epic: docs/backlog/epic-X-NAME/EPIC-X-NAME.md
 design_spec: docs/design-specs/FEATURE-NAME.md # Optional
 adrs:
   - docs/adr/000X-TITLE.md # Optional

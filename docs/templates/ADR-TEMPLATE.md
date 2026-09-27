@@ -16,7 +16,7 @@ consulted:
 > **Category:** Architecture Decision Record  
 > **Status:** 🟦 Proposed <!-- or ✅ Accepted -->  
 > **Index:** [`docs/adr/README.md`](./README.md)  
-> **Applies to:** [`docs/roadmap/epic-X-NAME/EPIC-X-NAME.md`](../roadmap/epic-X-NAME/EPIC-X-NAME.md)
+> **Applies to:** [`docs/backlog/epic-X-NAME/EPIC-X-NAME.md`](../backlog/epic-X-NAME/EPIC-X-NAME.md)
 
 ---
 
@@ -63,6 +63,6 @@ consulted:
 ---
 
 ## 6. Implementation & Compliance Lineage
-* **Parent Epic**: [`docs/roadmap/epic-X-NAME/EPIC-X-NAME.md`](../roadmap/epic-X-NAME/EPIC-X-NAME.md)
+* **Parent Epic**: [`docs/backlog/epic-X-NAME/EPIC-X-NAME.md`](../backlog/epic-X-NAME/EPIC-X-NAME.md)
 * **Stories Enforcing this ADR**:
-  - [`Story X.1`](../roadmap/epic-X-NAME/stories/STORY-X.1-SLUG.md)
+  - [`Story X.1`](../backlog/epic-X-NAME/stories/STORY-X.1-SLUG.md)

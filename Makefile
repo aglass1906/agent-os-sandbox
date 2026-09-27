@@ -24,7 +24,7 @@ help:
 # Documentation & Governance Scaffolding Targets
 # ------------------------------------------------------------------------------
 
-## Regenerate docs/status-dashboard.html directly from canonical roadmap documents.
+## Regenerate docs/status-dashboard.html directly from canonical backlog documents.
 dashboard:
 	python3 scripts/generate_status_dashboard.py
 
@@ -37,20 +37,21 @@ new-epic:
 	@test -n "$(ID)" || (echo "Usage: make new-epic ID=<num> SLUG=<slug> TITLE=\"<Title>\"" && exit 1)
 	@test -n "$(SLUG)" || (echo "Usage: make new-epic ID=<num> SLUG=<slug> TITLE=\"<Title>\"" && exit 1)
 	@UPPER_SLUG=$$(echo "$(SLUG)" | tr '[:lower:]' '[:upper:]'); \
-	mkdir -p docs/roadmap/epic-$(ID)-$(SLUG)/stories; \
+	mkdir -p docs/backlog/epic-$(ID)-$(SLUG)/stories; \
 	sed -e 's/EPIC-X/EPIC-$(ID)/g' \
 	    -e 's/Epic X/Epic $(ID)/g' \
 	    -e 's/\[Initiative \/ Capability Title\]/$(TITLE)/g' \
-	    docs/templates/EPIC-TEMPLATE.md > docs/roadmap/epic-$(ID)-$(SLUG)/EPIC-$(ID)-$$UPPER_SLUG.md; \
-	echo "Created docs/roadmap/epic-$(ID)-$(SLUG)/EPIC-$(ID)-$$UPPER_SLUG.md and stories/ directory."
+	    docs/templates/EPIC-TEMPLATE.md > docs/backlog/epic-$(ID)-$(SLUG)/EPIC-$(ID)-$$UPPER_SLUG.md; \
+	echo "Created docs/backlog/epic-$(ID)-$(SLUG)/EPIC-$(ID)-$$UPPER_SLUG.md and stories/ directory."
 
 ## Scaffold a new Story specification: make new-story EPIC_ID=1 STORY_NUM=1 SLUG=jwt-login TITLE="JWT Login"
 new-story:
 	@test -n "$(EPIC_ID)" || (echo "Usage: make new-story EPIC_ID=<num> STORY_NUM=<subnum> SLUG=<slug> TITLE=\"<Title>\"" && exit 1)
 	@test -n "$(STORY_NUM)" || (echo "Usage: make new-story EPIC_ID=<num> STORY_NUM=<subnum> SLUG=<slug> TITLE=\"<Title>\"" && exit 1)
 	@test -n "$(SLUG)" || (echo "Usage: make new-story EPIC_ID=<num> STORY_NUM=<subnum> SLUG=<slug> TITLE=\"<Title>\"" && exit 1)
-	@TARGET_DIR=$$(find docs/roadmap -maxdepth 1 -type d -name "epic-$(EPIC_ID)-*" | head -n 1); \
-	if [ -z "$$TARGET_DIR" ]; then echo "Epic directory for Epic $(EPIC_ID) not found in docs/roadmap/"; exit 1; fi; \
+	@TARGET_DIR=$$(find docs/backlog -maxdepth 1 -type d -name "epic-$(EPIC_ID)-*" 2>/dev/null | head -n 1); \
+	if [ -z "$$TARGET_DIR" ]; then TARGET_DIR=$$(find docs/roadmap -maxdepth 1 -type d -name "epic-$(EPIC_ID)-*" 2>/dev/null | head -n 1); fi; \
+	if [ -z "$$TARGET_DIR" ]; then echo "Epic directory for Epic $(EPIC_ID) not found in docs/backlog/"; exit 1; fi; \
 	EPIC_FOLDER=$$(basename "$$TARGET_DIR"); \
 	EPIC_FILE=$$(ls "$$TARGET_DIR" | grep '^EPIC-' | head -n 1); \
 	UPPER_SLUG=$$(echo "$(SLUG)" | tr '[:lower:]' '[:upper:]'); \
@@ -78,6 +79,18 @@ new-adr:
 	    docs/templates/ADR-TEMPLATE.md > docs/adr/$$PADDED_ID-$$LOWER_SLUG.md; \
 	echo "Created docs/adr/$$PADDED_ID-$$LOWER_SLUG.md"
 
+## Scaffold a new Product Requirements Document: make new-prd SLUG=member-portal TITLE="Member Portal"
+new-prd:
+	@test -n "$(SLUG)" || (echo "Usage: make new-prd SLUG=<slug> TITLE=\"<Title>\"" && exit 1)
+	@UPPER_SLUG=$$(echo "$(SLUG)" | tr '[:lower:]' '[:upper:]'); \
+	TODAY=$$(date +%Y-%m-%d); \
+	sed -e "s/PRD-\[NAME\]/PRD-$$UPPER_SLUG/g" \
+	    -e 's/\[Product Initiative \/ Feature Requirements\]/$(TITLE)/g' \
+	    -e 's/\[Initiative Name\]/$(TITLE)/g' \
+	    -e "s/YYYY-MM-DD/$$TODAY/g" \
+	    docs/templates/PRD-TEMPLATE.md > docs/product/PRD-$$UPPER_SLUG.md; \
+	echo "Created docs/product/PRD-$$UPPER_SLUG.md"
+
 ## Scaffold a new Feature Design Spec: make new-design-spec SLUG=checkout-flow TITLE="Checkout Flow"
 new-design-spec:
 	@test -n "$(SLUG)" || (echo "Usage: make new-design-spec SLUG=<slug> TITLE=\"<Title>\"" && exit 1)
@@ -93,8 +106,9 @@ new-design-spec:
 ## Scaffold a new Epic Handoff document: make new-handoff EPIC_ID=1
 new-handoff:
 	@test -n "$(EPIC_ID)" || (echo "Usage: make new-handoff EPIC_ID=<num>" && exit 1)
-	@TARGET_DIR=$$(find docs/roadmap -maxdepth 1 -type d -name "epic-$(EPIC_ID)-*" | head -n 1); \
-	if [ -z "$$TARGET_DIR" ]; then echo "Epic directory for Epic $(EPIC_ID) not found in docs/roadmap/"; exit 1; fi; \
+	@TARGET_DIR=$$(find docs/backlog -maxdepth 1 -type d -name "epic-$(EPIC_ID)-*" 2>/dev/null | head -n 1); \
+	if [ -z "$$TARGET_DIR" ]; then TARGET_DIR=$$(find docs/roadmap -maxdepth 1 -type d -name "epic-$(EPIC_ID)-*" 2>/dev/null | head -n 1); fi; \
+	if [ -z "$$TARGET_DIR" ]; then echo "Epic directory for Epic $(EPIC_ID) not found in docs/backlog/"; exit 1; fi; \
 	EPIC_FOLDER=$$(basename "$$TARGET_DIR"); \
 	EPIC_FILE=$$(ls "$$TARGET_DIR" | grep '^EPIC-' | head -n 1); \
 	TODAY=$$(date +%Y-%m-%d); \

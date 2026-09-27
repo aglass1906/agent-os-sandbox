@@ -18,9 +18,9 @@ stories_done: 0
 
 # Epic X — [Initiative / Capability Title]
 
-> **Category:** Roadmap & Epic Execution Plan  
+> **Category:** Master Backlog & Epic Execution Plan  
 > **Status:** 🟦 Planned  
-> **Master Epic Backlog:** [`docs/roadmap/BACKLOG.md`](../BACKLOG.md)  
+> **Master Epic Backlog:** [`docs/backlog/BACKLOG.md`](../BACKLOG.md)  
 > **Living Execution Tracker:** [`docs/STATUS.md`](../../STATUS.md)  
 > **Stories Directory:** [`./stories/`](./stories/)
 

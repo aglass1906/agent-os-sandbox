@@ -18,7 +18,7 @@ surfaces:
 > **Category:** Technical & UX Design Specification  
 > **Status:** 🟦 Draft <!-- or 🟢 Living -->  
 > **Index:** [`docs/design-specs/README.md`](./README.md)  
-> **Associated Epic:** [`docs/roadmap/epic-X-NAME/EPIC-X-NAME.md`](../roadmap/epic-X-NAME/EPIC-X-NAME.md)
+> **Associated Epic:** [`docs/backlog/epic-X-NAME/EPIC-X-NAME.md`](../backlog/epic-X-NAME/EPIC-X-NAME.md)
 
 ---
 
