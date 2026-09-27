@@ -49,9 +49,15 @@ stories_done: 0
 
 ### Mandatory Acceptance Gate for Every Story
 Before marking any story complete, the implementing agent must:
-1. Self-audit code, schema, and protocol contracts.
-2. Execute automated tests (`pytest`, `xcodebuild`, `make test-mac-ui`).
-3. Record commands, outputs, and verification evidence in the story handoff.
+1. Self-audit code, schema, and protocol contracts for diff hygiene and defect remediation.
+2. Reconcile living design documentation (`docs/design-specs/` or `docs/architecture/`) to ensure code and specs never diverge.
+3. Execute automated tests (`pytest`, `xcodebuild`, `make test-mac-ui`) and document the human verification procedure.
+4. Record commands, outputs, and verification evidence in the story handoff.
+
+### Two-Tier Documentation Invariant
+- **Tier 1 (Story Task — Mandatory)**: Every code story that modifies APIs, schemas, UI states, or invariants must include an atomic task to update the corresponding feature design spec (`docs/design-specs/`) or architecture spec (`docs/architecture/`).
+- **Tier 2 (Epic Story — Large Initiatives)**: For complex multi-story Epics (5+ stories or major architectural initiatives), scope a concluding story (e.g. `Story X.Z — Subsystem Architectural Consolidation, Sequence Diagrams & Runbook`) to synthesize end-to-end system flows and operator runbooks.
+
 
 ---
 
