@@ -142,3 +142,14 @@ package-kit:
 	@if [ -n "$(DEST)" ]; then python3 -c "import shutil, os, sys; dest = os.path.expanduser(sys.argv[1]); shutil.copy2('dist/agent-os-governance-kit.zip', dest); print(f'Copied to {dest}/agent-os-governance-kit.zip' if os.path.isdir(dest) else f'Copied to {dest}')" "$(DEST)"; fi
 	@echo "Packaged dist/agent-os-governance-kit.zip ($$(du -h dist/agent-os-governance-kit.zip | cut -f1))"
 
+## Audit backlog and epic documentation against canonical templates: make lint-docs [EPIC=30] [STATUS=in_progress] [TARGET=stories]
+lint-docs:
+	python3 scripts/reconcile_docs.py --check $(if $(STATUS),--status $(STATUS),) $(if $(EPIC),--epic $(EPIC),) $(if $(EPICS),--epics $(EPICS),) $(if $(TARGET),--target $(TARGET),)
+
+## Preview diff of proposed template reconciliation without touching disk: make diff-docs [EPIC=30] [STATUS=in_progress]
+diff-docs:
+	python3 scripts/reconcile_docs.py --dry-run $(if $(STATUS),--status $(STATUS),) $(if $(EPIC),--epic $(EPIC),) $(if $(EPICS),--epics $(EPICS),) $(if $(TARGET),--target $(TARGET),)
+
+## Reconcile backlog and epic documentation to match canonical templates: make sync-docs [EPIC=30] [STATUS=in_progress,planned]
+sync-docs:
+	python3 scripts/reconcile_docs.py --fix $(if $(STATUS),--status $(STATUS),) $(if $(EPIC),--epic $(EPIC),) $(if $(EPICS),--epics $(EPICS),) $(if $(TARGET),--target $(TARGET),)

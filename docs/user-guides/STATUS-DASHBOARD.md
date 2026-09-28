@@ -188,10 +188,14 @@ make update-governance
 # or: python3 scripts/bootstrap_governance.py --update
 ```
 The update engine refreshes the canonical governance assets:
+- `scripts/bootstrap_governance.py`
 - `scripts/generate_status_dashboard.py`
+- `scripts/reconcile_docs.py`
 - `docs/status-dashboard.template.html`
 - `docs/templates/*.md`
 - **`docs/user-guides/STATUS-DASHBOARD.md`** *(this guide)*
+- `docs/user-guides/MAKEFILE-COMMANDS.md`
+- `docs/user-guides/DOCUMENTATION-RECONCILIATION-RUNBOOK.md`
 
 ### Packaging the Governance Kit
 

@@ -1,17 +1,20 @@
 ---
-id: SPEC-ADVENTURE-GAME
+id: "SPEC-ADVENTURE-GAME"
 title: "Adventure Game Technical Design Specification"
-type: design-spec
-status: living
-created: 2026-09-02
-updated: 2026-09-27
+type: "design-spec"
+status: "living"
+created: "2026-09-02"
+updated: "2026-09-27"
 surfaces:
   - web-client
 ---
 
-# Adventure — Technical Design Document
+# Feature Design Spec — Adventure Game Technical Design Specification
 
-> **Document Type:** Design Specification  
+> **Category:** Technical & UX Design Specification  
+> **Status:** 🟢 Living  
+> **Index:** [`docs/design-specs/README.md`](./README.md)
+> **Document Type:** Design Specification
 > **Source Documents:** Grounded in `PROJECT_OVERVIEW_DRAFT.md`, `Coding Conventions and Style Guide`, and `docs/README.md`.
 
 ---

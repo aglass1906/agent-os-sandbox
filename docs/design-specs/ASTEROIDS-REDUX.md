@@ -1,17 +1,20 @@
 ---
-id: SPEC-ASTEROIDS-REDUX
+id: "SPEC-ASTEROIDS-REDUX"
 title: "Asteroids Redux Technical Design Specification"
-type: design-spec
-status: living
-created: 2026-09-02
-updated: 2026-09-27
+type: "design-spec"
+status: "living"
+created: "2026-09-02"
+updated: "2026-09-27"
 surfaces:
   - web-client
 ---
 
-# Asteroids Redux — Technical Design Document
+# Feature Design Spec — Asteroids Redux Technical Design Specification
 
-> **Document Type:** Design Specification  
+> **Category:** Technical & UX Design Specification  
+> **Status:** 🟢 Living  
+> **Index:** [`docs/design-specs/README.md`](./README.md)
+> **Document Type:** Design Specification
 > **Source Documents:** Grounded in `PROJECT_OVERVIEW_DRAFT.md` (Project overview document) and repository file `src/games/asteroids/asteroids_design.md`.
 
 ---

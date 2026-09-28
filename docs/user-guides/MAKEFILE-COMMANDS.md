@@ -34,6 +34,9 @@ Rather than creating Markdown files manually by hand, developers and AI coding a
 | `make new-pr` | Scaffolding | Generates a GitHub PR template or completion report. | `[OUT=<path>]` |
 | `make dashboard` | Dashboard | Recompiles the offline interactive `docs/status-dashboard.html`. | *(None)* |
 | `make sync-status` | Anti-Drift | Reconciles `docs/STATUS.md` checkmarks and titles with disk. | *(None)* |
+| `make lint-docs` | Governance | Audits backlog specs against canonical templates in `docs/templates/`. | `[EPIC=<num>]`, `[STATUS=<status>]`, `[TARGET=<kind>]` |
+| `make diff-docs` | Governance | Previews diffs of template reconciliation without writing to disk. | `[EPIC=<num>]`, `[STATUS=<status>]` |
+| `make sync-docs` | Governance | Reconciles backlog specs to match current canonical templates. | `[EPIC=<num>]`, `[STATUS=<status>]`, `[TARGET=<kind>]` |
 | `make update-governance` | Upstream Sync | Fetches the latest generator, templates, and guides from GitHub. | *(None)* |
 | `make package-kit` | Packaging | Bundles the portable governance kit into a standalone zip file. | `[DEST=<dir>]` |
 
@@ -190,6 +193,32 @@ make package-kit
 # Package and copy directly to Desktop or target folder:
 make package-kit DEST=~/Desktop
 ```
+
+---
+
+### E. Template Reconciliation & Governance Auditing (`make lint-docs`, `make diff-docs`, `make sync-docs`)
+Audit and automatically reconcile active specifications against current templates in `docs/templates/`:
+
+```bash
+# 1. Audit drift across active backlog (fails in CI if drift exists)
+make lint-docs
+
+# 2. Preview unified diffs without modifying files
+make diff-docs
+make diff-docs EPIC=30
+
+# 3. Reconcile specifications in place
+make sync-docs
+make sync-docs EPIC=30
+make sync-docs TARGET=stories STATUS=in_progress
+make sync-docs TARGET=design-specs
+make sync-docs TARGET=adrs
+make sync-docs TARGET=all-docs
+```
+
+- **Supported Targets**: `stories`, `epics`, `backlog`, `design-specs`, `adrs`, `prds`, `handoffs`, `all`, `all-docs`.
+- **Invariants**: Preserves 100% of custom engineering analysis, diagrams, DDLs, endpoints, and task completion checkboxes.
+- **Reference**: See [`DOCUMENTATION-RECONCILIATION-RUNBOOK.md`](./DOCUMENTATION-RECONCILIATION-RUNBOOK.md) for full runbook details.
 
 ---
 

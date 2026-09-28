@@ -73,6 +73,18 @@ dashboard:
 sync-status:
 	python3 scripts/generate_status_dashboard.py --sync
 
+## Audit backlog and epic documentation against canonical templates: make lint-docs [EPIC=30] [STATUS=in_progress] [TARGET=stories]
+lint-docs:
+	python3 scripts/reconcile_docs.py --check $(if $(STATUS),--status $(STATUS),) $(if $(EPIC),--epic $(EPIC),) $(if $(EPICS),--epics $(EPICS),) $(if $(TARGET),--target $(TARGET),)
+
+## Preview diff of proposed template reconciliation without touching disk: make diff-docs [EPIC=30] [STATUS=in_progress]
+diff-docs:
+	python3 scripts/reconcile_docs.py --dry-run $(if $(STATUS),--status $(STATUS),) $(if $(EPIC),--epic $(EPIC),) $(if $(EPICS),--epics $(EPICS),) $(if $(TARGET),--target $(TARGET),)
+
+## Reconcile backlog and epic documentation to match canonical templates: make sync-docs [EPIC=30] [STATUS=in_progress,planned]
+sync-docs:
+	python3 scripts/reconcile_docs.py --fix $(if $(STATUS),--status $(STATUS),) $(if $(EPIC),--epic $(EPIC),) $(if $(EPICS),--epics $(EPICS),) $(if $(TARGET),--target $(TARGET),)
+
 ## Scaffold a new Epic directory & plan: make new-epic ID=1 SLUG=user-auth TITLE="User Authentication"
 new-epic:
 	@test -n "$(ID)" || (echo "Usage: make new-epic ID=<num> SLUG=<slug> TITLE=\\"<Title>\\"" && exit 1)
@@ -199,6 +211,8 @@ Always use `make` targets to scaffold new documents:
 * **New PR / Completion Report**: `make new-pr`
 * **Sync Tracker**: `make sync-status` (keeps `docs/STATUS.md` 100% in sync with disk)
 * **Rebuild Dashboard**: `make dashboard` (rebuilds `docs/status-dashboard.html`)
+* **Audit Docs**: `make lint-docs` (audits active specs against canonical templates)
+* **Reconcile Docs**: `make sync-docs` (auto-aligns specs with templates non-destructively)
 
 ---
 
@@ -530,9 +544,10 @@ def analyze_project(
         created_count += 1
 
     print("   \033[1;32m+\033[0m scripts/generate_status_dashboard.py (Status synchronizer & dashboard generator)")
+    print("   \033[1;32m+\033[0m scripts/reconcile_docs.py (Template reconciler & drift linter)")
     print("   \033[1;32m+\033[0m docs/status-dashboard.template.html (Customized dashboard HTML template)")
     print("   \033[1;32m+\033[0m docs/status-dashboard.html (Zero-dependency visual dashboard compiled from disk)")
-    created_count += 3
+    created_count += 4
 
     dash_guide = target / "docs" / "user-guides" / "STATUS-DASHBOARD.md"
     if not dash_guide.exists():
@@ -542,6 +557,11 @@ def analyze_project(
     makefile_guide = target / "docs" / "user-guides" / "MAKEFILE-COMMANDS.md"
     if not makefile_guide.exists():
         print("   \033[1;32m+\033[0m docs/user-guides/MAKEFILE-COMMANDS.md (Makefile & scaffolding commands reference guide)")
+        created_count += 1
+
+    reconcile_guide = target / "docs" / "user-guides" / "DOCUMENTATION-RECONCILIATION-RUNBOOK.md"
+    if not reconcile_guide.exists():
+        print("   \033[1;32m+\033[0m docs/user-guides/DOCUMENTATION-RECONCILIATION-RUNBOOK.md (Template reconciliation runbook)")
         created_count += 1
 
 
@@ -735,10 +755,15 @@ def bootstrap_project(
             shutil.copy2(src, dst)
     print_step("Copied canonical starter templates to docs/templates/")
 
-    # 3. Copy dashboard tools
+    # 3. Copy dashboard tools and governance engines
     dash_script = SOURCE_ROOT / "scripts" / "generate_status_dashboard.py"
     shutil.copy2(dash_script, target / "scripts" / "generate_status_dashboard.py")
     (target / "scripts" / "generate_status_dashboard.py").chmod(0o755)
+
+    reconcile_script = SOURCE_ROOT / "scripts" / "reconcile_docs.py"
+    if reconcile_script.exists():
+        shutil.copy2(reconcile_script, target / "scripts" / "reconcile_docs.py")
+        (target / "scripts" / "reconcile_docs.py").chmod(0o755)
 
     dash_template_src = SOURCE_ROOT / "docs" / "status-dashboard.template.html"
     dash_html_content = dash_template_src.read_text(encoding="utf-8")
@@ -765,7 +790,13 @@ def bootstrap_project(
         makefile_guide_dst.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(makefile_guide_src, makefile_guide_dst)
 
-    print_step("Installed status dashboard generator, customized template, and user guides")
+    reconcile_guide_src = SOURCE_ROOT / "docs" / "user-guides" / "DOCUMENTATION-RECONCILIATION-RUNBOOK.md"
+    if reconcile_guide_src.exists():
+        reconcile_guide_dst = target / "docs" / "user-guides" / "DOCUMENTATION-RECONCILIATION-RUNBOOK.md"
+        reconcile_guide_dst.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(reconcile_guide_src, reconcile_guide_dst)
+
+    print_step("Installed status dashboard generator, reconciliation engine, templates, and user guides")
 
     # 4. Makefile setup
     makefile_path = target / "Makefile"
@@ -854,6 +885,7 @@ def bootstrap_project(
 CANONICAL_GOVERNANCE_FILES = [
     "scripts/bootstrap_governance.py",
     "scripts/generate_status_dashboard.py",
+    "scripts/reconcile_docs.py",
     "docs/status-dashboard.template.html",
     "docs/templates/PRD-TEMPLATE.md",
     "docs/templates/EPIC-TEMPLATE.md",
@@ -865,6 +897,7 @@ CANONICAL_GOVERNANCE_FILES = [
     "docs/templates/README.md",
     "docs/user-guides/STATUS-DASHBOARD.md",
     "docs/user-guides/MAKEFILE-COMMANDS.md",
+    "docs/user-guides/DOCUMENTATION-RECONCILIATION-RUNBOOK.md",
 ]
 
 
@@ -985,6 +1018,7 @@ def update_governance(
 
         base_url = f"https://raw.githubusercontent.com/{remote}/{target_ref}/"
 
+        self_updated = False
         updated_count = 0
         idx = 0
         while idx < len(files_to_sync):
@@ -1007,6 +1041,7 @@ def update_governance(
 
                         # Dynamically discover any newly added canonical files from the latest bootstrap script
                         if rel_str == "scripts/bootstrap_governance.py":
+                            self_updated = True
                             try:
                                 remote_files = extract_canonical_files(content.decode("utf-8"))
                                 for rf in remote_files:
@@ -1054,21 +1089,45 @@ def update_governance(
                             updated_count += 1
                 except Exception as e:
                     print_info(f"⚠ Git fallback error: {e}")
-
         print_step(f"Refreshed {updated_count}/{len(files_to_sync)} canonical files from GitHub.")
 
-    # Ensure target Makefile has update-governance
+        # If bootstrap_governance.py was updated and hasn't re-executed yet, reload so new post-sync logic runs immediately
+        if self_updated and not os.environ.get("_AGENTOS_BOOTSTRAP_REEXEC"):
+            os.environ["_AGENTOS_BOOTSTRAP_REEXEC"] = "1"
+            os.execv(sys.executable, [sys.executable] + sys.argv)
+
+    # Ensure target Makefile has latest governance targets
     makefile_path = target / "Makefile"
     if makefile_path.exists():
         mf_content = makefile_path.read_text(encoding="utf-8")
+        missing_targets = []
         if "update-governance:" not in mf_content:
-            target_str = """
+            missing_targets.append("""
 ## Pull latest governance scripts and templates from GitHub and rebuild dashboard.
 update-governance:
 	python3 scripts/bootstrap_governance.py --update
-"""
-            makefile_path.write_text(mf_content + target_str, encoding="utf-8")
-            print_step("Added update-governance target to Makefile")
+""")
+        if "lint-docs:" not in mf_content:
+            missing_targets.append("""
+## Audit backlog and epic documentation against canonical templates: make lint-docs [EPIC=30] [STATUS=in_progress] [TARGET=stories]
+lint-docs:
+	python3 scripts/reconcile_docs.py --check $(if $(STATUS),--status $(STATUS),) $(if $(EPIC),--epic $(EPIC),) $(if $(EPICS),--epics $(EPICS),) $(if $(TARGET),--target $(TARGET),)
+""")
+        if "diff-docs:" not in mf_content:
+            missing_targets.append("""
+## Preview diff of proposed template reconciliation without touching disk: make diff-docs [EPIC=30] [STATUS=in_progress]
+diff-docs:
+	python3 scripts/reconcile_docs.py --dry-run $(if $(STATUS),--status $(STATUS),) $(if $(EPIC),--epic $(EPIC),) $(if $(EPICS),--epics $(EPICS),) $(if $(TARGET),--target $(TARGET),)
+""")
+        if "sync-docs:" not in mf_content:
+            missing_targets.append("""
+## Reconcile backlog and epic documentation to match canonical templates: make sync-docs [EPIC=30] [STATUS=in_progress,planned]
+sync-docs:
+	python3 scripts/reconcile_docs.py --fix $(if $(STATUS),--status $(STATUS),) $(if $(EPIC),--epic $(EPIC),) $(if $(EPICS),--epics $(EPICS),) $(if $(TARGET),--target $(TARGET),)
+""")
+        if missing_targets:
+            makefile_path.write_text(mf_content.rstrip() + "\n" + "".join(missing_targets), encoding="utf-8")
+            print_step(f"Appended {len(missing_targets)} missing governance targets to Makefile")
 
     # Run dashboard generator in target
     generator_script = target / "scripts" / "generate_status_dashboard.py"
