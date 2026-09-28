@@ -116,10 +116,24 @@ def parse_roadmap_documents(
 ) -> list[dict]:
     if not ROADMAP_DIR.exists():
         return []
-    epic_dirs = sorted(
-        [d for d in ROADMAP_DIR.iterdir() if d.is_dir() and d.name.startswith("epic-")],
-        key=lambda d: int(re.search(r"epic-(\d+)", d.name).group(1)),
-    )
+    # Skip (with a warning, not a crash) any epic-* directory whose name has
+    # no digit immediately after "epic-" -- e.g. a stray scaffold-repro
+    # leftover like "epic-X-NAME" or a manually misnamed folder. Without
+    # this guard, re.search(...).group(1) raises AttributeError on such a
+    # directory and aborts the whole dashboard/sync-status run.
+    numbered_dirs: list[tuple[int, Path]] = []
+    for d in ROADMAP_DIR.iterdir():
+        if not d.is_dir() or not d.name.startswith("epic-"):
+            continue
+        m = re.search(r"epic-(\d+)", d.name)
+        if not m:
+            print(
+                f"Warning: skipping malformed epic-* directory (no epic number found in name): {d.name}",
+                file=sys.stderr,
+            )
+            continue
+        numbered_dirs.append((int(m.group(1)), d))
+    epic_dirs = [d for _, d in sorted(numbered_dirs, key=lambda t: t[0])]
 
     epics_data: list[dict] = []
     for ed in epic_dirs:
@@ -210,20 +224,27 @@ def parse_roadmap_documents(
             else:
                 calc_status = "planned"
 
-        # Cross-reference associated design specification
-        associated_design_spec = None
+        # Cross-reference associated design specifications (every match, not
+        # just the first) via either the epic's own design_spec: frontmatter
+        # or a reverse epic_id: match declared on the spec itself. A single
+        # pass over design_specs_data (already sorted by filename) gives a
+        # stable, de-duplicated order for free.
+        associated_design_specs: list[dict] = []
         ds_val = p_fm.get("design_spec")
+        ds_clean = ds_val.strip() if ds_val and isinstance(ds_val, str) else ""
         if design_specs_data:
-            if ds_val and isinstance(ds_val, str) and ds_val.strip():
-                ds_clean = ds_val.strip()
-                for ds in design_specs_data:
-                    if (
-                        ds["path"] == ds_clean
-                        or ds["rel_link"] == ds_clean
-                        or ds_clean.endswith("/" + Path(ds["path"]).name)
-                        or ds_clean == Path(ds["path"]).name
-                    ):
-                        associated_design_spec = {
+            for ds in design_specs_data:
+                explicit_match = ds_clean and (
+                    ds["path"] == ds_clean
+                    or ds["rel_link"] == ds_clean
+                    or ds_clean.endswith("/" + Path(ds["path"]).name)
+                    or ds_clean == Path(ds["path"]).name
+                )
+                ds_epic = str(ds.get("epic_id", "")).strip().upper()
+                epic_match = ds_epic in (f"EPIC-{epic_id}", epic_id, f"EPIC {epic_id}")
+                if explicit_match or epic_match:
+                    associated_design_specs.append(
+                        {
                             "id": ds["id"],
                             "title": ds["title"],
                             "status": ds["status"],
@@ -231,21 +252,7 @@ def parse_roadmap_documents(
                             "path": ds["path"],
                             "content": ds["content"],
                         }
-                        break
-            if not associated_design_spec:
-                # Fallback: match by epic_id declared in design spec frontmatter
-                for ds in design_specs_data:
-                    ds_epic = str(ds.get("epic_id", "")).strip().upper()
-                    if ds_epic in (f"EPIC-{epic_id}", epic_id, f"EPIC {epic_id}"):
-                        associated_design_spec = {
-                            "id": ds["id"],
-                            "title": ds["title"],
-                            "status": ds["status"],
-                            "rel_link": ds["rel_link"],
-                            "path": ds["path"],
-                            "content": ds["content"],
-                        }
-                        break
+                    )
 
         # Cross-reference associated ADRs
         associated_adrs = []
@@ -293,30 +300,31 @@ def parse_roadmap_documents(
         plan_rel = plan_file.relative_to(REPO_ROOT / "docs").as_posix()
         plan_p = plan_file.relative_to(REPO_ROOT).as_posix()
 
-        # Back-link parent_epic onto design spec and ADR records
-        if associated_design_spec and design_specs_data:
-            for ds in design_specs_data:
-                if ds["id"] == associated_design_spec["id"]:
-                    ds["parent_epic"] = {
-                        "id": epic_id,
-                        "name": title,
-                        "status": calc_status,
-                        "plan_rel_link": plan_rel,
-                        "plan_path": plan_p,
-                        "plan_content": p_content,
-                        "adrs": [
-                            {
-                                "id": a["id"],
-                                "number": a["number"],
-                                "title": a["title"],
-                                "status": a["status"],
-                                "rel_link": a["rel_link"],
-                                "path": a["path"],
-                                "content": a["content"],
-                            }
-                            for a in associated_adrs
-                        ],
-                    }
+        # Back-link parent_epic onto every matched design spec and ADR record
+        if associated_design_specs and design_specs_data:
+            for assoc_ds in associated_design_specs:
+                for ds in design_specs_data:
+                    if ds["id"] == assoc_ds["id"]:
+                        ds["parent_epic"] = {
+                            "id": epic_id,
+                            "name": title,
+                            "status": calc_status,
+                            "plan_rel_link": plan_rel,
+                            "plan_path": plan_p,
+                            "plan_content": p_content,
+                            "adrs": [
+                                {
+                                    "id": a["id"],
+                                    "number": a["number"],
+                                    "title": a["title"],
+                                    "status": a["status"],
+                                    "rel_link": a["rel_link"],
+                                    "path": a["path"],
+                                    "content": a["content"],
+                                }
+                                for a in associated_adrs
+                            ],
+                        }
         for a in associated_adrs:
             for adr in adrs_data:
                 if adr["id"] == a["id"]:
@@ -327,18 +335,17 @@ def parse_roadmap_documents(
                         "plan_rel_link": plan_rel,
                         "plan_path": plan_p,
                         "plan_content": p_content,
-                        "design_spec": (
+                        "design_specs": [
                             {
-                                "id": associated_design_spec["id"],
-                                "title": associated_design_spec["title"],
-                                "status": associated_design_spec["status"],
-                                "rel_link": associated_design_spec["rel_link"],
-                                "path": associated_design_spec["path"],
-                                "content": associated_design_spec["content"],
+                                "id": ds["id"],
+                                "title": ds["title"],
+                                "status": ds["status"],
+                                "rel_link": ds["rel_link"],
+                                "path": ds["path"],
+                                "content": ds["content"],
                             }
-                            if associated_design_spec
-                            else None
-                        ),
+                            for ds in associated_design_specs
+                        ],
                     }
 
         epics_data.append(
@@ -351,7 +358,7 @@ def parse_roadmap_documents(
                 "plan_rel_link": plan_rel,
                 "plan_path": plan_p,
                 "plan_content": p_content,
-                "design_spec": associated_design_spec,
+                "design_specs": associated_design_specs,
                 "adrs": associated_adrs,
             }
         )
@@ -370,6 +377,10 @@ def parse_product_documents() -> list[dict]:
     for pf in prd_files:
         content = pf.read_text(encoding="utf-8")
         fm = extract_frontmatter(content)
+
+        num_m = re.search(r"^PRD-(\d+)", pf.stem)
+        num_str = num_m.group(1) if num_m else "0000"
+
         title = fm.get("title")
         if not title:
             m = re.search(
@@ -408,6 +419,7 @@ def parse_product_documents() -> list[dict]:
         prds.append(
             {
                 "id": fm.get("id", pf.stem),
+                "number": num_str,
                 "title": title,
                 "status": status,
                 "owner": owner,
@@ -618,10 +630,25 @@ def sync_status_md(epics_data: list[dict]) -> None:
         if not stories:
             continue
 
+        # Top-level epic headings in docs/STATUS.md are inconsistently
+        # written as either `##` or `###` (e.g. Epic 5 uses `###` while
+        # Epic 4/6/7 use `##`), so match either. The `(?![\.\d])` boundary
+        # is required (not just `\b`) so "Epic 4" never matches inside a
+        # decimal sub-heading like "Epic 4.1" or a longer number like
+        # "Epic 40" — `\b` alone is satisfied by a following `.` or digit.
+        #
+        # Group 2 tolerates the blank line(s) that separate the header
+        # from its checklist (and any optional `>` note line, itself
+        # optionally blank-line-padded) — without this, the checklist
+        # group below never matches anything immediately after a header
+        # followed by a blank line, and the new checklist gets inserted
+        # ahead of the untouched stale one instead of replacing it.
         pattern = re.compile(
-            r"(###\s+Epic\s+"
+            r"(#{2,3}\s+Epic\s+"
             + re.escape(epic_num)
-            + r"\b[^\n]*\n)(?:(>[^\n]*\n))?((?:-\s*\[[ xX]\].*\n?)*)",
+            + r"(?![\.\d])[^\n]*\n)"
+            r"((?:[ \t]*\n)*(?:>[^\n]*\n(?:[ \t]*\n)*)?)"
+            r"((?:-\s*\[[ xX]\].*\n?)*)",
             re.MULTILINE,
         )
 
@@ -630,7 +657,7 @@ def sync_status_md(epics_data: list[dict]) -> None:
             continue
 
         header_part = match.group(1)
-        note_part = match.group(2) or ""
+        prefix_part = match.group(2) or ""
 
         # Build clean checklist from disk stories
         new_checklist_lines = []
@@ -640,9 +667,13 @@ def sync_status_md(epics_data: list[dict]) -> None:
             new_checklist_lines.append(
                 f"- {box} [**Story {s['id']}**]({rel_link}): {s['title']}"
             )
-        new_checklist = "\n".join(new_checklist_lines) + "\n\n"
+        # A single trailing newline only: the blank line that originally
+        # separated the old checklist from whatever follows (next heading
+        # or freeform notes) is not consumed by the match above, so it is
+        # preserved untouched rather than re-added here.
+        new_checklist = "\n".join(new_checklist_lines) + "\n"
 
-        replacement = f"{header_part}{note_part}{new_checklist}"
+        replacement = f"{header_part}{prefix_part}{new_checklist}"
         content = content[: match.start()] + replacement + content[match.end() :]
 
     STATUS_MD.write_text(content, encoding="utf-8")
@@ -730,8 +761,8 @@ def generate(
         }
         if ep.get("note"):
             item["note"] = ep["note"]
-        if ep.get("design_spec"):
-            item["design_spec"] = ep["design_spec"]
+        if ep.get("design_specs"):
+            item["design_specs"] = ep["design_specs"]
         if ep.get("adrs"):
             item["adrs"] = ep["adrs"]
         if ep.get("stories"):

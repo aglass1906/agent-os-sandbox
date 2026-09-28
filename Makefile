@@ -40,72 +40,105 @@ sync-status:
 new-epic:
 	@test -n "$(ID)" || (echo "Usage: make new-epic ID=<num> SLUG=<slug> TITLE=\"<Title>\"" && exit 1)
 	@test -n "$(SLUG)" || (echo "Usage: make new-epic ID=<num> SLUG=<slug> TITLE=\"<Title>\"" && exit 1)
+	@test -n "$(TITLE)" || (echo "Usage: make new-epic ID=<num> SLUG=<slug> TITLE=\"<Title>\"" && exit 1)
+	@echo "$(ID)" | grep -Eq '^[0-9]+$$' || (echo "Error: ID must be a whole number, got '$(ID)'" && exit 1)
+	@echo "$(SLUG)" | grep -Eq '^[a-z0-9]+(-[a-z0-9]+)*$$' || (echo "Error: SLUG must be lowercase letters, numbers, and hyphens only, got '$(SLUG)'" && exit 1)
 	@UPPER_SLUG=$$(echo "$(SLUG)" | tr '[:lower:]' '[:upper:]'); \
-	mkdir -p docs/backlog/epic-$(ID)-$(SLUG)/stories; \
+	OUT_DIR=docs/backlog/epic-$(ID)-$(SLUG); \
+	OUT_FILE=$$OUT_DIR/EPIC-$(ID)-$$UPPER_SLUG.md; \
+	if [ -f "$$OUT_FILE" ]; then echo "Refusing to overwrite existing file: $$OUT_FILE"; exit 1; fi; \
+	TITLE_ESC=$$(printf '%s' "$(TITLE)" | sed -e 's/[\&|]/\\&/g'); \
+	TODAY=$$(date +%Y-%m-%d); \
+	mkdir -p "$$OUT_DIR/stories"; \
 	sed -e 's/EPIC-X/EPIC-$(ID)/g' \
 	    -e 's/Epic X/Epic $(ID)/g' \
-	    -e 's/\[Initiative \/ Capability Title\]/$(TITLE)/g' \
-	    docs/templates/EPIC-TEMPLATE.md > docs/backlog/epic-$(ID)-$(SLUG)/EPIC-$(ID)-$$UPPER_SLUG.md; \
-	echo "Created docs/backlog/epic-$(ID)-$(SLUG)/EPIC-$(ID)-$$UPPER_SLUG.md and stories/ directory."
+	    -e "s|\[Initiative / Capability Title\]|$$TITLE_ESC|g" \
+	    -e "s/YYYY-MM-DD/$$TODAY/g" \
+	    docs/templates/EPIC-TEMPLATE.md > "$$OUT_FILE"; \
+	echo "Created $$OUT_FILE and stories/ directory."
 
 ## Scaffold a new Story specification: make new-story EPIC_ID=1 STORY_NUM=1 SLUG=jwt-login TITLE="JWT Login"
 new-story:
 	@test -n "$(EPIC_ID)" || (echo "Usage: make new-story EPIC_ID=<num> STORY_NUM=<subnum> SLUG=<slug> TITLE=\"<Title>\"" && exit 1)
 	@test -n "$(STORY_NUM)" || (echo "Usage: make new-story EPIC_ID=<num> STORY_NUM=<subnum> SLUG=<slug> TITLE=\"<Title>\"" && exit 1)
 	@test -n "$(SLUG)" || (echo "Usage: make new-story EPIC_ID=<num> STORY_NUM=<subnum> SLUG=<slug> TITLE=\"<Title>\"" && exit 1)
+	@test -n "$(TITLE)" || (echo "Usage: make new-story EPIC_ID=<num> STORY_NUM=<subnum> SLUG=<slug> TITLE=\"<Title>\"" && exit 1)
+	@echo "$(EPIC_ID)" | grep -Eq '^[0-9]+$$' || (echo "Error: EPIC_ID must be a whole number, got '$(EPIC_ID)'" && exit 1)
+	@echo "$(STORY_NUM)" | grep -Eq '^[0-9]+$$' || (echo "Error: STORY_NUM must be a whole number, got '$(STORY_NUM)'" && exit 1)
+	@echo "$(SLUG)" | grep -Eq '^[a-z0-9]+(-[a-z0-9]+)*$$' || (echo "Error: SLUG must be lowercase letters, numbers, and hyphens only, got '$(SLUG)'" && exit 1)
 	@TARGET_DIR=$$(find docs/backlog -maxdepth 1 -type d -name "epic-$(EPIC_ID)-*" 2>/dev/null | head -n 1); \
 	if [ -z "$$TARGET_DIR" ]; then TARGET_DIR=$$(find docs/roadmap -maxdepth 1 -type d -name "epic-$(EPIC_ID)-*" 2>/dev/null | head -n 1); fi; \
 	if [ -z "$$TARGET_DIR" ]; then echo "Epic directory for Epic $(EPIC_ID) not found in docs/backlog/"; exit 1; fi; \
 	EPIC_FOLDER=$$(basename "$$TARGET_DIR"); \
 	EPIC_FILE=$$(ls "$$TARGET_DIR" | grep '^EPIC-' | head -n 1); \
+	EPIC_TITLE=$$(sed -n 's/^title: *"\(.*\)"$$/\1/p' "$$TARGET_DIR/$$EPIC_FILE" | head -n 1); \
+	EPIC_TITLE_ESC=$$(printf '%s' "$$EPIC_TITLE" | sed -e 's/[\&|]/\\&/g'); \
+	TITLE_ESC=$$(printf '%s' "$(TITLE)" | sed -e 's/[\&|]/\\&/g'); \
 	UPPER_SLUG=$$(echo "$(SLUG)" | tr '[:lower:]' '[:upper:]'); \
-	sed -e 's/STORY-X\.Y/STORY-$(EPIC_ID).$(STORY_NUM)/g' \
+	OUT_FILE="$$TARGET_DIR/stories/STORY-$(EPIC_ID).$(STORY_NUM)-$$UPPER_SLUG.md"; \
+	if [ -f "$$OUT_FILE" ]; then echo "Refusing to overwrite existing file: $$OUT_FILE"; exit 1; fi; \
+	sed -e "s|epic-X-NAME/EPIC-X-NAME\.md|$$EPIC_FOLDER/$$EPIC_FILE|g" \
+	    -e "s|\.\./EPIC-X-NAME\.md|\.\./$$EPIC_FILE|g" \
+	    -e 's/STORY-X\.Y/STORY-$(EPIC_ID).$(STORY_NUM)/g' \
 	    -e 's/Story X\.Y/Story $(EPIC_ID).$(STORY_NUM)/g' \
 	    -e 's/EPIC-X/EPIC-$(EPIC_ID)/g' \
 	    -e 's/Epic X/Epic $(EPIC_ID)/g' \
-	    -e 's/\[Story Title\]/$(TITLE)/g' \
-	    -e "s|epic-X-NAME/EPIC-X-NAME\.md|$$EPIC_FOLDER/$$EPIC_FILE|g" \
-	    -e "s|\.\./EPIC-X-NAME\.md|\.\./$$EPIC_FILE|g" \
-	    docs/templates/STORY-TEMPLATE.md > "$$TARGET_DIR/stories/STORY-$(EPIC_ID).$(STORY_NUM)-$$UPPER_SLUG.md"; \
-	echo "Created $$TARGET_DIR/stories/STORY-$(EPIC_ID).$(STORY_NUM)-$$UPPER_SLUG.md"
+	    -e "s|\[Epic Title\]|$$EPIC_TITLE_ESC|g" \
+	    -e "s|\[Story Title\]|$$TITLE_ESC|g" \
+	    docs/templates/STORY-TEMPLATE.md > "$$OUT_FILE"; \
+	echo "Created $$OUT_FILE"
 
 ## Scaffold a new Architecture Decision Record: make new-adr ID=1 SLUG=use-postgres TITLE="Use Postgres"
 new-adr:
 	@test -n "$(ID)" || (echo "Usage: make new-adr ID=<num> SLUG=<slug> TITLE=\"<Title>\"" && exit 1)
 	@test -n "$(SLUG)" || (echo "Usage: make new-adr ID=<num> SLUG=<slug> TITLE=\"<Title>\"" && exit 1)
+	@test -n "$(TITLE)" || (echo "Usage: make new-adr ID=<num> SLUG=<slug> TITLE=\"<Title>\"" && exit 1)
 	@PADDED_ID=$$(printf "%04d" $(ID)); \
 	LOWER_SLUG=$$(echo "$(SLUG)" | tr '[:upper:]' '[:lower:]'); \
 	TODAY=$$(date +%Y-%m-%d); \
+	TITLE_ESC=$$(printf '%s' "$(TITLE)" | sed -e 's/[\&|]/\\&/g'); \
+	OUT_FILE=docs/adr/$$PADDED_ID-$$LOWER_SLUG.md; \
+	if [ -f "$$OUT_FILE" ]; then echo "Refusing to overwrite existing file: $$OUT_FILE"; exit 1; fi; \
 	sed -e "s/ADR-000X/ADR-$$PADDED_ID/g" \
 	    -e "s/ADR 000X/ADR $$PADDED_ID/g" \
-	    -e 's/\[Short, Descriptive Title of Decision\]/$(TITLE)/g' \
+	    -e "s|\[Short, Descriptive Title of Decision\]|$$TITLE_ESC|g" \
 	    -e "s/YYYY-MM-DD/$$TODAY/g" \
-	    docs/templates/ADR-TEMPLATE.md > docs/adr/$$PADDED_ID-$$LOWER_SLUG.md; \
-	echo "Created docs/adr/$$PADDED_ID-$$LOWER_SLUG.md"
+	    docs/templates/ADR-TEMPLATE.md > "$$OUT_FILE"; \
+	echo "Created $$OUT_FILE"
 
 ## Scaffold a new Product Requirements Document: make new-prd SLUG=member-portal TITLE="Member Portal"
 new-prd:
-	@test -n "$(SLUG)" || (echo "Usage: make new-prd SLUG=<slug> TITLE=\"<Title>\"" && exit 1)
-	@UPPER_SLUG=$$(echo "$(SLUG)" | tr '[:lower:]' '[:upper:]'); \
+	@test -n "$(ID)" || (echo "Usage: make new-prd ID=<num> SLUG=<slug> TITLE=\"<Title>\"" && exit 1)
+	@test -n "$(SLUG)" || (echo "Usage: make new-prd ID=<num> SLUG=<slug> TITLE=\"<Title>\"" && exit 1)
+	@test -n "$(TITLE)" || (echo "Usage: make new-prd ID=<num> SLUG=<slug> TITLE=\"<Title>\"" && exit 1)
+	@PADDED_ID=$$(printf "%04d" $(ID)); \
+	LOWER_SLUG=$$(echo "$(SLUG)" | tr '[:upper:]' '[:lower:]'); \
 	TODAY=$$(date +%Y-%m-%d); \
-	sed -e "s/PRD-\[NAME\]/PRD-$$UPPER_SLUG/g" \
-	    -e 's/\[Product Initiative \/ Feature Requirements\]/$(TITLE)/g' \
-	    -e 's/\[Initiative Name\]/$(TITLE)/g' \
+	TITLE_ESC=$$(printf '%s' "$(TITLE)" | sed -e 's/[\&|]/\\&/g'); \
+	OUT_FILE=docs/product/PRD-$$PADDED_ID-$$LOWER_SLUG.md; \
+	if [ -f "$$OUT_FILE" ]; then echo "Refusing to overwrite existing file: $$OUT_FILE"; exit 1; fi; \
+	sed -e "s/PRD-000X/PRD-$$PADDED_ID/g" \
+	    -e "s|\[Product Initiative / Feature Requirements\]|$$TITLE_ESC|g" \
+	    -e "s|\[Initiative Name\]|$$TITLE_ESC|g" \
 	    -e "s/YYYY-MM-DD/$$TODAY/g" \
-	    docs/templates/PRD-TEMPLATE.md > docs/product/PRD-$$UPPER_SLUG.md; \
-	echo "Created docs/product/PRD-$$UPPER_SLUG.md"
+	    docs/templates/PRD-TEMPLATE.md > "$$OUT_FILE"; \
+	echo "Created $$OUT_FILE"
 
 ## Scaffold a new Feature Design Spec: make new-design-spec SLUG=checkout-flow TITLE="Checkout Flow"
 new-design-spec:
 	@test -n "$(SLUG)" || (echo "Usage: make new-design-spec SLUG=<slug> TITLE=\"<Title>\"" && exit 1)
+	@test -n "$(TITLE)" || (echo "Usage: make new-design-spec SLUG=<slug> TITLE=\"<Title>\"" && exit 1)
 	@UPPER_SLUG=$$(echo "$(SLUG)" | tr '[:lower:]' '[:upper:]'); \
 	TODAY=$$(date +%Y-%m-%d); \
+	TITLE_ESC=$$(printf '%s' "$(TITLE)" | sed -e 's/[\&|]/\\&/g'); \
+	OUT_FILE=docs/design-specs/$$UPPER_SLUG.md; \
+	if [ -f "$$OUT_FILE" ]; then echo "Refusing to overwrite existing file: $$OUT_FILE"; exit 1; fi; \
 	sed -e "s/SPEC-\[NAME\]/SPEC-$$UPPER_SLUG/g" \
-	    -e 's/\[Feature \/ Subsystem Design Specification\]/$(TITLE)/g' \
-	    -e 's/\[Feature Name\]/$(TITLE)/g' \
+	    -e "s|\[Feature / Subsystem Design Specification\]|$$TITLE_ESC|g" \
+	    -e "s|\[Feature Name\]|$$TITLE_ESC|g" \
 	    -e "s/YYYY-MM-DD/$$TODAY/g" \
-	    docs/templates/DESIGN-SPEC-TEMPLATE.md > docs/design-specs/$$UPPER_SLUG.md; \
-	echo "Created docs/design-specs/$$UPPER_SLUG.md"
+	    docs/templates/DESIGN-SPEC-TEMPLATE.md > "$$OUT_FILE"; \
+	echo "Created $$OUT_FILE"
 
 ## Scaffold a new Epic Handoff document: make new-handoff EPIC_ID=1
 new-handoff:
@@ -116,13 +149,15 @@ new-handoff:
 	EPIC_FOLDER=$$(basename "$$TARGET_DIR"); \
 	EPIC_FILE=$$(ls "$$TARGET_DIR" | grep '^EPIC-' | head -n 1); \
 	TODAY=$$(date +%Y-%m-%d); \
-	sed -e "s/HANDOFF-EPIC-X/HANDOFF-EPIC-$(EPIC_ID)/g" \
+	OUT_FILE=docs/history/handoffs/HANDOFF-EPIC-$(EPIC_ID).md; \
+	if [ -f "$$OUT_FILE" ]; then echo "Refusing to overwrite existing file: $$OUT_FILE"; exit 1; fi; \
+	sed -e "s|epic-X-NAME/EPIC-X-NAME\.md|$$EPIC_FOLDER/$$EPIC_FILE|g" \
+	    -e "s/HANDOFF-EPIC-X/HANDOFF-EPIC-$(EPIC_ID)/g" \
 	    -e "s/EPIC-X/EPIC-$(EPIC_ID)/g" \
 	    -e "s/Epic X/Epic $(EPIC_ID)/g" \
-	    -e "s|epic-X-NAME/EPIC-X-NAME\.md|$$EPIC_FOLDER/$$EPIC_FILE|g" \
 	    -e "s/YYYY-MM-DD/$$TODAY/g" \
-	    docs/templates/HANDOFF-TEMPLATE.md > "docs/history/handoffs/HANDOFF-EPIC-$(EPIC_ID).md"; \
-	echo "Created docs/history/handoffs/HANDOFF-EPIC-$(EPIC_ID).md"
+	    docs/templates/HANDOFF-TEMPLATE.md > "$$OUT_FILE"; \
+	echo "Created $$OUT_FILE"
 
 ## Install GitHub PR template or scaffold PR completion note: make new-pr [OUT=.github/pull_request_template.md]
 new-pr:

@@ -13,7 +13,7 @@ This directory contains canonical starter templates for engineering plans, story
 
 | Template | File Path | When to Use | Output Destination |
 |---|---|---|---|
-| **Product Requirements Document** | [`PRD-TEMPLATE.md`](./PRD-TEMPLATE.md) | Authoring product goals, persona journeys, MVP scope & non-goals | `docs/product/PRD-NAME.md` |
+| **Product Requirements Document** | [`PRD-TEMPLATE.md`](./PRD-TEMPLATE.md) | Authoring product goals, persona journeys, MVP scope & non-goals | `docs/product/PRD-000X-NAME.md` |
 | **Epic Execution Plan** | [`EPIC-TEMPLATE.md`](./EPIC-TEMPLATE.md) | Authoring a new platform initiative or architectural capability | `docs/backlog/epic-X-NAME/EPIC-X-NAME.md` |
 | **Story Specification** | [`STORY-TEMPLATE.md`](./STORY-TEMPLATE.md) | Authoring an independently testable deliverable under an Epic | `docs/backlog/epic-X-NAME/stories/STORY-X.Y-NAME.md` |
 | **Architecture Decision Record** | [`ADR-TEMPLATE.md`](./ADR-TEMPLATE.md) | Documenting a fundamental design trade-off, invariant, or paradigm | `docs/adr/000X-TITLE.md` |
@@ -28,7 +28,7 @@ This directory contains canonical starter templates for engineering plans, story
 ### Option A: Automated via `make` (Recommended)
 ```bash
 # 1. Scaffold a new Product Requirements Document (PRD)
-make new-prd SLUG=member-portal TITLE="Member Portal"
+make new-prd ID=1 SLUG=member-portal TITLE="Member Portal"
 
 # 2. Scaffold a new Epic directory, plan, and stories/ folder
 make new-epic ID=37 SLUG=fleet-mesh TITLE="Fleet Mesh"

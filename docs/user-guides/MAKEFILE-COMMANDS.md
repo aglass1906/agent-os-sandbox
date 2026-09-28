@@ -27,7 +27,7 @@ Rather than creating Markdown files manually by hand, developers and AI coding a
 | `make help` | Discovery | Prints the interactive menu of all available Makefile targets. | *(None)* |
 | `make new-epic` | Scaffolding | Scaffolds an Epic directory, plan, and `stories/` folder. | `ID=<num>`, `SLUG=<slug>`, `TITLE="<Title>"` |
 | `make new-story` | Scaffolding | Scaffolds a Story specification inside its parent Epic. | `EPIC_ID=<num>`, `STORY_NUM=<num>`, `SLUG=<slug>`, `TITLE="<Title>"` |
-| `make new-prd` | Scaffolding | Scaffolds a Product Requirements Document (PRD). | `SLUG=<slug>`, `TITLE="<Title>"` |
+| `make new-prd` | Scaffolding | Scaffolds a Product Requirements Document (PRD). | `ID=<num>`, `SLUG=<slug>`, `TITLE="<Title>"` |
 | `make new-adr` | Scaffolding | Scaffolds an Architecture Decision Record (auto-pads ID to 4 digits). | `ID=<num>`, `SLUG=<slug>`, `TITLE="<Title>"` |
 | `make new-design-spec` | Scaffolding | Scaffolds a Feature UI/UX Design Specification. | `SLUG=<slug>`, `TITLE="<Title>"` |
 | `make new-handoff` | Scaffolding | Scaffolds a multi-commit Epic Implementation Handoff log. | `EPIC_ID=<num>` |
@@ -80,11 +80,12 @@ make new-story EPIC_ID=1 STORY_NUM=1 SLUG=jwt-login TITLE="JWT Login Endpoint"
 Scaffolds a high-level product strategy and MVP scope document under `docs/product/`.
 
 ```bash
-make new-prd SLUG=member-portal TITLE="Member Portal & Billing"
+make new-prd ID=2 SLUG=member-portal TITLE="Member Portal & Billing"
 ```
 
-- **Output File**: `docs/product/PRD-MEMBER-PORTAL.md`
+- **Output File**: `docs/product/PRD-0002-member-portal.md`
 - **Arguments**:
+  - `ID`: Sequential PRD number (next unused number; zero-padded to 4 digits, matching ADR numbering).
   - `SLUG`: Lowercase hyphenated descriptor (e.g. `member-portal`).
   - `TITLE`: Initiative or feature title in quotes.
 

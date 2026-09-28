@@ -634,6 +634,7 @@ a{color:var(--accent);}
       <button class="filt spec-filt" data-filter="all" aria-pressed="true">ALL</button>
       <button class="filt spec-filt" data-filter="living" aria-pressed="false">LIVING</button>
       <button class="filt spec-filt" data-filter="draft" aria-pressed="false">DRAFT</button>
+      <button class="filt spec-filt" data-filter="no-epic" aria-pressed="false">NO EPIC</button>
       <button type="button" class="btn-primary" onclick="openScaffoldModal('design-spec')">＋ New Spec</button>
     </div>
     <div class="doc-list" id="specs-list"></div>
@@ -733,6 +734,13 @@ a{color:var(--accent);}
         <div class="form-group">
           <label class="form-label" for="scaffoldAdrNumInput">Next ADR Number</label>
           <input type="number" id="scaffoldAdrNumInput" class="form-input mono" min="1" oninput="updateScaffoldOutputs()">
+        </div>
+      </div>
+
+      <div class="form-row hidden" id="prdContextRow">
+        <div class="form-group">
+          <label class="form-label" for="scaffoldPrdNumInput">Next PRD Number</label>
+          <input type="number" id="scaffoldPrdNumInput" class="form-input mono" min="1" oninput="updateScaffoldOutputs()">
         </div>
       </div>
 
@@ -860,7 +868,7 @@ function buildEpicRow(p, isChild){
   head.type = "button";
   head.setAttribute("aria-expanded","false");
   const planLinkHtml = p.plan_content ? `<span class="plan-link" title="View plan document">plan &rsaquo;</span>` : "";
-  const designLinkHtml = p.design_spec ? `<span class="design-link" title="View feature design spec: ${p.design_spec.title || 'design'}">design &rsaquo;</span>` : "";
+  const designLinkHtml = (p.design_specs && p.design_specs.length) ? `<span class="design-link" title="View ${p.design_specs.length} associated design spec(s)">design (${p.design_specs.length}) &rsaquo;</span>` : "";
   const adrLinkHtml = (p.adrs && p.adrs.length) ? `<span class="adr-link" title="View ${p.adrs.length} associated ADR(s)">adr (${p.adrs.length}) &rsaquo;</span>` : "";
   const addStoryBtnHtml = `<span role="button" tabindex="0" class="btn-sm-action add-story-btn" title="Scaffold new story under this epic">＋ Story</span>`;
   head.innerHTML = `
@@ -891,7 +899,7 @@ function buildEpicRow(p, isChild){
         relLink: p.plan_rel_link,
         path: p.plan_path,
         content: p.plan_content,
-        designSpec: p.design_spec,
+        designSpecs: p.design_specs,
         adrs: p.adrs,
         epicData: p
       });
@@ -899,20 +907,21 @@ function buildEpicRow(p, isChild){
   }
 
   const designLinkEl = head.querySelector(".design-link");
-  if (designLinkEl && p.design_spec) {
+  if (designLinkEl && p.design_specs && p.design_specs.length > 0) {
     designLinkEl.addEventListener("click", (e) => {
       e.stopPropagation();
+      const firstDs = p.design_specs[0];
       openUniversalDrawer({
         docType: "design-spec",
-        title: p.design_spec.title,
-        badgeText: p.design_spec.id,
-        badgeClass: p.design_spec.status === "living" ? "living" : "draft",
+        title: firstDs.title,
+        badgeText: firstDs.id,
+        badgeClass: firstDs.status === "living" ? "living" : "draft",
         contextName: `Feature Design Specification`,
-        statusLabel: (p.design_spec.status || "DRAFT").toUpperCase(),
-        statusClass: p.design_spec.status === "living" ? "living" : "draft",
-        relLink: p.design_spec.rel_link,
-        path: p.design_spec.path,
-        content: p.design_spec.content,
+        statusLabel: (firstDs.status || "DRAFT").toUpperCase(),
+        statusClass: firstDs.status === "living" ? "living" : "draft",
+        relLink: firstDs.rel_link,
+        path: firstDs.path,
+        content: firstDs.content,
         parentEpic: p
       });
     });
@@ -1178,11 +1187,13 @@ function renderDesignSpecs(){
   const total = DESIGN_SPECS.length;
   const living = DESIGN_SPECS.filter(s => s.status === "living").length;
   const draft = DESIGN_SPECS.filter(s => s.status === "draft").length;
+  const noEpic = DESIGN_SPECS.filter(s => !s.epic_id).length;
 
   specsStatsEl.innerHTML = `
     <div class="stat blue"><div class="n">${total}</div><div class="l">Total Specs</div></div>
     <div class="stat done"><div class="n">${living}</div><div class="l">Living</div></div>
     <div class="stat progress"><div class="n">${draft}</div><div class="l">Draft</div></div>
+    <div class="stat${noEpic > 0 ? " progress" : ""}"><div class="n">${noEpic}</div><div class="l">No Epic</div></div>
     <div class="stat"><div class="n">docs/design-specs</div><div class="l">Repository Directory</div></div>
   `;
 
@@ -1197,9 +1208,13 @@ function renderDesignSpecs(){
     const row = document.createElement("div");
     row.className = "doc-row";
     row.dataset.status = spec.status;
+    row.dataset.hasEpic = spec.epic_id ? "1" : "0";
     row.dataset.search = (spec.id + " " + spec.title + " " + (spec.summary || "") + " " + (spec.category || "") + " " + (spec.surfaces || "")).toLowerCase();
 
     const pillClass = spec.status === "living" ? "living" : "draft";
+    const epicTag = spec.parent_epic
+      ? `<span class="doc-tag" title="Parent Initiative">📋 Epic ${spec.parent_epic.id}</span>`
+      : (spec.epic_id ? `<span class="doc-tag" title="Assigned via epic_id (not yet reciprocally linked from the epic)">📋 Epic ${String(spec.epic_id).replace(/^EPIC-/i, "")}</span>` : "");
 
     row.innerHTML = `
       <div class="doc-row-id">${spec.id}</div>
@@ -1208,7 +1223,7 @@ function renderDesignSpecs(){
         <div class="doc-row-summary">${spec.summary || "No executive summary provided."}</div>
       </div>
       <div class="doc-row-meta">
-        ${spec.parent_epic ? `<span class="doc-tag" title="Parent Initiative">📋 Epic ${spec.parent_epic.id}</span>` : ""}
+        ${epicTag}
         ${spec.category ? `<span class="doc-tag">🎨 ${spec.category}</span>` : ""}
         ${spec.surfaces ? `<span class="doc-tag">${spec.surfaces}</span>` : ""}
         <span class="pill ${pillClass}">${spec.status}</span>
@@ -1241,7 +1256,8 @@ function applySpecFilters(){
   const q = document.getElementById("search-specs").value.trim().toLowerCase();
   let any = false;
   Array.from(specsList.children).forEach(row => {
-    const matchFilter = activeSpecFilter === "all" || row.dataset.status === activeSpecFilter;
+    const matchFilter = activeSpecFilter === "all"
+      || (activeSpecFilter === "no-epic" ? row.dataset.hasEpic === "0" : row.dataset.status === activeSpecFilter);
     const matchSearch = !q || row.dataset.search.includes(q);
     const show = matchFilter && matchSearch;
     row.classList.toggle("hidden", !show);
@@ -1424,10 +1440,10 @@ function openUniversalDrawer(doc){
     let hasAssoc = false;
 
     if (doc.docType === "epic") {
-      const ds = doc.designSpec || (doc.epicData && doc.epicData.design_spec);
+      const dsList = doc.designSpecs || (doc.epicData && doc.epicData.design_specs) || [];
       const adrs = doc.adrs || (doc.epicData && doc.epicData.adrs);
 
-      if (ds || (adrs && adrs.length > 0)) {
+      if ((dsList && dsList.length > 0) || (adrs && adrs.length > 0)) {
         const lbl = document.createElement("span");
         lbl.className = "drawer-assoc-label";
         lbl.textContent = "Associated:";
@@ -1435,28 +1451,30 @@ function openUniversalDrawer(doc){
         hasAssoc = true;
       }
 
-      if (ds) {
-        const btn = document.createElement("button");
-        btn.type = "button";
-        btn.className = "drawer-assoc-btn design";
-        btn.innerHTML = `🎨 Design Spec: ${escapeHtml(ds.title || ds.id)} &rsaquo;`;
-        btn.title = ds.path || "";
-        btn.addEventListener("click", () => {
-          openUniversalDrawer({
-            docType: "design-spec",
-            title: ds.title,
-            badgeText: ds.id,
-            badgeClass: ds.status === "living" ? "living" : "draft",
-            contextName: `Feature Design Specification`,
-            statusLabel: (ds.status || "DRAFT").toUpperCase(),
-            statusClass: ds.status === "living" ? "living" : "draft",
-            relLink: ds.rel_link,
-            path: ds.path,
-            content: ds.content,
-            parentEpic: doc.epicData || doc
+      if (dsList && dsList.length > 0) {
+        dsList.forEach(ds => {
+          const btn = document.createElement("button");
+          btn.type = "button";
+          btn.className = "drawer-assoc-btn design";
+          btn.innerHTML = `🎨 Design Spec: ${escapeHtml(ds.title || ds.id)} &rsaquo;`;
+          btn.title = ds.path || "";
+          btn.addEventListener("click", () => {
+            openUniversalDrawer({
+              docType: "design-spec",
+              title: ds.title,
+              badgeText: ds.id,
+              badgeClass: ds.status === "living" ? "living" : "draft",
+              contextName: `Feature Design Specification`,
+              statusLabel: (ds.status || "DRAFT").toUpperCase(),
+              statusClass: ds.status === "living" ? "living" : "draft",
+              relLink: ds.rel_link,
+              path: ds.path,
+              content: ds.content,
+              parentEpic: doc.epicData || doc
+            });
           });
+          drawerAssociatedBar.appendChild(btn);
         });
-        drawerAssociatedBar.appendChild(btn);
       }
 
       if (adrs && adrs.length > 0) {
@@ -1511,35 +1529,36 @@ function openUniversalDrawer(doc){
           relLink: pe.plan_rel_link,
           path: pe.plan_path,
           content: pe.plan_content,
-          designSpec: pe.design_spec,
+          designSpecs: pe.design_specs,
           adrs: pe.adrs,
           epicData: pe
         });
       });
       drawerAssociatedBar.appendChild(epicBtn);
 
-      if (doc.docType === "adr" && pe.design_spec) {
-        const ds = pe.design_spec;
-        const dsBtn = document.createElement("button");
-        dsBtn.type = "button";
-        dsBtn.className = "drawer-assoc-btn design";
-        dsBtn.innerHTML = `🎨 Design Spec: ${escapeHtml(ds.title || ds.id)} &rsaquo;`;
-        dsBtn.addEventListener("click", () => {
-          openUniversalDrawer({
-            docType: "design-spec",
-            title: ds.title,
-            badgeText: ds.id,
-            badgeClass: ds.status === "living" ? "living" : "draft",
-            contextName: `Feature Design Specification`,
-            statusLabel: (ds.status || "DRAFT").toUpperCase(),
-            statusClass: ds.status === "living" ? "living" : "draft",
-            relLink: ds.rel_link,
-            path: ds.path,
-            content: ds.content,
-            parentEpic: pe
+      if (doc.docType === "adr" && pe.design_specs && pe.design_specs.length > 0) {
+        pe.design_specs.forEach(ds => {
+          const dsBtn = document.createElement("button");
+          dsBtn.type = "button";
+          dsBtn.className = "drawer-assoc-btn design";
+          dsBtn.innerHTML = `🎨 Design Spec: ${escapeHtml(ds.title || ds.id)} &rsaquo;`;
+          dsBtn.addEventListener("click", () => {
+            openUniversalDrawer({
+              docType: "design-spec",
+              title: ds.title,
+              badgeText: ds.id,
+              badgeClass: ds.status === "living" ? "living" : "draft",
+              contextName: `Feature Design Specification`,
+              statusLabel: (ds.status || "DRAFT").toUpperCase(),
+              statusClass: ds.status === "living" ? "living" : "draft",
+              relLink: ds.rel_link,
+              path: ds.path,
+              content: ds.content,
+              parentEpic: pe
+            });
           });
+          drawerAssociatedBar.appendChild(dsBtn);
         });
-        drawerAssociatedBar.appendChild(dsBtn);
       }
 
       if (doc.docType === "design-spec" && pe.adrs && pe.adrs.length > 0) {
@@ -1764,10 +1783,12 @@ const scaffoldTypePills = document.querySelectorAll(".scaffold-pill");
 const storyContextRow = document.getElementById("storyContextRow");
 const epicContextRow = document.getElementById("epicContextRow");
 const adrContextRow = document.getElementById("adrContextRow");
+const prdContextRow = document.getElementById("prdContextRow");
 const scaffoldEpicSelect = document.getElementById("scaffoldEpicSelect");
 const scaffoldStoryNumInput = document.getElementById("scaffoldStoryNumInput");
 const scaffoldEpicIdInput = document.getElementById("scaffoldEpicIdInput");
 const scaffoldAdrNumInput = document.getElementById("scaffoldAdrNumInput");
+const scaffoldPrdNumInput = document.getElementById("scaffoldPrdNumInput");
 const scaffoldTitleInput = document.getElementById("scaffoldTitleInput");
 const scaffoldSlugInput = document.getElementById("scaffoldSlugInput");
 const scaffoldDescInput = document.getElementById("scaffoldDescInput");
@@ -1810,6 +1831,14 @@ function calculateNextStoryNum(epicId) {
 function calculateNextAdrNum() {
   const max = ADRS.reduce((m, a) => {
     const n = parseInt(a.number, 10);
+    return (!isNaN(n) && n > m) ? n : m;
+  }, 0);
+  return max + 1;
+}
+
+function calculateNextPrdNum() {
+  const max = PRDS.reduce((m, p) => {
+    const n = parseInt(p.number, 10);
     return (!isNaN(n) && n > m) ? n : m;
   }, 0);
   return max + 1;
@@ -1869,6 +1898,7 @@ function setScaffoldType(type, targetEpicId) {
   storyContextRow.classList.toggle("hidden", type !== "story");
   epicContextRow.classList.toggle("hidden", type !== "epic");
   adrContextRow.classList.toggle("hidden", type !== "adr");
+  prdContextRow.classList.toggle("hidden", type !== "prd");
 
   const titles = {
     epic: "Scaffold New Epic",
@@ -1895,6 +1925,8 @@ function setScaffoldType(type, targetEpicId) {
     scaffoldStoryNumInput.value = calculateNextStoryNum(selectedEpic);
   } else if (type === "adr") {
     scaffoldAdrNumInput.value = calculateNextAdrNum();
+  } else if (type === "prd") {
+    scaffoldPrdNumInput.value = calculateNextPrdNum();
   }
 
   updateScaffoldOutputs();
@@ -2033,10 +2065,12 @@ ${desc ? `\nContext/Objective:\n${desc}\n` : ''}`;
     }
 
   } else if (activeScaffoldType === "prd") {
-    fileName = `PRD-${upperSlug}.md`;
+    const prdNum = parseInt(scaffoldPrdNumInput.value, 10) || calculateNextPrdNum();
+    const paddedPrdId = String(prdNum).padStart(4, "0");
+    fileName = `PRD-${paddedPrdId}-${slug.toLowerCase()}.md`;
     relPath = `docs/product/${fileName}`;
-    makeCmd = `make new-prd SLUG=${slug} TITLE="${title}"`;
-    promptText = `Please scaffold a new Product Requirements Document for "${title}" following Agent OS governance.
+    makeCmd = `make new-prd ID=${prdNum} SLUG=${slug} TITLE="${title}"`;
+    promptText = `Please scaffold a new Product Requirements Document (PRD ${paddedPrdId}: ${title}) following Agent OS governance.
 
 1. Run the terminal scaffolding command:
    ${makeCmd}
@@ -2051,7 +2085,7 @@ ${desc ? `\nContext/Objective:\n${desc}\n` : ''}`;
     let template = (TEMPLATES && TEMPLATES["PRD-TEMPLATE.md"]) || "";
     if (template) {
       markdownContent = template
-        .replace(/PRD-\[NAME\]/g, `PRD-${upperSlug}`)
+        .replace(/PRD-000X/g, `PRD-${paddedPrdId}`)
         .replace(/\[Product Initiative \/ Feature Requirements\]/g, title)
         .replace(/\[Initiative Name\]/g, title)
         .replace(/YYYY-MM-DD/g, today);

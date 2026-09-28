@@ -1,5 +1,5 @@
 ---
-id: PRD-[NAME]
+id: PRD-000X
 title: "[Product Initiative / Feature Requirements]"
 type: prd
 status: draft # draft | review | approved | implemented | deprecated

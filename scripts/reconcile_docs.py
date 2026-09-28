@@ -173,6 +173,18 @@ def serialize_frontmatter(data: dict[str, any]) -> str:
     return "\n".join(lines)
 
 
+def preserve_extra_frontmatter(new_fm: dict[str, any], orig_fm: dict[str, any]) -> dict[str, any]:
+    """Appends any frontmatter field present in the original file but not already
+    recomputed onto new_fm, in its original order. Each reconcile_*() function only
+    explicitly rebuilds the handful of fields its own template governs; without this,
+    any other field present on the file (a template-declared one like an ADR's
+    `consulted:`, or a legitimate custom field) is silently dropped on --fix."""
+    for k, v in orig_fm.items():
+        if k not in new_fm:
+            new_fm[k] = v
+    return new_fm
+
+
 def get_epic_num_from_str(s: str) -> int | None:
     m = re.search(r"EPIC[-_](\d+)", s, re.IGNORECASE)
     if m:
@@ -212,6 +224,25 @@ def load_status_md_epic_statuses() -> dict[int, str]:
                 status_key = "archived"
             epic_statuses[int(num_str)] = status_key
     return epic_statuses
+
+
+def find_design_specs_missing_readme_row() -> list[str]:
+    """Returns docs/design-specs/*.md filenames with no corresponding link in
+    docs/design-specs/README.md — this repo's own "Mandatory Folder Index
+    Registration" rule (AGENTS.md), automated for this one folder. A simple
+    substring check is sufficient since the README always links a spec by its
+    literal filename (`[`FILENAME.md`](./FILENAME.md)`)."""
+    if not DESIGN_SPECS_DIR.exists():
+        return []
+    readme_path = DESIGN_SPECS_DIR / "README.md"
+    readme_text = readme_path.read_text(encoding="utf-8") if readme_path.exists() else ""
+    missing = []
+    for sf in sorted(DESIGN_SPECS_DIR.glob("*.md")):
+        if sf.name == "README.md":
+            continue
+        if sf.name not in readme_text:
+            missing.append(sf.name)
+    return missing
 
 
 def load_epic_metadata_lookup() -> dict[int, dict[str, any]]:
@@ -379,6 +410,7 @@ def reconcile_story(file_path: Path, epic_lookup: dict[int, dict[str, any]]) -> 
         new_fm["design_spec"] = fm["design_spec"]
     if "adrs" in fm:
         new_fm["adrs"] = fm["adrs"]
+    new_fm = preserve_extra_frontmatter(new_fm, fm)
 
     # Rewrite any legacy docs/roadmap/ links in body
     body = body.replace("docs/roadmap/", "docs/backlog/")
@@ -523,7 +555,7 @@ def reconcile_epic(file_path: Path, stories: list[Path]) -> tuple[str, bool]:
 
     today = datetime.date.today().isoformat()
     created = fm.get("created", today)
-    updated = today
+    updated = fm.get("updated", today)
 
     # Count stories done vs total
     stories_total = len(stories)
@@ -568,6 +600,7 @@ def reconcile_epic(file_path: Path, stories: list[Path]) -> tuple[str, bool]:
     new_fm["surfaces"] = surfaces
     new_fm["stories_total"] = stories_total
     new_fm["stories_done"] = stories_done
+    new_fm = preserve_extra_frontmatter(new_fm, fm)
 
     # Rewrite any legacy docs/roadmap/ links in body
     body = body.replace("docs/roadmap/", "docs/backlog/")
@@ -646,6 +679,14 @@ def reconcile_epic(file_path: Path, stories: list[Path]) -> tuple[str, bool]:
     assembled_body = new_header + "\n\n" + "\n\n---\n\n".join(processed_sections)
     assembled = serialize_frontmatter(new_fm) + "\n\n" + assembled_body.strip() + "\n"
     changed = assembled != orig_content
+
+    # Only bump `updated` to today when something genuinely changed — otherwise
+    # every epic would be reported as drifted on any day after it was last
+    # touched, since `updated` would never match the file's real content.
+    if changed and new_fm["updated"] != today:
+        new_fm["updated"] = today
+        assembled = serialize_frontmatter(new_fm) + "\n\n" + assembled_body.strip() + "\n"
+
     return assembled, changed
 
 
@@ -680,8 +721,8 @@ def reconcile_design_spec(file_path: Path, epic_lookup: dict[int, dict]) -> tupl
     else:
         status = "living"
 
-    created = fm.get("created", "2026-09-27")
-    updated = fm.get("updated", "2026-09-27")
+    created = fm.get("created", datetime.date.today().isoformat())
+    updated = fm.get("updated", datetime.date.today().isoformat())
 
     epic_id = fm.get("epic_id")
     if not epic_id:
@@ -725,6 +766,7 @@ def reconcile_design_spec(file_path: Path, epic_lookup: dict[int, dict]) -> tupl
     if adrs:
         new_fm["adrs"] = adrs
     new_fm["surfaces"] = surfaces
+    new_fm = preserve_extra_frontmatter(new_fm, fm)
 
     # Fix relative links
     body = body.replace("docs/roadmap/", "docs/backlog/")
@@ -759,7 +801,7 @@ def reconcile_design_spec(file_path: Path, epic_lookup: dict[int, dict]) -> tupl
         while idx < len(lines) and (lines[idx].strip().startswith(">") or not lines[idx].strip()):
             line_str = lines[idx].strip()
             if line_str.startswith(">"):
-                is_std = any(k in line_str for k in ("Category:", "Status:", "Index:", "Associated Epic:", "Applies to:", "Date:"))
+                is_std = any(k in line_str.replace("*", "") for k in ("Category:", "Status:", "Index:", "Associated Epic:", "Applies to:", "Date:"))
                 if not is_std:
                     extra_bq_lines.append(line_str)
             idx += 1
@@ -814,7 +856,7 @@ def reconcile_adr(file_path: Path, epic_lookup: dict[int, dict]) -> tuple[str, b
     date_str = fm.get("date") or fm.get("created")
     if not date_str:
         m_dt = re.search(r"\*\*Date:\*\*\s*([0-9\-]+)", body)
-        date_str = m_dt.group(1).strip() if m_dt else "2026-09-27"
+        date_str = m_dt.group(1).strip() if m_dt else datetime.date.today().isoformat()
 
     deciders = fm.get("deciders", [])
     if isinstance(deciders, str):
@@ -842,6 +884,7 @@ def reconcile_adr(file_path: Path, epic_lookup: dict[int, dict]) -> tuple[str, b
     }
     if epic_id:
         new_fm["epic_id"] = epic_id
+    new_fm = preserve_extra_frontmatter(new_fm, fm)
 
     body = body.replace("docs/roadmap/", "docs/backlog/")
     body = body.replace("../roadmap/", "../backlog/")
@@ -864,7 +907,7 @@ def reconcile_adr(file_path: Path, epic_lookup: dict[int, dict]) -> tuple[str, b
         while idx < len(lines) and (lines[idx].strip().startswith(">") or not lines[idx].strip()):
             line_str = lines[idx].strip()
             if line_str.startswith(">"):
-                is_std = any(k in line_str for k in ("Category:", "Status:", "Index:", "Associated Epic:", "Applies to:", "Date:"))
+                is_std = any(k in line_str.replace("*", "") for k in ("Category:", "Status:", "Index:", "Associated Epic:", "Applies to:", "Date:"))
                 if not is_std:
                     extra_bq_lines.append(line_str)
             idx += 1
@@ -889,7 +932,12 @@ def reconcile_prd(file_path: Path) -> tuple[str, bool]:
     fm, body = parse_frontmatter(orig_content)
 
     stem = file_path.stem
-    doc_id = fm.get("id", stem if stem.startswith("PRD-") else f"PRD-{stem}")
+    # Numeric ID derived from the filename (like reconcile_adr()), not echoed
+    # back from frontmatter, so a stale/mismatched id: is actually caught as
+    # drift rather than silently preserved.
+    m_num = re.search(r"^(?:PRD-)?(\d+)", stem, re.IGNORECASE)
+    num_str = m_num.group(1).zfill(4) if m_num else "0000"
+    doc_id = f"PRD-{num_str}"
     title = fm.get("title")
     if not title:
         m = re.search(r"^#\s+(?:Product Requirements Document \(PRD\)\s*[—\-:]\s*|PRD\s*[—\-:]\s*)?(.*?)$", body, re.MULTILINE)
@@ -897,8 +945,8 @@ def reconcile_prd(file_path: Path) -> tuple[str, bool]:
     title = title.strip('"').strip("'")
 
     status = fm.get("status", "approved").lower()
-    created = fm.get("created", "2026-09-27")
-    updated = fm.get("updated", "2026-09-27")
+    created = fm.get("created", datetime.date.today().isoformat())
+    updated = fm.get("updated", datetime.date.today().isoformat())
     owner = fm.get("owner", "Platform Team")
     target_epic = fm.get("target_epic", "docs/backlog/BACKLOG.md")
     if "roadmap" in str(target_epic):
@@ -919,6 +967,7 @@ def reconcile_prd(file_path: Path) -> tuple[str, bool]:
         "target_epic": target_epic,
         "personas": personas,
     }
+    new_fm = preserve_extra_frontmatter(new_fm, fm)
 
     body = body.replace("docs/roadmap/", "docs/backlog/")
     body = body.replace("../roadmap/", "../backlog/")
@@ -933,7 +982,7 @@ def reconcile_prd(file_path: Path) -> tuple[str, bool]:
         while idx < len(lines) and (lines[idx].strip().startswith(">") or not lines[idx].strip()):
             line_str = lines[idx].strip()
             if line_str.startswith(">"):
-                is_std = any(k in line_str for k in ("Category:", "Status:", "Index:", "Target Epic Backlog:", "Owner:"))
+                is_std = any(k in line_str.replace("*", "") for k in ("Category:", "Status:", "Index:", "Target Epic Backlog:", "Owner:"))
                 if not is_std:
                     extra_bq_lines.append(line_str)
             idx += 1
@@ -986,8 +1035,8 @@ def reconcile_handoff(file_path: Path, epic_lookup: dict[int, dict]) -> tuple[st
     else:
         status = "in_progress"
 
-    created = fm.get("created", "2026-09-27")
-    updated = fm.get("updated", "2026-09-27")
+    created = fm.get("created", datetime.date.today().isoformat())
+    updated = fm.get("updated", datetime.date.today().isoformat())
 
     parent_epic = fm.get("parent_epic")
     if not parent_epic and epic_id:
@@ -1010,6 +1059,7 @@ def reconcile_handoff(file_path: Path, epic_lookup: dict[int, dict]) -> tuple[st
     })
     if parent_epic:
         new_fm["parent_epic"] = parent_epic
+    new_fm = preserve_extra_frontmatter(new_fm, fm)
 
     body = body.replace("docs/roadmap/", "docs/backlog/")
     body = body.replace("../roadmap/", "../backlog/")
@@ -1026,7 +1076,7 @@ def reconcile_handoff(file_path: Path, epic_lookup: dict[int, dict]) -> tuple[st
         while idx < len(lines) and (lines[idx].strip().startswith(">") or not lines[idx].strip()):
             line_str = lines[idx].strip()
             if line_str.startswith(">"):
-                is_std = any(k in line_str for k in ("Status:", "Canonical Plan:", "Living Tracker:"))
+                is_std = any(k in line_str.replace("*", "") for k in ("Status:", "Canonical Plan:", "Living Tracker:"))
                 if not is_std:
                     extra_bq_lines.append(line_str)
             idx += 1
@@ -1307,6 +1357,19 @@ def main():
             elif args.fix:
                 hf.write_text(new_content, encoding="utf-8")
                 print(f"  ↳ [RECONCILED] {rel_path}")
+
+    # 7. Design-specs <-> README.md index completeness. Independent of
+    # --target (it always runs) since a missing index row isn't template
+    # drift in a single file's own content -- it's a cross-file omission
+    # nothing else here checks, and the default --target=all wouldn't touch
+    # design specs at all. Never auto-fixable (a real row needs a
+    # human-written summary), so this only ever reports, in every mode.
+    missing_readme_rows = find_design_specs_missing_readme_row()
+    if missing_readme_rows:
+        total_checked += len(missing_readme_rows)
+        drift_count += len(missing_readme_rows)
+        for fname in missing_readme_rows:
+            print(f"[DRIFT DETECTED] docs/design-specs/{fname} — missing a row in docs/design-specs/README.md")
 
     print("\n" + "=" * 80)
     print(f"Summary: Checked {total_checked} files. Found {drift_count} with template drift.")

@@ -89,72 +89,105 @@ sync-docs:
 new-epic:
 	@test -n "$(ID)" || (echo "Usage: make new-epic ID=<num> SLUG=<slug> TITLE=\\"<Title>\\"" && exit 1)
 	@test -n "$(SLUG)" || (echo "Usage: make new-epic ID=<num> SLUG=<slug> TITLE=\\"<Title>\\"" && exit 1)
+	@test -n "$(TITLE)" || (echo "Usage: make new-epic ID=<num> SLUG=<slug> TITLE=\\"<Title>\\"" && exit 1)
+	@echo "$(ID)" | grep -Eq '^[0-9]+$$' || (echo "Error: ID must be a whole number, got '$(ID)'" && exit 1)
+	@echo "$(SLUG)" | grep -Eq '^[a-z0-9]+(-[a-z0-9]+)*$$' || (echo "Error: SLUG must be lowercase letters, numbers, and hyphens only, got '$(SLUG)'" && exit 1)
 	@UPPER_SLUG=$$(echo "$(SLUG)" | tr '[:lower:]' '[:upper:]'); \\
-	mkdir -p docs/backlog/epic-$(ID)-$(SLUG)/stories; \\
+	OUT_DIR=docs/backlog/epic-$(ID)-$(SLUG); \\
+	OUT_FILE=$$OUT_DIR/EPIC-$(ID)-$$UPPER_SLUG.md; \\
+	if [ -f "$$OUT_FILE" ]; then echo "Refusing to overwrite existing file: $$OUT_FILE"; exit 1; fi; \\
+	TITLE_ESC=$$(printf '%s' "$(TITLE)" | sed -e 's/[\\&|]/\\\\&/g'); \\
+	TODAY=$$(date +%Y-%m-%d); \\
+	mkdir -p "$$OUT_DIR/stories"; \\
 	sed -e 's/EPIC-X/EPIC-$(ID)/g' \\
 	    -e 's/Epic X/Epic $(ID)/g' \\
-	    -e 's/\\[Initiative \\/ Capability Title\\]/$(TITLE)/g' \\
-	    docs/templates/EPIC-TEMPLATE.md > docs/backlog/epic-$(ID)-$(SLUG)/EPIC-$(ID)-$$UPPER_SLUG.md; \\
-	echo "Created docs/backlog/epic-$(ID)-$(SLUG)/EPIC-$(ID)-$$UPPER_SLUG.md and stories/ directory."
+	    -e "s|\\[Initiative / Capability Title\\]|$$TITLE_ESC|g" \\
+	    -e "s/YYYY-MM-DD/$$TODAY/g" \\
+	    docs/templates/EPIC-TEMPLATE.md > "$$OUT_FILE"; \\
+	echo "Created $$OUT_FILE and stories/ directory."
 
 ## Scaffold a new Story specification: make new-story EPIC_ID=1 STORY_NUM=1 SLUG=jwt-login TITLE="JWT Login"
 new-story:
 	@test -n "$(EPIC_ID)" || (echo "Usage: make new-story EPIC_ID=<num> STORY_NUM=<subnum> SLUG=<slug> TITLE=\\"<Title>\\"" && exit 1)
 	@test -n "$(STORY_NUM)" || (echo "Usage: make new-story EPIC_ID=<num> STORY_NUM=<subnum> SLUG=<slug> TITLE=\\"<Title>\\"" && exit 1)
 	@test -n "$(SLUG)" || (echo "Usage: make new-story EPIC_ID=<num> STORY_NUM=<subnum> SLUG=<slug> TITLE=\\"<Title>\\"" && exit 1)
+	@test -n "$(TITLE)" || (echo "Usage: make new-story EPIC_ID=<num> STORY_NUM=<subnum> SLUG=<slug> TITLE=\\"<Title>\\"" && exit 1)
+	@echo "$(EPIC_ID)" | grep -Eq '^[0-9]+$$' || (echo "Error: EPIC_ID must be a whole number, got '$(EPIC_ID)'" && exit 1)
+	@echo "$(STORY_NUM)" | grep -Eq '^[0-9]+$$' || (echo "Error: STORY_NUM must be a whole number, got '$(STORY_NUM)'" && exit 1)
+	@echo "$(SLUG)" | grep -Eq '^[a-z0-9]+(-[a-z0-9]+)*$$' || (echo "Error: SLUG must be lowercase letters, numbers, and hyphens only, got '$(SLUG)'" && exit 1)
 	@TARGET_DIR=$$(find docs/backlog -maxdepth 1 -type d -name "epic-$(EPIC_ID)-*" 2>/dev/null | head -n 1); \\
 	if [ -z "$$TARGET_DIR" ]; then TARGET_DIR=$$(find docs/roadmap -maxdepth 1 -type d -name "epic-$(EPIC_ID)-*" 2>/dev/null | head -n 1); fi; \\
 	if [ -z "$$TARGET_DIR" ]; then echo "Epic directory for Epic $(EPIC_ID) not found in docs/backlog/"; exit 1; fi; \\
 	EPIC_FOLDER=$$(basename "$$TARGET_DIR"); \\
 	EPIC_FILE=$$(ls "$$TARGET_DIR" | grep '^EPIC-' | head -n 1); \\
+	EPIC_TITLE=$$(sed -n 's/^title: *"\\(.*\\)"$$/\\1/p' "$$TARGET_DIR/$$EPIC_FILE" | head -n 1); \\
+	EPIC_TITLE_ESC=$$(printf '%s' "$$EPIC_TITLE" | sed -e 's/[\\&|]/\\\\&/g'); \\
+	TITLE_ESC=$$(printf '%s' "$(TITLE)" | sed -e 's/[\\&|]/\\\\&/g'); \\
 	UPPER_SLUG=$$(echo "$(SLUG)" | tr '[:lower:]' '[:upper:]'); \\
-	sed -e 's/STORY-X\\.Y/STORY-$(EPIC_ID).$(STORY_NUM)/g' \\
+	OUT_FILE="$$TARGET_DIR/stories/STORY-$(EPIC_ID).$(STORY_NUM)-$$UPPER_SLUG.md"; \\
+	if [ -f "$$OUT_FILE" ]; then echo "Refusing to overwrite existing file: $$OUT_FILE"; exit 1; fi; \\
+	sed -e "s|epic-X-NAME/EPIC-X-NAME\\.md|$$EPIC_FOLDER/$$EPIC_FILE|g" \\
+	    -e "s|\\.\\./EPIC-X-NAME\\.md|\\.\\./$$EPIC_FILE|g" \\
+	    -e 's/STORY-X\\.Y/STORY-$(EPIC_ID).$(STORY_NUM)/g' \\
 	    -e 's/Story X\\.Y/Story $(EPIC_ID).$(STORY_NUM)/g' \\
 	    -e 's/EPIC-X/EPIC-$(EPIC_ID)/g' \\
 	    -e 's/Epic X/Epic $(EPIC_ID)/g' \\
-	    -e 's/\\[Story Title\\]/$(TITLE)/g' \\
-	    -e "s|epic-X-NAME/EPIC-X-NAME\\.md|$$EPIC_FOLDER/$$EPIC_FILE|g" \\
-	    -e "s|\\.\\./EPIC-X-NAME\\.md|\\.\\./$$EPIC_FILE|g" \\
-	    docs/templates/STORY-TEMPLATE.md > "$$TARGET_DIR/stories/STORY-$(EPIC_ID).$(STORY_NUM)-$$UPPER_SLUG.md"; \\
-	echo "Created $$TARGET_DIR/stories/STORY-$(EPIC_ID).$(STORY_NUM)-$$UPPER_SLUG.md"
+	    -e "s|\\[Epic Title\\]|$$EPIC_TITLE_ESC|g" \\
+	    -e "s|\\[Story Title\\]|$$TITLE_ESC|g" \\
+	    docs/templates/STORY-TEMPLATE.md > "$$OUT_FILE"; \\
+	echo "Created $$OUT_FILE"
 
 ## Scaffold a new Architecture Decision Record: make new-adr ID=1 SLUG=use-postgres TITLE="Use Postgres"
 new-adr:
 	@test -n "$(ID)" || (echo "Usage: make new-adr ID=<num> SLUG=<slug> TITLE=\\"<Title>\\"" && exit 1)
 	@test -n "$(SLUG)" || (echo "Usage: make new-adr ID=<num> SLUG=<slug> TITLE=\\"<Title>\\"" && exit 1)
+	@test -n "$(TITLE)" || (echo "Usage: make new-adr ID=<num> SLUG=<slug> TITLE=\\"<Title>\\"" && exit 1)
 	@PADDED_ID=$$(printf "%04d" $(ID)); \\
 	LOWER_SLUG=$$(echo "$(SLUG)" | tr '[:upper:]' '[:lower:]'); \\
 	TODAY=$$(date +%Y-%m-%d); \\
+	TITLE_ESC=$$(printf '%s' "$(TITLE)" | sed -e 's/[\\&|]/\\\\&/g'); \\
+	OUT_FILE=docs/adr/$$PADDED_ID-$$LOWER_SLUG.md; \\
+	if [ -f "$$OUT_FILE" ]; then echo "Refusing to overwrite existing file: $$OUT_FILE"; exit 1; fi; \\
 	sed -e "s/ADR-000X/ADR-$$PADDED_ID/g" \\
 	    -e "s/ADR 000X/ADR $$PADDED_ID/g" \\
-	    -e 's/\\[Short, Descriptive Title of Decision\\]/$(TITLE)/g' \\
+	    -e "s|\\[Short, Descriptive Title of Decision\\]|$$TITLE_ESC|g" \\
 	    -e "s/YYYY-MM-DD/$$TODAY/g" \\
-	    docs/templates/ADR-TEMPLATE.md > docs/adr/$$PADDED_ID-$$LOWER_SLUG.md; \\
-	echo "Created docs/adr/$$PADDED_ID-$$LOWER_SLUG.md"
+	    docs/templates/ADR-TEMPLATE.md > "$$OUT_FILE"; \\
+	echo "Created $$OUT_FILE"
 
-## Scaffold a new Product Requirements Document: make new-prd SLUG=member-portal TITLE="Member Portal"
+## Scaffold a new Product Requirements Document: make new-prd ID=1 SLUG=member-portal TITLE="Member Portal"
 new-prd:
-	@test -n "$(SLUG)" || (echo "Usage: make new-prd SLUG=<slug> TITLE=\\"<Title>\\"" && exit 1)
-	@UPPER_SLUG=$$(echo "$(SLUG)" | tr '[:lower:]' '[:upper:]'); \\
+	@test -n "$(ID)" || (echo "Usage: make new-prd ID=<num> SLUG=<slug> TITLE=\\"<Title>\\"" && exit 1)
+	@test -n "$(SLUG)" || (echo "Usage: make new-prd ID=<num> SLUG=<slug> TITLE=\\"<Title>\\"" && exit 1)
+	@test -n "$(TITLE)" || (echo "Usage: make new-prd ID=<num> SLUG=<slug> TITLE=\\"<Title>\\"" && exit 1)
+	@PADDED_ID=$$(printf "%04d" $(ID)); \\
+	LOWER_SLUG=$$(echo "$(SLUG)" | tr '[:upper:]' '[:lower:]'); \\
 	TODAY=$$(date +%Y-%m-%d); \\
-	sed -e "s/PRD-\\[NAME\\]/PRD-$$UPPER_SLUG/g" \\
-	    -e 's/\\[Product Initiative \\/ Feature Requirements\\]/$(TITLE)/g' \\
-	    -e 's/\\[Initiative Name\\]/$(TITLE)/g' \\
+	TITLE_ESC=$$(printf '%s' "$(TITLE)" | sed -e 's/[\\&|]/\\\\&/g'); \\
+	OUT_FILE=docs/product/PRD-$$PADDED_ID-$$LOWER_SLUG.md; \\
+	if [ -f "$$OUT_FILE" ]; then echo "Refusing to overwrite existing file: $$OUT_FILE"; exit 1; fi; \\
+	sed -e "s/PRD-000X/PRD-$$PADDED_ID/g" \\
+	    -e "s|\\[Product Initiative / Feature Requirements\\]|$$TITLE_ESC|g" \\
+	    -e "s|\\[Initiative Name\\]|$$TITLE_ESC|g" \\
 	    -e "s/YYYY-MM-DD/$$TODAY/g" \\
-	    docs/templates/PRD-TEMPLATE.md > docs/product/PRD-$$UPPER_SLUG.md; \\
-	echo "Created docs/product/PRD-$$UPPER_SLUG.md"
+	    docs/templates/PRD-TEMPLATE.md > "$$OUT_FILE"; \\
+	echo "Created $$OUT_FILE"
 
 ## Scaffold a new Feature Design Spec: make new-design-spec SLUG=checkout-flow TITLE="Checkout Flow"
 new-design-spec:
 	@test -n "$(SLUG)" || (echo "Usage: make new-design-spec SLUG=<slug> TITLE=\\"<Title>\\"" && exit 1)
+	@test -n "$(TITLE)" || (echo "Usage: make new-design-spec SLUG=<slug> TITLE=\\"<Title>\\"" && exit 1)
 	@UPPER_SLUG=$$(echo "$(SLUG)" | tr '[:lower:]' '[:upper:]'); \\
 	TODAY=$$(date +%Y-%m-%d); \\
+	TITLE_ESC=$$(printf '%s' "$(TITLE)" | sed -e 's/[\\&|]/\\\\&/g'); \\
+	OUT_FILE=docs/design-specs/$$UPPER_SLUG.md; \\
+	if [ -f "$$OUT_FILE" ]; then echo "Refusing to overwrite existing file: $$OUT_FILE"; exit 1; fi; \\
 	sed -e "s/SPEC-\\[NAME\\]/SPEC-$$UPPER_SLUG/g" \\
-	    -e 's/\\[Feature \\/ Subsystem Design Specification\\]/$(TITLE)/g' \\
-	    -e 's/\\[Feature Name\\]/$(TITLE)/g' \\
+	    -e "s|\\[Feature / Subsystem Design Specification\\]|$$TITLE_ESC|g" \\
+	    -e "s|\\[Feature Name\\]|$$TITLE_ESC|g" \\
 	    -e "s/YYYY-MM-DD/$$TODAY/g" \\
-	    docs/templates/DESIGN-SPEC-TEMPLATE.md > docs/design-specs/$$UPPER_SLUG.md; \\
-	echo "Created docs/design-specs/$$UPPER_SLUG.md"
+	    docs/templates/DESIGN-SPEC-TEMPLATE.md > "$$OUT_FILE"; \\
+	echo "Created $$OUT_FILE"
 
 ## Scaffold a new Epic Handoff document: make new-handoff EPIC_ID=1
 new-handoff:
@@ -165,13 +198,15 @@ new-handoff:
 	EPIC_FOLDER=$$(basename "$$TARGET_DIR"); \\
 	EPIC_FILE=$$(ls "$$TARGET_DIR" | grep '^EPIC-' | head -n 1); \\
 	TODAY=$$(date +%Y-%m-%d); \\
-	sed -e "s/HANDOFF-EPIC-X/HANDOFF-EPIC-$(EPIC_ID)/g" \\
+	OUT_FILE=docs/history/handoffs/HANDOFF-EPIC-$(EPIC_ID).md; \\
+	if [ -f "$$OUT_FILE" ]; then echo "Refusing to overwrite existing file: $$OUT_FILE"; exit 1; fi; \\
+	sed -e "s|epic-X-NAME/EPIC-X-NAME\\.md|$$EPIC_FOLDER/$$EPIC_FILE|g" \\
+	    -e "s/HANDOFF-EPIC-X/HANDOFF-EPIC-$(EPIC_ID)/g" \\
 	    -e "s/EPIC-X/EPIC-$(EPIC_ID)/g" \\
 	    -e "s/Epic X/Epic $(EPIC_ID)/g" \\
-	    -e "s|epic-X-NAME/EPIC-X-NAME\\.md|$$EPIC_FOLDER/$$EPIC_FILE|g" \\
 	    -e "s/YYYY-MM-DD/$$TODAY/g" \\
-	    docs/templates/HANDOFF-TEMPLATE.md > "docs/history/handoffs/HANDOFF-EPIC-$(EPIC_ID).md"; \\
-	echo "Created docs/history/handoffs/HANDOFF-EPIC-$(EPIC_ID).md"
+	    docs/templates/HANDOFF-TEMPLATE.md > "$$OUT_FILE"; \\
+	echo "Created $$OUT_FILE"
 
 ## Install GitHub PR template or scaffold PR completion note: make new-pr [OUT=.github/pull_request_template.md]
 new-pr:
@@ -202,7 +237,7 @@ All work decomposition strictly follows this hierarchy:
 
 ## 2. Document Scaffolding via Make
 Always use `make` targets to scaffold new documents:
-* **New PRD**: `make new-prd SLUG=<slug> TITLE="<Title>"`
+* **New PRD**: `make new-prd ID=<num> SLUG=<slug> TITLE="<Title>"`
 * **New Epic**: `make new-epic ID=<num> SLUG=<slug> TITLE="<Title>"`
 * **New Story**: `make new-story EPIC_ID=<num> STORY_NUM=<num> SLUG=<slug> TITLE="<Title>"`
 * **New ADR**: `make new-adr ID=<num> SLUG=<slug> TITLE="<Title>"`
@@ -217,7 +252,7 @@ Always use `make` targets to scaffold new documents:
 ---
 
 ## 3. Directory Placement Rules
-* **Product Requirements (PRDs)**: `docs/product/PRD-NAME.md`
+* **Product Requirements (PRDs)**: `docs/product/PRD-000X-NAME.md`
 * **Backlog & Stories**: `docs/backlog/epic-X-NAME/stories/STORY-X.Y-NAME.md`
 * **Architecture Specifications**: `docs/architecture/XX-NAME.md`
 * **Design Specs**: `docs/design-specs/FEATURE-NAME.md`
@@ -387,7 +422,7 @@ This directory houses Product Requirements Documents (PRDs), MVP specifications,
 
 | Document | Type | Summary | Target Epic | Status |
 |---|---|---|---|---|
-| *(No PRDs recorded yet. Scaffold your first with `make new-prd SLUG=name TITLE="Feature Name"`)* | | | | |
+| *(No PRDs recorded yet. Scaffold your first with `make new-prd ID=1 SLUG=name TITLE="Feature Name"`)* | | | | |
 """
 
 BACKLOG_README_TEMPLATE = """# Master Backlog & Epic Execution Plans (`docs/backlog/`)
@@ -960,6 +995,47 @@ def get_github_auth_token() -> str | None:
     return None
 
 
+def _parse_makefile_stanzas(snippet_text: str) -> dict[str, str]:
+    """Splits MAKEFILE_SNIPPET into {target_name: full_stanza} (comment header + target + recipe)."""
+    stanzas: dict[str, str] = {}
+    for part in re.split(r"\n\n(?=## )", snippet_text.strip("\n")):
+        m = re.search(r"^([a-zA-Z0-9_-]+):", part, re.MULTILINE)
+        if m:
+            stanzas[m.group(1)] = part.rstrip("\n")
+    return stanzas
+
+
+def _extract_target_body(text: str, target_name: str) -> str | None:
+    """Extracts '<name>:\\n<tab-indented recipe lines>' from a stanza or a full Makefile's text."""
+    pattern = re.compile(r"^" + re.escape(target_name) + r":\n(?:\t[^\n]*\n?)*", re.MULTILINE)
+    m = pattern.search(text)
+    return m.group(0).rstrip("\n") if m else None
+
+
+def sync_makefile_targets(mf_content: str) -> tuple[str, int, int]:
+    """Ensures every governance target in MAKEFILE_SNIPPET has a matching, up-to-date recipe
+    body in the given Makefile content — appending any target missing entirely, and replacing
+    the recipe body (not the target's own preceding comment) of any target whose body has
+    drifted from the canonical one. Returns (new_content, replaced_count, appended_count)."""
+    stanzas = _parse_makefile_stanzas(MAKEFILE_SNIPPET)
+    replaced = 0
+    appended_stanzas: list[str] = []
+    for name, stanza in stanzas.items():
+        canonical_body = _extract_target_body(stanza, name)
+        if canonical_body is None:
+            continue
+        existing_body = _extract_target_body(mf_content, name)
+        if existing_body is None:
+            appended_stanzas.append(stanza)
+        elif existing_body != canonical_body:
+            pattern = re.compile(r"^" + re.escape(name) + r":\n(?:\t[^\n]*\n?)*", re.MULTILINE)
+            mf_content = pattern.sub(lambda m, b=canonical_body: b + "\n", mf_content, count=1)
+            replaced += 1
+    if appended_stanzas:
+        mf_content = mf_content.rstrip() + "\n\n" + "\n\n".join(appended_stanzas) + "\n"
+    return mf_content, replaced, len(appended_stanzas)
+
+
 def update_governance(
     target: Path,
     remote: str = "aglass1906/agent-os",
@@ -1118,38 +1194,25 @@ def update_governance(
                 os.environ["_AGENTOS_POST_UPDATE_ONLY"] = "1"
                 os.execv(sys.executable, [sys.executable] + sys.argv)
 
-    # Ensure target Makefile has latest governance targets
+    # Ensure target Makefile has every governance-owned target (all `new-*`, lint-docs,
+    # diff-docs, sync-docs, dashboard, sync-status, update-governance) with an up-to-date
+    # recipe body — not just the 4 targets this used to check for bare presence, and not
+    # just "missing entirely": a target whose body has drifted from the canonical one
+    # (e.g. because it predates a scaffold bug fix) is repaired in place too.
     makefile_path = target / "Makefile"
     if makefile_path.exists():
         mf_content = makefile_path.read_text(encoding="utf-8")
-        missing_targets = []
-        if "update-governance:" not in mf_content:
-            missing_targets.append("""
-## Pull latest governance scripts and templates from GitHub and rebuild dashboard.
-update-governance:
-	python3 scripts/bootstrap_governance.py --update
-""")
-        if "lint-docs:" not in mf_content:
-            missing_targets.append("""
-## Audit backlog and epic documentation against canonical templates: make lint-docs [EPIC=30] [STATUS=in_progress] [TARGET=stories]
-lint-docs:
-	python3 scripts/reconcile_docs.py --check $(if $(STATUS),--status $(STATUS),) $(if $(EPIC),--epic $(EPIC),) $(if $(EPICS),--epics $(EPICS),) $(if $(TARGET),--target $(TARGET),)
-""")
-        if "diff-docs:" not in mf_content:
-            missing_targets.append("""
-## Preview diff of proposed template reconciliation without touching disk: make diff-docs [EPIC=30] [STATUS=in_progress]
-diff-docs:
-	python3 scripts/reconcile_docs.py --dry-run $(if $(STATUS),--status $(STATUS),) $(if $(EPIC),--epic $(EPIC),) $(if $(EPICS),--epics $(EPICS),) $(if $(TARGET),--target $(TARGET),)
-""")
-        if "sync-docs:" not in mf_content:
-            missing_targets.append("""
-## Reconcile backlog and epic documentation to match canonical templates: make sync-docs [EPIC=30] [STATUS=in_progress,planned]
-sync-docs:
-	python3 scripts/reconcile_docs.py --fix $(if $(STATUS),--status $(STATUS),) $(if $(EPIC),--epic $(EPIC),) $(if $(EPICS),--epics $(EPICS),) $(if $(TARGET),--target $(TARGET),)
-""")
-        if missing_targets:
-            makefile_path.write_text(mf_content.rstrip() + "\n" + "".join(missing_targets), encoding="utf-8")
-            print_step(f"Appended {len(missing_targets)} missing governance targets to Makefile")
+        new_content, replaced, appended = sync_makefile_targets(mf_content)
+        if replaced or appended:
+            makefile_path.write_text(new_content, encoding="utf-8")
+            parts = []
+            if appended:
+                parts.append(f"appended {appended} missing target(s)")
+            if replaced:
+                parts.append(f"repaired {replaced} stale target body/bodies")
+            print_step(f"Makefile governance targets: {', '.join(parts)}.")
+        else:
+            print_info("Makefile governance targets already up to date.")
 
     # Run dashboard generator in target
     generator_script = target / "scripts" / "generate_status_dashboard.py"
