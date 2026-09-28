@@ -967,134 +967,156 @@ def update_governance(
     source: Path | None = None,
 ) -> None:
     target = target.resolve()
-    print_step(f"Updating governance tooling in: {target}")
-
-    files_to_sync = list(CANONICAL_GOVERNANCE_FILES)
-
-    if source:
-        source = source.resolve()
-        print_info(f"Source: Local directory ({source})")
-        src_bootstrap = source / "scripts" / "bootstrap_governance.py"
-        if src_bootstrap.exists():
-            for rf in extract_canonical_files(src_bootstrap.read_text(encoding="utf-8")):
-                if rf not in files_to_sync:
-                    files_to_sync.append(rf)
-        for rel_str in files_to_sync:
-            src_file = source / rel_str
-            dst_file = target / rel_str
-            if src_file.exists():
-                dst_file.parent.mkdir(parents=True, exist_ok=True)
-                shutil.copy2(src_file, dst_file)
-                print_info(f"✓ Copied {rel_str}")
-            else:
-                print_info(f"⚠ Warning: {rel_str} not found in local source {source}")
+    if os.environ.get("_AGENTOS_POST_UPDATE_ONLY"):
+        print_step(f"Applying post-update configuration in: {target}")
     else:
-        print_info(f"Source: GitHub (https://github.com/{remote}/tree/{branch})")
-        import urllib.error
-        import urllib.request
+        print_step(f"Updating governance tooling in: {target}")
 
-        base_url = f"https://raw.githubusercontent.com/{remote}/{branch}/"
-        headers = {"User-Agent": "agent-os-bootstrap/1.0"}
-        token = get_github_auth_token()
-        if token:
-            headers["Authorization"] = f"token {token}"
+        files_to_sync = list(CANONICAL_GOVERNANCE_FILES)
 
-        # Resolve latest commit SHA to bypass 5-minute CDN branch caching on raw.githubusercontent.com
-        target_ref = branch
-        try:
-            sha_url = f"https://api.github.com/repos/{remote}/commits/{branch}"
-            sha_req = urllib.request.Request(
-                sha_url,
-                headers={**headers, "Accept": "application/vnd.github.sha"},
-            )
-            with urllib.request.urlopen(sha_req, timeout=5) as resp:
-                if resp.status == 200:
-                    sha_text = resp.read().decode("utf-8").strip()
-                    if len(sha_text) == 40:
-                        target_ref = sha_text
-                        print_info(f"Latest commit: {target_ref[:7]}")
-        except Exception:
-            pass
+        if source:
+            source = source.resolve()
+            print_info(f"Source: Local directory ({source})")
+            src_bootstrap = source / "scripts" / "bootstrap_governance.py"
+            if src_bootstrap.exists():
+                for rf in extract_canonical_files(src_bootstrap.read_text(encoding="utf-8")):
+                    if rf not in files_to_sync:
+                        files_to_sync.append(rf)
+            for rel_str in files_to_sync:
+                src_file = source / rel_str
+                dst_file = target / rel_str
+                if src_file.exists():
+                    dst_file.parent.mkdir(parents=True, exist_ok=True)
+                    shutil.copy2(src_file, dst_file)
+                    print_info(f"✓ Copied {rel_str}")
+                else:
+                    print_info(f"⚠ Warning: {rel_str} not found in local source {source}")
+        else:
+            print_info(f"Source: GitHub (https://github.com/{remote}/tree/{branch})")
+            import urllib.error
+            import urllib.request
 
-        base_url = f"https://raw.githubusercontent.com/{remote}/{target_ref}/"
+            base_url = f"https://raw.githubusercontent.com/{remote}/{branch}/"
+            headers = {"User-Agent": "agent-os-bootstrap/1.0"}
+            token = get_github_auth_token()
+            if token:
+                headers["Authorization"] = f"token {token}"
 
-        self_updated = False
-        updated_count = 0
-        idx = 0
-        while idx < len(files_to_sync):
-            rel_str = files_to_sync[idx]
-            idx += 1
-            file_url = base_url + rel_str
-            dst_file = target / rel_str
-            dst_file.parent.mkdir(parents=True, exist_ok=True)
-            req = urllib.request.Request(file_url, headers=headers)
+            # Resolve latest commit SHA to bypass 5-minute CDN branch caching on raw.githubusercontent.com
+            target_ref = branch
             try:
-                with urllib.request.urlopen(req, timeout=15) as resp:
+                sha_url = f"https://api.github.com/repos/{remote}/commits/{branch}"
+                sha_req = urllib.request.Request(
+                    sha_url,
+                    headers={**headers, "Accept": "application/vnd.github.sha"},
+                )
+                with urllib.request.urlopen(sha_req, timeout=5) as resp:
                     if resp.status == 200:
-                        content = resp.read()
-                        dst_file.write_bytes(content)
-                        if rel_str.endswith(".py"):
-                            st = dst_file.stat()
-                            dst_file.chmod(st.st_mode | 0o111)
-                        print_info(f"✓ Updated {rel_str}")
-                        updated_count += 1
+                        sha_text = resp.read().decode("utf-8").strip()
+                        if len(sha_text) == 40:
+                            target_ref = sha_text
+                            print_info(f"Latest commit: {target_ref[:7]}")
+            except Exception:
+                pass
 
-                        # Dynamically discover any newly added canonical files from the latest bootstrap script
-                        if rel_str == "scripts/bootstrap_governance.py":
-                            self_updated = True
-                            try:
-                                remote_files = extract_canonical_files(content.decode("utf-8"))
-                                for rf in remote_files:
-                                    if rf not in files_to_sync:
-                                        files_to_sync.append(rf)
-                            except Exception:
-                                pass
-                    else:
-                        print_info(f"⚠ Failed to download {rel_str}: HTTP {resp.status}")
-            except Exception as e:
-                print_info(f"⚠ Error downloading {rel_str}: {e}")
+            base_url = f"https://raw.githubusercontent.com/{remote}/{target_ref}/"
 
-        # If HTTP download failed (e.g. auth issue on private repo), fallback to git shallow clone
-        if updated_count < len(files_to_sync):
-            print_info("Attempting ephemeral git clone fallback...")
-            import tempfile
-            with tempfile.TemporaryDirectory(prefix="agentos-gov-sync-") as tmpdir:
-                clean_env = os.environ.copy()
-                clean_env.pop("GH_TOKEN", None)
-                repo_url = f"https://github.com/{remote}.git"
+            self_updated = False
+            updated_count = 0
+            downloaded_count = 0
+            idx = 0
+            while idx < len(files_to_sync):
+                rel_str = files_to_sync[idx]
+                idx += 1
+                file_url = base_url + rel_str
+                dst_file = target / rel_str
+                dst_file.parent.mkdir(parents=True, exist_ok=True)
+                req = urllib.request.Request(file_url, headers=headers)
                 try:
-                    subprocess.run(
-                        ["git", "clone", "--depth", "1", "--branch", branch, repo_url, tmpdir],
-                        env=clean_env,
-                        check=True,
-                        stdout=subprocess.DEVNULL,
-                        stderr=subprocess.DEVNULL,
-                    )
-                    tmp_path = Path(tmpdir)
-                    clone_bootstrap = tmp_path / "scripts" / "bootstrap_governance.py"
-                    if clone_bootstrap.exists():
-                        for rf in extract_canonical_files(clone_bootstrap.read_text(encoding="utf-8")):
-                            if rf not in files_to_sync:
-                                files_to_sync.append(rf)
-                    for rel_str in files_to_sync:
-                        src_file = tmp_path / rel_str
-                        dst_file = target / rel_str
-                        if src_file.exists():
-                            dst_file.parent.mkdir(parents=True, exist_ok=True)
-                            shutil.copy2(src_file, dst_file)
-                            if rel_str.endswith(".py"):
-                                st = dst_file.stat()
-                                dst_file.chmod(st.st_mode | 0o111)
-                            print_info(f"✓ Synced {rel_str} via git")
-                            updated_count += 1
-                except Exception as e:
-                    print_info(f"⚠ Git fallback error: {e}")
-        print_step(f"Refreshed {updated_count}/{len(files_to_sync)} canonical files from GitHub.")
+                    with urllib.request.urlopen(req, timeout=15) as resp:
+                        if resp.status == 200:
+                            content = resp.read()
+                            downloaded_count += 1
+                            existing_content = dst_file.read_bytes() if dst_file.exists() else None
+                            if existing_content != content:
+                                dst_file.write_bytes(content)
+                                if rel_str.endswith(".py"):
+                                    st = dst_file.stat()
+                                    dst_file.chmod(st.st_mode | 0o111)
+                                print_info(f"✓ Updated {rel_str}")
+                                if rel_str == "scripts/bootstrap_governance.py":
+                                    self_updated = True
+                                updated_count += 1
+                            else:
+                                print_info(f"✓ {rel_str} (up to date)")
 
-        # If bootstrap_governance.py was updated and hasn't re-executed yet, reload so new post-sync logic runs immediately
-        if self_updated and not os.environ.get("_AGENTOS_BOOTSTRAP_REEXEC"):
-            os.environ["_AGENTOS_BOOTSTRAP_REEXEC"] = "1"
-            os.execv(sys.executable, [sys.executable] + sys.argv)
+                            # Dynamically discover any newly added canonical files from the latest bootstrap script
+                            if rel_str == "scripts/bootstrap_governance.py":
+                                try:
+                                    remote_files = extract_canonical_files(content.decode("utf-8"))
+                                    for rf in remote_files:
+                                        if rf not in files_to_sync:
+                                            files_to_sync.append(rf)
+                                except Exception:
+                                    pass
+                        else:
+                            print_info(f"⚠ Failed to download {rel_str}: HTTP {resp.status}")
+                except Exception as e:
+                    print_info(f"⚠ Error downloading {rel_str}: {e}")
+
+            # If HTTP download failed (e.g. auth issue on private repo), fallback to git shallow clone
+            if downloaded_count < len(files_to_sync):
+                print_info("Attempting ephemeral git clone fallback...")
+                import tempfile
+                with tempfile.TemporaryDirectory(prefix="agentos-gov-sync-") as tmpdir:
+                    clean_env = os.environ.copy()
+                    clean_env.pop("GH_TOKEN", None)
+                    repo_url = f"https://github.com/{remote}.git"
+                    try:
+                        subprocess.run(
+                            ["git", "clone", "--depth", "1", "--branch", branch, repo_url, tmpdir],
+                            env=clean_env,
+                            check=True,
+                            stdout=subprocess.DEVNULL,
+                            stderr=subprocess.DEVNULL,
+                        )
+                        tmp_path = Path(tmpdir)
+                        clone_bootstrap = tmp_path / "scripts" / "bootstrap_governance.py"
+                        if clone_bootstrap.exists():
+                            for rf in extract_canonical_files(clone_bootstrap.read_text(encoding="utf-8")):
+                                if rf not in files_to_sync:
+                                    files_to_sync.append(rf)
+                        for rel_str in files_to_sync:
+                            src_file = tmp_path / rel_str
+                            dst_file = target / rel_str
+                            if src_file.exists():
+                                existing_content = dst_file.read_bytes() if dst_file.exists() else None
+                                new_content = src_file.read_bytes()
+                                if existing_content != new_content:
+                                    dst_file.parent.mkdir(parents=True, exist_ok=True)
+                                    shutil.copy2(src_file, dst_file)
+                                    if rel_str.endswith(".py"):
+                                        st = dst_file.stat()
+                                        dst_file.chmod(st.st_mode | 0o111)
+                                    print_info(f"✓ Synced {rel_str} via git")
+                                    if rel_str == "scripts/bootstrap_governance.py":
+                                        self_updated = True
+                                    updated_count += 1
+                                else:
+                                    print_info(f"✓ {rel_str} (up to date)")
+                    except Exception as e:
+                        print_info(f"⚠ Git fallback error: {e}")
+
+            if updated_count > 0:
+                print_step(f"Refreshed {updated_count} updated file(s) from GitHub.")
+            else:
+                print_step(f"All {len(files_to_sync)} canonical governance files are already up to date.")
+
+            # If bootstrap_governance.py was updated and hasn't re-executed yet, reload so new post-sync logic runs immediately
+            if self_updated and not os.environ.get("_AGENTOS_BOOTSTRAP_REEXEC"):
+                os.environ["_AGENTOS_BOOTSTRAP_REEXEC"] = "1"
+                os.environ["_AGENTOS_POST_UPDATE_ONLY"] = "1"
+                os.execv(sys.executable, [sys.executable] + sys.argv)
 
     # Ensure target Makefile has latest governance targets
     makefile_path = target / "Makefile"
